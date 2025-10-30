@@ -29,7 +29,7 @@ CREATE INDEX idx_production_country_year ON Production(country_code, year);
 CREATE INDEX idx_production_commodity_year ON Production(commodity_code, year);
 
 -- Producer_Prices table
-CREATE TABLE Producer_Prices (
+CREATE TABLE Production_Value (
     production_value_ID SERIAL PRIMARY KEY,
     production_ID INTEGER NOT NULL,
     element VARCHAR(56),
