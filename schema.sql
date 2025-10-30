@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 CREATE TABLE Countries (
     country_id INTEGER PRIMARY KEY,
     population BIGINT,
@@ -35,3 +36,23 @@ CREATE TABLE Trade_Flows (
 CREATE INDEX idx_trade_flows_exporter_year ON Trade_Flows(reporter_country, year);
 CREATE INDEX idx_trade_flows_importer_year ON Trade_Flows(partner_country, year);
 CREATE INDEX idx_trade_flows_commodity_year ON Trade_Flows(trade_item, year);
+=======
+-- Land_Use table
+CREATE TABLE Land_Use (
+    unique_id SERIAL PRIMARY KEY,
+    country_name INTEGER REFERENCES Countries(country_id) NOT NULL,
+    land_type VARCHAR(100),
+    unit VARCHAR(50),
+    land_usage_value INTEGER,
+    year INTEGER
+);
+-- investments table
+CREATE TABLE Investments (
+    unique_id SERIAL PRIMARY KEY,
+    country_name INTEGER REFERENCES Countries(country_id) NOT NULL,
+    year INTEGER,
+    unit VARCHAR(50),
+    expenditure_value INTEGER,
+    expenditure_type VARCHAR(100)
+);
+>>>>>>> 81239a213539ee3780a7bd556b1226c49dfae5d7
