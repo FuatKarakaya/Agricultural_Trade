@@ -8,6 +8,40 @@ CREATE TABLE Countries (
 );
 CREATE INDEX idx_countries_region ON Countries(region);
 
+-- Production table
+CREATE TABLE Production (
+    production_ID SERIAL PRIMARY KEY,
+    country_code INTEGER NOT NULL,
+    commodity_code INTEGER NOT NULL,
+    item_name VARCHAR(128) NOT NULL,
+    year INTEGER NOT NULL,
+    unit varchar(7),
+    quantity DECIMAL(12, 3),
+    
+    FOREIGN KEY (country_code) REFERENCES Countries(country_code) 
+        ON DELETE CASCADE,
+    FOREIGN KEY (commodity_code) REFERENCES Commodities(commodity_code) 
+        ON DELETE CASCADE,
+    
+    UNIQUE(country_code, commodity_code, year)
+);
+CREATE INDEX idx_production_country_year ON Production(country_code, year);
+CREATE INDEX idx_production_commodity_year ON Production(commodity_code, year);
+
+-- Producer_Prices table
+CREATE TABLE Production_Value (
+    production_value_ID SERIAL PRIMARY KEY,
+    production_ID INTEGER NOT NULL,
+    element VARCHAR(56),
+    year INTEGER NOT NULL,
+    unit VARCHAR(9),
+    value DECIMAL(15, 3),
+    
+    FOREIGN KEY (production_ID) REFERENCES Production(production_ID) 
+        ON DELETE CASCADE,
+
+);
+
 
 -- Trade_Flows table
 CREATE TABLE Trade_Flows (
