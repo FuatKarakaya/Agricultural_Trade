@@ -18,9 +18,9 @@ CREATE TABLE Production (
     unit varchar(7),
     quantity DECIMAL(12, 3),
     
-    FOREIGN KEY (country_code) REFERENCES Countries(country_code) 
+    FOREIGN KEY (country_code) REFERENCES Countries(country_id) 
         ON DELETE CASCADE,
-    FOREIGN KEY (commodity_code) REFERENCES Commodities(commodity_code) 
+    FOREIGN KEY (commodity_code) REFERENCES Commodities(fao_code) 
         ON DELETE CASCADE,
     
     UNIQUE(country_code, commodity_code, year)
@@ -28,7 +28,7 @@ CREATE TABLE Production (
 CREATE INDEX idx_production_country_year ON Production(country_code, year);
 CREATE INDEX idx_production_commodity_year ON Production(commodity_code, year);
 
--- Producer_Prices table
+-- Production_Value table
 CREATE TABLE Production_Value (
     production_value_ID SERIAL PRIMARY KEY,
     production_ID INTEGER NOT NULL,
@@ -89,4 +89,38 @@ CREATE TABLE Investments (
     expenditure_value INTEGER NOT NULL CHECK (expenditure_value >= 0),
     expenditure_type VARCHAR(100) NOT NULL,
     UNIQUE (country_name, year, expenditure_type)
+);
+
+CREATE TABLE Commodities (
+    fao_code INTEGER PRIMARY KEY,
+    item_name VARCHAR(256) NOT NULL UNIQUE,
+    cpc_code INTEGER,
+    item_group_name (256),
+);
+
+CREATE TABLE Producer_Prices (
+    unique_id SERIAL PRIMARY KEY,
+    country_id INTEGER,
+    commodity_id INTEGER,
+    price_unit VARCHAR(20),
+    year INTEGER,
+    month INTEGER,
+    value FLOAT,
+    
+    FOREIGN KEY (country_id) REFERENCES countries(country_id),
+    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code),
+    UNIQUE(country_id, commodity_id, year, month)
+);
+
+CREATE TABLE Consumer_Prices (
+    unique_id SERIAL PRIMARY KEY,
+    country_id INTEGER,
+    commodity_id INTEGER,
+    year INTEGER,
+    month INTEGER,
+    value FLOAT,
+
+    FOREIGN KEY (country_id) REFERENCES countries(country_id),
+    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code),
+    UNIQUE(country_id, commodity_id, year, month)
 );
