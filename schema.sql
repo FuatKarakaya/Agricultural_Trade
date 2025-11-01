@@ -104,7 +104,7 @@ CREATE TABLE Producer_Prices (
     commodity_id INTEGER,
     price_unit VARCHAR(20),
     year INTEGER,
-    month INTEGER,
+    month SMALLINT,
     value FLOAT,
     
     FOREIGN KEY (country_id) REFERENCES countries(country_id),
@@ -117,7 +117,7 @@ CREATE TABLE Consumer_Prices (
     country_id INTEGER,
     commodity_id INTEGER,
     year INTEGER,
-    month INTEGER,
+    month SMALLINT,
     value FLOAT,
 
     FOREIGN KEY (country_id) REFERENCES countries(country_id),
