@@ -76,7 +76,9 @@ CREATE TABLE Land_Use (
     land_type VARCHAR(100) NOT NULL,
     unit VARCHAR(50) NOT NULL,
     land_usage_value INTEGER NOT NULL CHECK (land_usage_value >= 0),
-    year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100)
+    year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
+    UNIQUE (country_name, year, land_type)
+
 );
 -- investments table
 CREATE TABLE Investments (
@@ -85,5 +87,6 @@ CREATE TABLE Investments (
     year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
     unit VARCHAR(50) NOT NULL,
     expenditure_value INTEGER NOT NULL CHECK (expenditure_value >= 0),
-    expenditure_type VARCHAR(100) NOT NULL
+    expenditure_type VARCHAR(100) NOT NULL,
+    UNIQUE (country_name, year, expenditure_type)
 );
