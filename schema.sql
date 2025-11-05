@@ -107,8 +107,8 @@ CREATE TABLE Producer_Prices (
     month SMALLINT,
     value FLOAT,
     
-    FOREIGN KEY (country_id) REFERENCES countries(country_id),
-    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code),
+    FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
     UNIQUE(country_id, commodity_id, year, month)
 );
 
@@ -120,7 +120,7 @@ CREATE TABLE Consumer_Prices (
     month SMALLINT,
     value FLOAT,
 
-    FOREIGN KEY (country_id) REFERENCES countries(country_id),
-    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code),
+    FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
     UNIQUE(country_id, commodity_id, year, month)
 );
