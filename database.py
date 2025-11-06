@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-
 def get_db_connection():
     """
     Establishes a connection to the PostgreSQL database
@@ -17,9 +15,6 @@ def get_db_connection():
         raise ValueError("DATABASE_URL environment variable is not set!")
     conn = psycopg2.connect(db_url)
     return conn
-
-
-
 
 def execute_query(query, params=()):
     conn = None
@@ -37,7 +32,6 @@ def execute_query(query, params=()):
             f.write("\n")
             f.write(f"{query}")
 
-
         # Get the number of rows affected
         rowcount = cursor.rowcount
         cursor.close()
@@ -52,7 +46,6 @@ def execute_query(query, params=()):
             conn.close()
 
 def test_connection():
-
     try:
         conn = get_db_connection()
         conn.close()

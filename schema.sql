@@ -99,7 +99,6 @@ CREATE TABLE Investments (
 );
 
 
-
 CREATE TABLE Producer_Prices (
     unique_id SERIAL PRIMARY KEY,
     country_id INTEGER,

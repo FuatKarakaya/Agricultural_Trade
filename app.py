@@ -11,9 +11,10 @@ load_dotenv()
 from routes import (
     # main_bp,
     country_bp,
-    # commodity_bp,
+    consumer_price_bp,
+    producer_price_bp,
+    commodity_bp,
     trade_bp,
-    # prices_bp,
     # landuse_bp,
     prod_bp,
     prod_val_bp,
@@ -23,9 +24,10 @@ app = Flask(__name__)
 
 #app.register_blueprint(main_bp)
 app.register_blueprint(country_bp)
-#app.register_blueprint(commodity_bp)
+app.register_blueprint(commodity_bp)
+app.register_blueprint(consumer_price_bp)
+app.register_blueprint(producer_price_bp)
 app.register_blueprint(trade_bp)
-#app.register_blueprint(prices_bp)
 #app.register_blueprint(landuse_bp)
 app.register_blueprint(prod_bp)
 app.register_blueprint(prod_val_bp)
