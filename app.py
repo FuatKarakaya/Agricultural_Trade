@@ -14,7 +14,7 @@ from routes import (
     # commodity_bp,
     trade_bp,
     # prices_bp,
-    # landuse_bp,
+    landuse_bp,
     prod_bp,
     prod_val_bp,
 )
@@ -26,7 +26,7 @@ app.register_blueprint(country_bp)
 #app.register_blueprint(commodity_bp)
 app.register_blueprint(trade_bp)
 #app.register_blueprint(prices_bp)
-#app.register_blueprint(landuse_bp)
+app.register_blueprint(landuse_bp)
 app.register_blueprint(prod_bp)
 app.register_blueprint(prod_val_bp)
 
