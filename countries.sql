@@ -1,17 +1,3 @@
-
-SELECT * FROM countries;
-SELECT * FROM Countries;
-SELECT * FROM Countries;
-SELECT * FROM Countries;
-SELECT * FROM Countries;
-SELECT * FROM Countries;
-SELECT * FROM Commodities;
-SELECT * FROM Countries;
-SELECT * FROM Countries LIMIT 10;
-SELECT * FROM Countries LIMIT 10;
-SELECT * FROM Countries LIMIT 10;
-SELECT * FROM Countries;
-SELECT * FROM Countries;
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (554, 'New Zealand', 'Oceania', 5324700, 268838);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (96, 'Brunei', 'Asia', 455500, 5765);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (86, 'British Indian Ocean Territory', 'Africa', NULL, 60);
@@ -25,7 +11,7 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (659, 'Saint Kitts and Nevis', 'Americas', 51320, 261);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (728, 'South Sudan', 'Africa', 15786898, 619745);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (804, 'Ukraine', 'Europe', 32862000, 603550);
-INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (652, 'Saint Barth�lemy', 'Americas', 10562, 21);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (652, 'Saint Barthélemy', 'Americas', 10562, 21);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (528, 'Netherlands', 'Europe', 18100436, 41865);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (834, 'Tanzania', 'Africa', 68153004, 947303);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (203, 'Czechia', 'Europe', 10882341, 78865);
@@ -34,9 +20,10 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (705, 'Slovenia', 'Europe', 2130638, 20273);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (772, 'Tokelau', 'Oceania', 2608, 12);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (566, 'Nigeria', 'Africa', 223800000, 923768);
-INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (638, 'R�union', 'Africa', 896175, 2511);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (638, 'Réunion', 'Africa', 896175, 2511);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (312, 'Guadeloupe', 'Americas', 378561, 1628);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (348, 'Hungary', 'Europe', 9539502, 93028);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (334, 'Heard Island and McDonald Islands', 'Antarctic', NULL, 412);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (748, 'Eswatini', 'Africa', 1235549, 17364);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (174, 'Comoros', 'Africa', 919901, 1862);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (356, 'India', 'Asia', 1417492000, 3287263);
@@ -111,7 +98,7 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (533, 'Aruba', 'Americas', 107566, 180);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (214, 'Dominican Republic', 'Americas', 10771504, 48671);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (344, 'Hong Kong', 'Asia', 7527500, 1104);
-INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (678, 'S�o Tom� and Pr�ncipe', 'Africa', 209607, 964);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (678, 'São Tomé and Príncipe', 'Africa', 209607, 964);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (858, 'Uruguay', 'Americas', 3499451, 181034);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (60, 'Bermuda', 'Americas', 64055, 54);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (876, 'Wallis and Futuna', 'Oceania', 11620, 142);
@@ -121,6 +108,7 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (222, 'El Salvador', 'Americas', 6029976, 21041);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (496, 'Mongolia', 'Asia', 3544835, 1564110);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (16, 'American Samoa', 'Oceania', 49710, 199);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (260, 'French Southern and Antarctic Lands', 'Antarctic', 400, 7747);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (716, 'Zimbabwe', 'Africa', 17073087, 390757);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (238, 'Falkland Islands', 'Americas', 3662, 12173);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (191, 'Croatia', 'Europe', 3866233, 56594);
@@ -169,7 +157,7 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (417, 'Kyrgyzstan', 'Asia', 7281800, 199951);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (642, 'Romania', 'Europe', 19036031, 238391);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (316, 'Guam', 'Oceania', 153836, 549);
-INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (248, '�land Islands', 'Europe', 30654, 1580);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (248, 'Åland Islands', 'Europe', 30654, 1580);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (226, 'Equatorial Guinea', 'Africa', 1668768, 28051);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (239, 'South Georgia', 'Antarctic', NULL, 3903);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (254, 'French Guiana', 'Americas', 292354, 83534);
@@ -207,6 +195,7 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (233, 'Estonia', 'Europe', 1369995, 45227);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (52, 'Barbados', 'Americas', 267800, 430);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (480, 'Mauritius', 'Africa', 1243741, 2040);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (654, 'Saint Helena, Ascension and Tristan da Cunha', 'Africa', 5651, 394);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (56, 'Belgium', 'Europe', 11825551, 30528);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (434, 'Libya', 'Africa', 7459000, 1759540);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (558, 'Nicaragua', 'Americas', 6803886, 130373);
@@ -214,12 +203,14 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (540, 'New Caledonia', 'Oceania', 264596, 18575);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (250, 'France', 'Europe', 66351959, 543908);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (704, 'Vietnam', 'Asia', 101343800, 331212);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (670, 'Saint Vincent and the Grenadines', 'Americas', 110872, 389);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (48, 'Bahrain', 'Asia', 1594654, 765);
-INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (531, 'Cura�ao', 'Americas', 156115, 444);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (531, 'Curaçao', 'Americas', 156115, 444);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (50, 'Bangladesh', 'Asia', 169828911, 147570);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (384, 'Ivory Coast', 'Africa', 31719275, 322463);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (180, 'DR Congo', 'Africa', 112832000, 2344858);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (144, 'Sri Lanka', 'Asia', 21763170, 65610);
+INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (581, 'United States Minor Outlying Islands', 'Americas', NULL, 34.2);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (535, 'Caribbean Netherlands', 'Americas', 31980, 328);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (524, 'Nepal', 'Asia', 29911840, 147181);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (68, 'Bolivia', 'Americas', 11365333, 1098581);
@@ -256,116 +247,3 @@ INSERT INTO Countries (country_id, country_name, region, population, land_area_s
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (500, 'Montserrat', 'Americas', 4386, 102);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (440, 'Lithuania', 'Europe', 2894886, 65300);
 INSERT INTO Countries (country_id, country_name, region, population, land_area_sq_km) VALUES (300, 'Greece', 'Europe', 10400720, 131990);
-CREATE TEMPORARY TABLE staging_temp (
-    c1 TEXT, c2 TEXT, c3 TEXT, c4 TEXT, c5 TEXT, c6 TEXT, c7 TEXT, c8 TEXT, c9 TEXT, c10 TEXT,
-    c11 TEXT, c12 TEXT, c13 TEXT, c14 TEXT, c15 TEXT, c16 TEXT, c17 TEXT, c18 TEXT, c19 TEXT, c20 TEXT,
-    c21 TEXT, c22 TEXT, c23 TEXT, c24 TEXT, c25 TEXT, c26 TEXT, c27 TEXT, c28 TEXT, c29 TEXT, c30 TEXT,
-    c31 TEXT, c32 TEXT, c33 TEXT, c34 TEXT, c35 TEXT, c36 TEXT, c37 TEXT, c38 TEXT, c39 TEXT, c40 TEXT,
-    c41 TEXT, c42 TEXT, c43 TEXT, c44 TEXT, c45 TEXT, c46 TEXT, c47 TEXT, c48 TEXT, c49 TEXT, c50 TEXT
-);
-SELECT * FROM staging_temp LIMIT 10;
--- This statement creates the new "long" table to hold the unpivoted data.
-
-CREATE TABLE trade_data_long (
-    trade_long_id SERIAL PRIMARY KEY,
-    Reporter_Country_Code TEXT,
-    Reporter_Country_Code_M49 TEXT,
-    Reporter_Countries TEXT,
-    Partner_Country_Code TEXT,
-    Partner_Country_Code_M49 TEXT,
-    Partner_Countries TEXT,
-    Item_Code TEXT,
-    Item_Code_CPC TEXT,
-    Item TEXT,
-    Element_Code TEXT,
-    Element TEXT,
-    Unit TEXT,
-    Year INTEGER,   -- INTEGER is perfect for the year.
-    Value NUMERIC    -- NUMERIC is best for values with decimal points.
-);
-INSERT INTO trade_data_long (
-    Reporter_Country_Code, Reporter_Country_Code_M49, Reporter_Countries,
-    Partner_Country_Code, Partner_Country_Code_M49, Partner_Countries,
-    Item_Code, Item_Code_CPC, Item, Element_Code, Element, Unit,
-    Year, Value
-)
-SELECT
-    t.c1,  -- Reporter_Country_Code
-    t.c2,  -- Reporter_Country_Code_M49
-    t.c3,  -- Reporter_Countries
-    t.c4,  -- Partner_Country_Code
-    t.c5,  -- Partner_Country_Code_M49
-    t.c6,  -- Partner_Countries
-    t.c7,  -- Item_Code
-    t.c8,  -- Item_Code_CPC
-    t.c9,  -- Item
-    t.c10, -- Element_Code
-    t.c11, -- Element
-    t.c12, -- Unit
-    v.Year,
-    CAST(NULLIF(v.Value, '') AS NUMERIC) -- Cast the value to numeric, treating empty strings as NULL
-FROM
-    (
-        SELECT * FROM staging_temp
-        LIMIT 1000000 -- <-- THIS LINE RESTRICTS THE INPUT
-    ) AS t, -- We now select from this limited subquery
-    LATERAL (
-        VALUES
-            (1986, t.c13), (1987, t.c14), (1988, t.c15), (1989, t.c16), (1990, t.c17),
-            (1991, t.c18), (1992, t.c19), (1993, t.c20), (1994, t.c21), (1995, t.c22),
-            (1996, t.c23), (1997, t.c24), (1998, t.c25), (1999, t.c26), (2000, t.c27),
-            (2001, t.c28), (2002, t.c29), (2003, t.c30), (2004, t.c31), (2005, t.c32),
-            (2006, t.c33), (2007, t.c34), (2008, t.c35), (2009, t.c36), (2010, t.c37),
-            (2011, t.c38), (2012, t.c39), (2013, t.c40), (2014, t.c41), (2015, t.c42),
-            (2016, t.c43), (2017, t.c44), (2018, t.c45), (2019, t.c46), (2020, t.c47),
-            (2021, t.c48), (2022, t.c49), (2023, t.c50)
-    ) AS v(Year, Value)
-WHERE
-    v.Value IS NOT NULL AND v.Value != '';
-SELECT * FROM staging_temp LIMIT 10;
-INSERT INTO trade_data_long (
-    Reporter_Country_Code, Reporter_Country_Code_M49, Reporter_Countries,
-    Partner_Country_Code, Partner_Country_Code_M49, Partner_Countries,
-    Item_Code, Item_Code_CPC, Item, Element_Code, Element, Unit,
-    Year, Value
-)
-SELECT
-    t.c1,  -- Reporter_Country_Code
-    t.c2,  -- Reporter_Country_Code_M49
-    t.c3,  -- Reporter_Countries
-    t.c4,  -- Partner_Country_Code
-    t.c5,  -- Partner_Country_Code_M49
-    t.c6,  -- Partner_Countries
-    t.c7,  -- Item_Code
-    t.c8,  -- Item_Code_CPC
-    t.c9,  -- Item
-    t.c10, -- Element_Code
-    t.c11, -- Element
-    t.c12, -- Unit
-    v.Year,
-    CAST(NULLIF(v.Value, '') AS NUMERIC) -- Cast the value to numeric, treating empty strings as NULL
-FROM
-    (
-        SELECT * FROM staging_temp
-        LIMIT 1000000 -- <-- THIS LINE RESTRICTS THE INPUT
-    ) AS t, -- We now select from this limited subquery
-    LATERAL (
-        VALUES
-            (1986, t.c13), (1987, t.c14), (1988, t.c15), (1989, t.c16), (1990, t.c17),
-            (1991, t.c18), (1992, t.c19), (1993, t.c20), (1994, t.c21), (1995, t.c22),
-            (1996, t.c23), (1997, t.c24), (1998, t.c25), (1999, t.c26), (2000, t.c27),
-            (2001, t.c28), (2002, t.c29), (2003, t.c30), (2004, t.c31), (2005, t.c32),
-            (2006, t.c33), (2007, t.c34), (2008, t.c35), (2009, t.c36), (2010, t.c37),
-            (2011, t.c38), (2012, t.c39), (2013, t.c40), (2014, t.c41), (2015, t.c42),
-            (2016, t.c43), (2017, t.c44), (2018, t.c45), (2019, t.c46), (2020, t.c47),
-            (2021, t.c48), (2022, t.c49), (2023, t.c50)
-    ) AS v(Year, Value)
-WHERE
-    v.Value IS NOT NULL AND v.Value != '';
-
-
-COPY staging_temp FROM '/Trade_DetailedTradeMatrix_E_All_Data_NOFLAG.csv' DELIMITER ',' CSV HEADER;
-
-UPDATE trade_data_long SET reporter_countries = countries.country_id FROM countries WHERE trade_data_long.reporter_countries = countries.country_name;
-UPDATE trade_data_long SET partner_countries = countries.country_id FROM countries WHERE trade_data_long.reporter_countries = countries.country_name;
-UPDATE trade_data_long SET partner_countries = countries.country_id FROM countries WHERE trade_data_long.partner_countries = countries.country_name;
