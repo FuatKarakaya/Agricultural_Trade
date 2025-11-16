@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Price Analysis - Agricultural Data Analysis{% endblock %}
+
+{% block content %}
+<h2>Price Analysis</h2>
+
+<div class="price-margins-section">
+    <h3>Price Margins by Country and Commodity</h3>
+    <p class="section-description">Comparison of producer prices and consumer price indices to identify price margins in the supply chain.</p>
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Country</th>
+                <th>Commodity</th>
+                <th>Avg Producer Price (USD)</th>
+                <th>Consumer Price Index</th>
+                <th>Price Increase (%)</th>
+                <th>Years of Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for margin in price_margins %}
+            <tr>
+                <td>{{ margin.country_name }}</td>
+                <td>{{ margin.commodity_name }}</td>
+                <td>${{ "{:.2f}".format(margin.avg_producer_price) }}</td>
+                <td>{{ "{:.1f}".format(margin.avg_consumer_price_index) }}</td>
+                <td class="{% if margin.price_increase_pct > 0 %}negative{% else %}positive{% endif %}">
+                    {{ "{:.1f}".format(margin.price_increase_pct) }}%
+                </td>
+                <td>{{ margin.years_with_data }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if regional_prices %}
+<div class="regional-prices-section">
+    <h3>Regional Price Comparison</h3>
+    <p class="section-description">Price variations across different regions for agricultural commodities.</p>
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Region</th>
+                <th>Commodity</th>
+                <th>Average Price (USD)</th>
+                <th>Min Price (USD)</th>
+                <th>Max Price (USD)</th>
+                <th>Price Volatility</th>
+                <th>Countries Reporting</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for price in regional_prices %}
+            <tr>
+                <td>{{ price.region }}</td>
+                <td>{{ price.commodity_name }}</td>
+                <td>${{ "{:.2f}".format(price.avg_price) }}</td>
+                <td>${{ "{:.2f}".format(price.min_price) }}</td>
+                <td>${{ "{:.2f}".format(price.max_price) }}</td>
+                <td>{{ "{:.2f}".format(price.price_volatility) if price.price_volatility else 'N/A' }}</td>
+                <td>{{ price.countries_reporting }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Commodities - Agricultural Data Analysis{% endblock %}
+
+{% block content %}
+<h2>Commodities</h2>
+
+<div class="filter-section">
+    <form method="get" action="{{ url_for('commodity.commodities') }}" class="filter-form">
+        <div class="filter-group">
+            <label for="category">Category:</label>
+            <select name="category" id="category" class="filter-select">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.category }}" {% if cat.category == selected_category %}selected{% endif %}>
+                    {{ cat.category }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn">Apply Filter</button>
+        <a href="{{ url_for('commodity.commodities') }}" class="btn btn-secondary">Clear Filter</a>
+    </form>
+</div>
+
+<div class="commodities-list">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Commodity Name</th>
+                <th>Category</th>
+                <th>Calories per kg</th>
+                <th>Staple Food</th>
+                <th>Producing Countries</th>
+                <th>Global Production (tonnes)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for commodity in commodities %}
+            <tr>
+                <td>{{ commodity.commodity_name }}</td>
+                <td>{{ commodity.category }}</td>
+                <td>{{ commodity.calories_per_kg or 'N/A' }}</td>
+                <td>{{ 'Yes' if commodity.is_staple_food else 'No' }}</td>
+                <td>{{ commodity.producing_countries or 0 }}</td>
+                <td>{{ "{:,.0f}".format(commodity.global_production) if commodity.global_production else 'N/A' }}</td>
+                <td>
+                    <a href="{{ url_for('commodity.commodity_detail', commodity_code=commodity.commodity_code) }}" class="btn btn-small">View Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if not commodities %}
+    <p class="no-data">No commodities found matching your filter.</p>
+    {% endif %}
+</div>
+{% endblock %}
