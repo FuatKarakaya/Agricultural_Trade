@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}Agricultural Trade Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="jumbotron bg-light p-5 rounded-lg">
+        <h1 class="display-4">Welcome to the Agricultural Trade Dashboard</h1>
+        <p class="lead">Explore global agricultural production, trade, and land use data.</p>
+        <hr class="my-4">
+        <p>Use the navigation bar to browse different datasets.</p>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            Could not load dashboard statistics: {{ error }}
+        </div>
+    {% elif stats %}
+    <div class="row mt-4 text-center">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Countries</h5>
+                    <p class="card-text display-5">{{ stats.country_count | numberformat }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Production Records</h5>
+                    <p class="card-text display-5">{{ stats.production_record_count | numberformat }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

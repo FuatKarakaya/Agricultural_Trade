@@ -19,6 +19,28 @@ def get_db_connection():
     return conn
 
 
+def fetch_query(query, params=()):
+    """
+    Executes a SELECT query and returns the results as a list of dictionaries.
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        # Use RealDictCursor to get results as dictionaries
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+    except Exception as e:
+        # It's good practice to log the error
+        print(f"Database fetch error: {e}")
+        return None # Or raise the exception
+    finally:
+        if conn:
+            conn.close()
+
+
 
 
 def execute_query(query, params=()):

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}Zlatan Agriculture{% endblock %}</title>
+    <link rel="stylesheet" href="/static/agriculture.css"/>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-title">Zlatan Agriculture</div>
+        <ul class="nav-menu">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/commodities" class="nav-link">Commodities</a></li>
+          <li><a href="/producers" class="nav-link">Producers</a></li>
+          <li><a href="/regions" class="nav-link">Regions</a></li>
+          <li><a href="/trade" class="nav-link">Trade</a></li>
+          <li><a href="/analytics" class="nav-link">Analytics</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2025-2026 Zlatan Group. All rights reserved.</p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">
+        Agricultural Data & Analytics Platform
+      </p>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>
