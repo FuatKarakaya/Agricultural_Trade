@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+
+{% block title %}Land Use {{ year }} - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Land Use Summary – {{ year }}</h2>
+  <p>
+    Aggregated land use values by country. Select a year between 1961 and 2023 to explore historical data.
+  </p>
+
+  <!-- Year Selection -->
+  <form method="get" action="{{ url_for('landuse.landUsePage') }}" class="filter-form">
+    <label for="year-select" style="font-weight:bold; margin-right:10px;">
+      Select Year:
+    </label>
+    <select id="year-select" name="year" onchange="this.form.submit()">
+      {% for y in years %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Countries</h4>
+      <div class="stat-number">{{ total_countries or 0 }}</div>
+      <p class="stat-detail">Countries with land use data in {{ year }}</p>
+    </div>
+    <div class="stat-card">
+      <h4>Total Records</h4>
+      <div class="stat-number">{{ total_rows or 0 }}</div>
+      <p class="stat-detail">Aggregated rows (one per country)</p>
+    </div>
+  </div>
+</section>
+
+<!-- Land Use Table -->
+<section class="producers-section">
+  <h3>Land Use Data ({{ year }})</h3>
+  <p class="section-description">
+    Country area, land area, inland waters, arable land, permanent crops, permanent meadows and pastures,
+    forest land, and calculated <strong>Other land</strong> for each country.
+  </p>
+
+  {% if records %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Country</th>
+        <th>Year</th>
+        <th>Unit</th>
+
+        <!-- Ordered columns -->
+        <th>Country area</th>
+        <th>Land area</th>
+        <th>Inland waters</th>
+        <th>Arable land</th>
+        <th>Permanent crops</th>
+        <th>Permanent meadows and pastures</th>
+        <th>Forest land</th>
+        <th>Other land</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for row in records %}
+      <tr>
+        <!-- Country name with link -->
+        <td>
+          {% if row['country_id'] %}
+            <a href="/countries/{{ row['country_id'] }}">
+              <strong>{{ row['country_name'] }}</strong>
+            </a>
+          {% else %}
+            <strong>{{ row['country_name'] }}</strong>
+          {% endif %}
+        </td>
+
+        <td>{{ row['year'] }}</td>
+        <td>{{ row['unit'] }}</td>
+
+        <!-- Country area -->
+        <td>
+          {% if row['country_area'] is not none %}
+            {{ "{:,}".format(row['country_area']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <!-- Land area -->
+        <td>
+          {% if row['land_area'] is not none %}
+            {{ "{:,}".format(row['land_area']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <!-- Inland waters -->
+        <td>
+          {% if row['inland_waters'] is not none %}
+            {{ "{:,}".format(row['inland_waters']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <!-- Arable land -->
+        <td>
+          {% if row['arable_land'] is not none %}
+            {{ "{:,}".format(row['arable_land']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <!-- Permanent crops -->
+        <td>
+          {% if row['permanent_crops'] is not none %}
+            {{ "{:,}".format(row['permanent_crops']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <!-- Permanent meadows and pastures -->
+        <td>
+          {% if row['permanent_meadows_and_pastures'] is not none %}
+            {{ "{:,}".format(row['permanent_meadows_and_pastures']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <!-- Forest land -->
+        <td>
+          {% if row['forest_land'] is not none %}
+            {{ "{:,}".format(row['forest_land']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <!-- Other land (2 decimal places) -->
+        <td>
+          {% if row['other_land'] is not none %}
+            {{ "{:,.2f}".format(row['other_land']) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+  <div class="no-data">
+    <p>No land use records found for {{ year }}.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}
