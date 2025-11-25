@@ -2,4 +2,5 @@ from database import execute_query
 
 if __name__ == "__main__":
 
-    execute_query('''UPDATE trade_data_long SET partner_countries = countries.country_id FROM countries WHERE trade_data_long.partner_countries = countries.country_name;''')
+    r = execute_query('''COPY staging_landuse FROM '/filtered_landuse_area_final.csv' DELIMITER ',' CSV HEADER;''')
+    print(r)

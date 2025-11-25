@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ country['country_name'] }} - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+
+
+
+<section class="hero-section">
+  <h2>{{ country['country_name'] }}</h2>
+</section>
+
+<!-- Main Statistics -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Region</h4>
+      <div class="stat-number" style="font-size: 1.8rem;">{{ country['region'] or 'N/A' }}</div>
+      <p class="stat-detail">Geographic location</p>
+    </div>
+    <div class="stat-card">
+      <h4>Population</h4>
+      <div class="stat-number">{{ "{:,}".format(country['population'] or 0) }}</div>
+      <p class="stat-detail">Total inhabitants</p>
+    </div>
+    <div class="stat-card">
+      <h4>Land Area</h4>
+      <div class="stat-number">{{ "{:,}".format(country['land_area_sq_km'] or 0) }}</div>
+      <p class="stat-detail">Square kilometers</p>
+    </div>
+    <div class="stat-card">
+      <h4>Population Density</h4>
+      <div class="stat-number">
+        {% if country['land_area_sq_km'] and country['land_area_sq_km'] > 0 and country['population'] %}
+          {{ "%.2f"|format(country['population'] / country['land_area_sq_km']) }}
+        {% else %}
+          N/A
+        {% endif %}
+      </div>
+      <p class="stat-detail">People per km²</p>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+{% endblock %}
