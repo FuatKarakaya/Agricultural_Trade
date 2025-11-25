@@ -6,13 +6,23 @@ landuse_bp = Blueprint("landuse", __name__)
 
 @landuse_bp.route('/landuse')
 def landUsePage():
-
     year = request.args.get("year", 2023, type=int)
+    country_id = request.args.get("country_id", type=int)  # <-- yeni parametre
 
     # Dropdown için tüm yıllar (FAOSTAT standardı)
     years = list(range(1961, 2024))
 
-    query = """
+    # Ülke dropdown’ı için liste
+    countries_query = """
+        SELECT DISTINCT country_id, country_name
+        FROM land_use
+        WHERE country_id IS NOT NULL
+        ORDER BY country_name ASC;
+    """
+    countries = fetch_query(countries_query, ())
+
+    # Ana tablo sorgusu
+    base_query = """
         SELECT
             country_name,
             country_id,
@@ -38,13 +48,21 @@ def landUsePage():
             ) AS other_land
         FROM land_use
         WHERE year = %s
+    """
+    params = [year]
+
+    if country_id is not None:
+        base_query += " AND country_id = %s"
+        params.append(country_id)
+
+    base_query += """
         GROUP BY country_name, country_id, year, unit
         ORDER BY country_name ASC;
     """
 
-    records = fetch_query(query, (year,))
+    records = fetch_query(base_query, tuple(params))
 
-    # İstatistikler (opsiyonel)
+    # İstatistikler
     stats_query = """
         SELECT 
             COUNT(DISTINCT country_name) AS total_countries,
@@ -53,20 +71,32 @@ def landUsePage():
             SELECT country_name, country_id, year, unit
             FROM land_use
             WHERE year = %s
+    """
+    stats_params = [year]
+
+    if country_id is not None:
+        stats_query += " AND country_id = %s"
+        stats_params.append(country_id)
+
+    stats_query += """
             GROUP BY country_name, country_id, year, unit
         ) t;
     """
-    stats_result = fetch_query(stats_query, (year,))
+
+    stats_result = fetch_query(stats_query, tuple(stats_params))
     stats = stats_result[0] if stats_result else {}
 
     return render_template(
         "land_use.html",
         records=records or [],
         year=year,
-        years=years,                # <— dropdown için
+        years=years,
         total_countries=stats.get("total_countries", 0),
         total_rows=stats.get("total_rows", 0),
+        countries=countries,
+        selected_country_id=country_id,
     )
+
 
 
 @landuse_bp.route('/investments')

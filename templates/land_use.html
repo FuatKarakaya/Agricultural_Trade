@@ -3,6 +3,54 @@
 {% block title %}Land Use {{ year }} - Zlatan Agriculture{% endblock %}
 
 {% block content %}
+<style>
+  .country-link,
+  .country-link:visited,
+  .country-link:hover,
+  .country-link:active {
+    text-decoration: none;
+    color: blue;
+  }
+
+  /* Yıl + ülke filtresi barı (tablonun hemen üstü, solda) */
+  .year-filter-bar {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 1rem 0;
+  }
+
+  .filter-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #f7f7f7;
+    flex-wrap: wrap;
+  }
+
+  .filter-form label {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  #year-select,
+  #country-select {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  #year-select:focus,
+  #country-select:focus {
+    outline: none;
+    border-color: #888;
+  }
+</style>
 
 <!-- Hero Section -->
 <section class="hero-section">
@@ -10,18 +58,6 @@
   <p>
     Aggregated land use values by country. Select a year between 1961 and 2023 to explore historical data.
   </p>
-
-  <!-- Year Selection -->
-  <form method="get" action="{{ url_for('landuse.landUsePage') }}" class="filter-form">
-    <label for="year-select" style="font-weight:bold; margin-right:10px;">
-      Select Year:
-    </label>
-    <select id="year-select" name="year" onchange="this.form.submit()">
-      {% for y in years %}
-        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-      {% endfor %}
-    </select>
-  </form>
 </section>
 
 <!-- Stats Section -->
@@ -48,6 +84,35 @@
     forest land, and calculated <strong>Other land</strong> for each country.
   </p>
 
+  <!-- Yıl + ülke seçimi: tam tablonun üstünde solda -->
+  <div class="year-filter-bar">
+    <form method="get" action="{{ url_for('landuse.landUsePage') }}" class="filter-form">
+      <!-- Year -->
+      <label for="year-select">
+        Year:
+      </label>
+      <select id="year-select" name="year" onchange="this.form.submit()">
+        {% for y in years %}
+          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Country -->
+      <label for="country-select">
+        Country:
+      </label>
+      <select id="country-select" name="country_id" onchange="this.form.submit()">
+        <option value="" {% if not selected_country_id %}selected{% endif %}>All countries</option>
+        {% for c in countries %}
+          <option value="{{ c['country_id'] }}"
+                  {% if selected_country_id == c['country_id'] %}selected{% endif %}>
+            {{ c['country_name'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
   {% if records %}
   <table class="data-table">
     <thead>
@@ -55,8 +120,6 @@
         <th>Country</th>
         <th>Year</th>
         <th>Unit</th>
-
-        <!-- Ordered columns -->
         <th>Country area</th>
         <th>Land area</th>
         <th>Inland waters</th>
@@ -71,10 +134,9 @@
     <tbody>
       {% for row in records %}
       <tr>
-        <!-- Country name with link -->
         <td>
           {% if row['country_id'] %}
-            <a href="/countries/{{ row['country_id'] }}">
+            <a href="/countries/{{ row['country_id'] }}" class="country-link">
               <strong>{{ row['country_name'] }}</strong>
             </a>
           {% else %}
@@ -85,76 +147,52 @@
         <td>{{ row['year'] }}</td>
         <td>{{ row['unit'] }}</td>
 
-        <!-- Country area -->
         <td>
           {% if row['country_area'] is not none %}
             {{ "{:,}".format(row['country_area']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
 
-        <!-- Land area -->
         <td>
           {% if row['land_area'] is not none %}
             {{ "{:,}".format(row['land_area']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
 
-        <!-- Inland waters -->
         <td>
           {% if row['inland_waters'] is not none %}
             {{ "{:,}".format(row['inland_waters']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
 
-        <!-- Arable land -->
         <td>
           {% if row['arable_land'] is not none %}
             {{ "{:,}".format(row['arable_land']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
 
-        <!-- Permanent crops -->
         <td>
           {% if row['permanent_crops'] is not none %}
             {{ "{:,}".format(row['permanent_crops']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
 
-        <!-- Permanent meadows and pastures -->
         <td>
           {% if row['permanent_meadows_and_pastures'] is not none %}
             {{ "{:,}".format(row['permanent_meadows_and_pastures']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
 
-        <!-- Forest land -->
         <td>
           {% if row['forest_land'] is not none %}
             {{ "{:,}".format(row['forest_land']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
 
-        <!-- Other land (2 decimal places) -->
         <td>
           {% if row['other_land'] is not none %}
             {{ "{:,.2f}".format(row['other_land']) }}
-          {% else %}
-            N/A
-          {% endif %}
+          {% else %}N/A{% endif %}
         </td>
       </tr>
       {% endfor %}
