@@ -11,6 +11,28 @@
     text-decoration: none;
     color: blue;
   }
+  .flash-container {
+    margin: 0.5rem 0 1rem 0;
+  }
+
+  .flash-message {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .flash-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
 
   /* Yıl + ülke filtresi barı (tablonun hemen üstü, solda) */
   .year-filter-bar {
@@ -18,6 +40,8 @@
     justify-content: flex-start;
     align-items: center;
     margin: 1rem 0;
+    /* form ile Add Country butonu arasında biraz boşluk */
+    gap: 12px;
   }
 
   .filter-form {
@@ -50,8 +74,82 @@
     outline: none;
     border-color: #888;
   }
-</style>
 
+  /* Add Country butonu */
+  .btn-add-country {
+    display: inline-block;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: none;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-add-country:hover {
+    opacity: 0.9;
+  }
+
+  /* Delete butonu */
+  .btn-delete {
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    border: none;
+    background-color: #dc3545;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .btn-delete:hover {
+    opacity: 0.9;
+  }
+  .btn-update {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    border: none;
+    background-color: #17a2b8;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: none;
+    margin-right: 4px;
+  }
+
+  .btn-update:hover {
+    opacity: 0.9;
+  }
+
+  .btn-delete {
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    border: none;
+    background-color: #dc3545;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .btn-delete:hover {
+    opacity: 0.9;
+  }
+</style>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 <!-- Hero Section -->
 <section class="hero-section">
   <h2>Land Use Summary – {{ year }}</h2>
@@ -69,9 +167,24 @@
       <p class="stat-detail">Countries with land use data in {{ year }}</p>
     </div>
     <div class="stat-card">
-      <h4>Total Records</h4>
-      <div class="stat-number">{{ total_rows or 0 }}</div>
-      <p class="stat-detail">Aggregated rows (one per country)</p>
+      <h4>Agricultural Land Share</h4>
+      {% if agri_share is not none %}
+        <div class="stat-number">
+          {{ "%.2f"|format(agri_share) }}%
+        </div>
+        <p class="stat-detail">
+          Share of land area used for agriculture
+          {% if not selected_country_id %}
+            (worldwide)
+          {% else %}
+            (selected country)
+          {% endif %}
+          in {{ year }}
+        </p>
+      {% else %}
+        <div class="stat-number">N/A</div>
+        <p class="stat-detail">Not enough data to compute ratio</p>
+      {% endif %}
     </div>
   </div>
 </section>
@@ -84,7 +197,7 @@
     forest land, and calculated <strong>Other land</strong> for each country.
   </p>
 
-  <!-- Yıl + ülke seçimi: tam tablonun üstünde solda -->
+  <!-- Yıl + ülke seçimi: tam tablonun üstünde solda, yanına Add Country -->
   <div class="year-filter-bar">
     <form method="get" action="{{ url_for('landuse.landUsePage') }}" class="filter-form">
       <!-- Year -->
@@ -111,6 +224,12 @@
         {% endfor %}
       </select>
     </form>
+
+    <!-- Add Country butonu -->
+    <a href="{{ url_for('landuse.add_land_use_form', year=year, country_id=selected_country_id) }}"
+       class="btn-add-country">
+      Add Record
+    </a>
   </div>
 
   {% if records %}
@@ -128,6 +247,7 @@
         <th>Permanent meadows and pastures</th>
         <th>Forest land</th>
         <th>Other land</th>
+        <th>Actions</th>  <!-- yeni kolon -->
       </tr>
     </thead>
 
@@ -193,6 +313,28 @@
           {% if row['other_land'] is not none %}
             {{ "{:,.2f}".format(row['other_land']) }}
           {% else %}N/A{% endif %}
+        </td>
+
+        <!-- Delete butonu -->
+        <td>
+          <a href="{{ url_for('landuse.edit_land_use_form',
+                      country_id=row['country_id'],
+                      year=row['year']) }}"
+                    class="btn-update">
+                    Update
+          </a>
+
+          <form method="post"
+                action="{{ url_for('landuse.delete_land_use') }}"
+                onsubmit="return confirm('Bu ülke ve yıl için tüm girdiler silinsin mi?');">
+            <input type="hidden" name="country_id" value="{{ row['country_id'] }}">
+            <input type="hidden" name="year" value="{{ row['year'] }}">
+            <!-- mevcut filtreyi korumak için -->
+            <input type="hidden" name="redirect_country_id" value="{{ selected_country_id or '' }}">
+            <button type="submit" class="btn-delete">
+              Delete
+            </button>
+          </form>
         </td>
       </tr>
       {% endfor %}

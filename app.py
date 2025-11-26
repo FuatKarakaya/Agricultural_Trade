@@ -1,6 +1,6 @@
 from flask import Flask
 from dotenv import load_dotenv
-
+import os
 load_dotenv()
 
 from routes import (
@@ -18,6 +18,7 @@ from routes import (
 
 def create_app():
     app = Flask(__name__)
+    app.config["SECRET_KEY"] = os.urandom(24) #to use flask.flash
     app.register_blueprint(main_bp)
     app.register_blueprint(country_bp)
     app.register_blueprint(trade_bp)
