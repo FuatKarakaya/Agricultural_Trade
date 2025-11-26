@@ -392,3 +392,4 @@ UPDATE trade_data_long SET partner_countries = countries.country_id FROM countri
 
         alter table staging_prod drop column c15;
         
+alter table production drop constraint production_commodity_code_fkey;
