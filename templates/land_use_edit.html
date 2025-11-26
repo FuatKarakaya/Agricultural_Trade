@@ -1,0 +1,240 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Land Use Record - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<style>
+  .form-page-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .form-section {
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #fafafa;
+    margin-top: 1rem;
+  }
+
+  .landuse-form {
+    margin-top: 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+  }
+
+  .landuse-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .landuse-form .form-row-full {
+    grid-column: 1 / -1;
+  }
+
+  .landuse-form label {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .landuse-form input {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+
+  .landuse-form button {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: #17a2b8;
+    color: white;
+    font-weight: 600;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Flash mesajları (istersen buraya da ekle) */
+  .flash-container {
+    margin: 0.5rem 0 1rem 0;
+  }
+
+  .flash-message {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .flash-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+</style>
+
+<div class="form-page-container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <h2>Edit Land Use Record</h2>
+
+  <section class="form-section">
+    <form method="post" action="{{ url_for('landuse.update_land_use') }}" class="landuse-form">
+      <!-- Country (göster, ama değişmesin) -->
+      <div class="form-row">
+        <label>Country:</label>
+        <div>{{ country_name }}</div>
+        <input type="hidden" name="country_id" value="{{ country_id }}">
+      </div>
+
+      <!-- Year (göster, ama değişmesin) -->
+      <div class="form-row">
+        <label>Year:</label>
+        <div>{{ year }}</div>
+        <input type="hidden" name="year" value="{{ year }}">
+      </div>
+
+      <!-- Unit info -->
+      <div class="form-row form-row-full">
+        <label>Unit:</label>
+        <div>{{ unit }} (fixed)</div>
+      </div>
+
+      <!-- Country area -->
+      <div class="form-row">
+        <label for="country-area">Country area ({{ unit }}):</label>
+        <input
+          id="country-area"
+          type="number"
+          name="country_area"
+          step="0.01"
+          min="0"
+          required
+          value="{{ land_values['Country area'] if land_values['Country area'] is not none else '' }}"
+        >
+      </div>
+
+      <!-- Land area -->
+      <div class="form-row">
+        <label for="land-area">Land area ({{ unit }}):</label>
+        <input
+          id="land-area"
+          type="number"
+          name="land_area"
+          step="0.01"
+          min="0"
+          required
+          value="{{ land_values['Land area'] if land_values['Land area'] is not none else '' }}"
+        >
+      </div>
+
+      <!-- Inland waters -->
+      <div class="form-row">
+        <label for="inland-waters">Inland waters ({{ unit }}):</label>
+        <input
+          id="inland-waters"
+          type="number"
+          name="inland_waters"
+          step="0.01"
+          min="0"
+          required
+          value="{{ land_values['Inland waters'] if land_values['Inland waters'] is not none else '' }}"
+        >
+      </div>
+
+      <!-- Arable land -->
+      <div class="form-row">
+        <label for="arable-land">Arable land ({{ unit }}):</label>
+        <input
+          id="arable-land"
+          type="number"
+          name="arable_land"
+          step="0.01"
+          min="0"
+          required
+          value="{{ land_values['Arable land'] if land_values['Arable land'] is not none else '' }}"
+        >
+      </div>
+
+      <!-- Permanent crops -->
+      <div class="form-row">
+        <label for="permanent-crops">Permanent crops ({{ unit }}):</label>
+        <input
+          id="permanent-crops"
+          type="number"
+          name="permanent_crops"
+          step="0.01"
+          min="0"
+          required
+          value="{{ land_values['Permanent crops'] if land_values['Permanent crops'] is not none else '' }}"
+        >
+      </div>
+
+      <!-- Permanent meadows and pastures -->
+      <div class="form-row">
+        <label for="permanent-meadows">Permanent meadows and pastures ({{ unit }}):</label>
+        <input
+          id="permanent-meadows"
+          type="number"
+          name="permanent_meadows_and_pastures"
+          step="0.01"
+          min="0"
+          required
+          value="{{ land_values['Permanent meadows and pastures']
+                   if land_values['Permanent meadows and pastures'] is not none else '' }}"
+        >
+      </div>
+
+      <!-- Forest land -->
+      <div class="form-row">
+        <label for="forest-land">Forest land ({{ unit }}):</label>
+        <input
+          id="forest-land"
+          type="number"
+          name="forest_land"
+          step="0.01"
+          min="0"
+          required
+          value="{{ land_values['Forest land'] if land_values['Forest land'] is not none else '' }}"
+        >
+      </div>
+
+      <div class="form-row form-row-full">
+        <button type="submit">
+          Save changes
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <a href="{{ url_for('landuse.landUsePage', year=year, country_id=country_id) }}" class="back-link">
+    ← Back to Land Use Summary
+  </a>
+</div>
+
+{% endblock %}

@@ -12,14 +12,14 @@ def production():
         commodity_code = request.args.get("commodity_code", "")
         year = request.args.get("year", "")
 
+        # Trying to use 4 tables here, will continue.
         query = """
             SELECT p.*, 
-                   c.region,
-                   com.item_name,
-                   com.item_group_name
-            FROM Production p
+                c.country_name, 
+            FROM production p
             LEFT JOIN Countries c ON p.country_code = c.country_id
             LEFT JOIN Commodities com ON p.commodity_code = com.fao_code
+            LEFT JOIN Production_Value pv ON pv.production_ID = p.production_ID
             WHERE 1=1
         """
         params = []
@@ -36,9 +36,18 @@ def production():
             query += " AND p.year = %s"
             params.append(year)
 
-        query += " ORDER BY p.year DESC, p.quantity DESC LIMIT 100"
+        query += " ORDER BY p.year DESC, p.quantity DESC LIMIT 50"
 
         production_list = fetch_query(query, params)
+
+        # DEBUG
+        print(
+            "DEBUG - First row:", production_list[0] if production_list else "No data"
+        )
+        print(
+            "DEBUG - Keys:", production_list[0].keys() if production_list else "No keys"
+        )
+
         if production_list is None:
             return (
                 render_template(
@@ -58,7 +67,7 @@ def production():
                 COUNT(DISTINCT commodity_code) AS total_commodities,
                 MIN(year) AS min_year,
                 MAX(year) AS max_year
-            FROM Production
+            FROM production
             """
         )
         stats = stats_result[0] if stats_result else {}
@@ -72,7 +81,7 @@ def production():
             "SELECT DISTINCT fao_code, item_name FROM Commodities ORDER BY item_name"
         )
 
-        years = fetch_query("SELECT DISTINCT year FROM Production ORDER BY year DESC")
+        years = fetch_query("SELECT DISTINCT year FROM production ORDER BY year DESC")
 
         return render_template(
             "production.html",
@@ -103,7 +112,7 @@ def production_detail(production_id):
                    com.item_name,
                    com.item_group_name,
                    com.cpc_code
-            FROM Production p
+            FROM production p
             JOIN Countries c ON p.country_code = c.country_id
             JOIN Commodities com ON p.commodity_code = com.fao_code
             WHERE p.production_ID = %s
@@ -122,7 +131,7 @@ def production_detail(production_id):
         production_values = fetch_query(
             """
             SELECT *
-            FROM Production_Value
+            FROM production_Value
             WHERE production_ID = %s
             ORDER BY year DESC, element
             """,
@@ -133,7 +142,7 @@ def production_detail(production_id):
         historical_production = fetch_query(
             """
             SELECT year, quantity, unit
-            FROM Production
+            FROM production
             WHERE country_code = %s 
                 AND commodity_code = %s
                 AND production_ID != %s
@@ -147,7 +156,7 @@ def production_detail(production_id):
         comparative_production = fetch_query(
             """
             SELECT p.country_code, p.quantity, c.region
-            FROM Production p
+            FROM production p
             JOIN Countries c ON p.country_code = c.country_id
             WHERE p.commodity_code = %s 
                 AND p.year = %s
