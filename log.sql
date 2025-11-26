@@ -393,3 +393,11 @@ UPDATE trade_data_long SET partner_countries = countries.country_id FROM countri
         alter table staging_prod drop column c15;
         
 alter table production drop constraint production_commodity_code_fkey;
+DROP INDEX IF EXISTS idx_production_commodity_year;
+ALTER TABLE production_value DROP CONSTRAINT production_value_production_id_fkey;
+ALTER TABLE production_value
+            ADD CONSTRAINT production_value_production_id_fkey 
+            FOREIGN KEY (production_id) 
+            REFERENCES production(production_id)
+            ON DELETE CASCADE;
+        

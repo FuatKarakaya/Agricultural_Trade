@@ -3,8 +3,12 @@ from database import execute_query
 if __name__ == "__main__":
 
     X = execute_query(
-        r"""alter table production drop constraint production_commodity_code_fkey;"""
-        # r"""\copy production FROM 'C:\Users\omerf\Desktop\db\Agricultural_Trade\prod_reduced_clean_scaled.csv' WITH (FORMAT csv, HEADER true)"""
+        r"""ALTER TABLE production_value
+            ADD CONSTRAINT production_value_production_id_fkey 
+            FOREIGN KEY (production_id) 
+            REFERENCES production(production_id)
+            ON DELETE CASCADE;
+        """
     )
 
     print(X)
