@@ -447,3 +447,22 @@ SELECT DISTINCT year FROM Production ORDER BY year DESC
             JOIN Commodities com ON p.commodity_code = com.fao_code
             WHERE 1=1
          ORDER BY p.year DESC, p.quantity DESC LIMIT 100
+
+ALTER TABLE "commodities" DROP COLUMN IF EXISTS item_group_name;
+DROP TABLE IF EXISTS commodity;
+        
+DROP TABLE IF EXISTS commodity;
+        
+ALTER TABLE tempnotnormalpp DROP COLUMN IF EXISTS "Y2001",
+        DROP COLUMN IF EXISTS "Y2002",
+        DROP COLUMN IF EXISTS "Y2003",
+        DROP COLUMN IF EXISTS "Y2004",
+        DROP COLUMN IF EXISTS "Y2005",
+        DROP COLUMN IF EXISTS "Y2006",
+        DROP COLUMN IF EXISTS "Y2007",
+        DROP COLUMN IF EXISTS "Y2008",
+        DROP COLUMN IF EXISTS "Y2009",
+        DROP COLUMN IF EXISTS "Y2024";
+        
+ALTER TABLE tempnotnormalpp DROP COLUMN IF EXISTS "Y2000";
+        
