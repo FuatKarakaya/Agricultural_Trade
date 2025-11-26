@@ -401,3 +401,49 @@ ALTER TABLE production_value
             REFERENCES production(production_id)
             ON DELETE CASCADE;
         
+
+            SELECT p.*, 
+                   c.region,
+                   com.item_name,
+                   com.item_group_name
+            FROM Production p
+            JOIN Countries c ON p.country_code = c.country_id
+            JOIN Commodities com ON p.commodity_code = com.fao_code
+            WHERE 1=1
+         ORDER BY p.year DESC, p.quantity DESC LIMIT 100
+SELECT DISTINCT country_id FROM Countries ORDER BY country_id
+SELECT DISTINCT fao_code, item_name FROM Commodities ORDER BY item_name
+SELECT DISTINCT year FROM Production ORDER BY year DESC
+
+            SELECT p.*, 
+                   c.region,
+                   com.item_name,
+                   com.item_group_name
+            FROM Production p
+            JOIN Countries c ON p.country_code = c.country_id
+            JOIN Commodities com ON p.commodity_code = com.fao_code
+            WHERE 1=1
+         ORDER BY p.year DESC, p.quantity DESC LIMIT 100
+SELECT DISTINCT country_id FROM Countries ORDER BY country_id
+SELECT DISTINCT fao_code, item_name FROM Commodities ORDER BY item_name
+SELECT DISTINCT year FROM Production ORDER BY year DESC
+
+            SELECT p.*, 
+                   c.region,
+                   com.item_name,
+                   com.item_group_name
+            FROM Production p
+            JOIN Countries c ON p.country_code = c.country_id
+            JOIN Commodities com ON p.commodity_code = com.fao_code
+            WHERE 1=1
+         AND p.country_code = %s ORDER BY p.year DESC, p.quantity DESC LIMIT 100
+
+            SELECT p.*, 
+                   c.region,
+                   com.item_name,
+                   com.item_group_name
+            FROM Production p
+            JOIN Countries c ON p.country_code = c.country_id
+            JOIN Commodities com ON p.commodity_code = com.fao_code
+            WHERE 1=1
+         ORDER BY p.year DESC, p.quantity DESC LIMIT 100

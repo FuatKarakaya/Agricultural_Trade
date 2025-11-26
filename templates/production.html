@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+
+{% block title %}Production - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+  <h2>Production Records</h2>
+  <p class="section-description">
+    Browse agricultural production by country, commodity, and year.
+  </p>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Records</h4>
+      <div class="stat-number">{{ stats.total_records or 0 }}</div>
+      <p class="stat-detail">Production rows in database</p>
+    </div>
+    <div class="stat-card">
+      <h4>Countries</h4>
+      <div class="stat-number">{{ stats.total_countries or 0 }}</div>
+      <p class="stat-detail">With production data</p>
+    </div>
+    <div class="stat-card">
+      <h4>Commodities</h4>
+      <div class="stat-number">{{ stats.total_commodities or 0 }}</div>
+      <p class="stat-detail">Distinct items produced</p>
+    </div>
+    <div class="stat-card">
+      <h4>Year Range</h4>
+      <div class="stat-number">
+        {% if stats.min_year and stats.max_year %}
+          {{ stats.min_year }}–{{ stats.max_year }}
+        {% else %}
+          N/A
+        {% endif %}
+      </div>
+      <p class="stat-detail">Coverage in years</p>
+    </div>
+  </div>
+</section>
+
+<section class="filter-section">
+  <form method="get" class="filter-form">
+    <div class="filter-group">
+      <label for="country_code">Country</label>
+      <select id="country_code" name="country_code" class="filter-select">
+        <option value="">All</option>
+        {% for c in countries or [] %}
+          <option value="{{ c['country_id'] }}"
+                  {% if selected_country == c['country_id']|string %}selected{% endif %}>
+            {{ c['country_id'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="commodity_code">Commodity</label>
+      <select id="commodity_code" name="commodity_code" class="filter-select">
+        <option value="">All</option>
+        {% for com in commodities or [] %}
+          <option value="{{ com['fao_code'] }}"
+                  {% if selected_commodity == com['fao_code']|string %}selected{% endif %}>
+            {{ com['item_name'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="year">Year</label>
+      <select id="year" name="year" class="filter-select">
+        <option value="">All</option>
+        {% for y in years or [] %}
+          <option value="{{ y['year'] }}"
+                  {% if selected_year == y['year']|string %}selected{% endif %}>
+            {{ y['year'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn">Apply Filters</button>
+  </form>
+</section>
+
+<section class="producers-section">
+  <h3>Top 100 Production Records</h3>
+  <p class="section-description">
+    Sorted by year (newest first) and quantity (largest first).
+  </p>
+
+  {% if production %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Production ID</th>
+        <th>Country Code</th>
+        <th>Commodity</th>
+        <th>Item</th>
+        <th>Year</th>
+        <th>Quantity</th>
+        <th>Unit</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in production %}
+      <tr>
+        <td>{{ row['production_ID'] }}</td>
+        <td>{{ row['country_code'] }}</td>
+        <td>{{ row['commodity_code'] }}</td>
+        <td>{{ row['item_name'] }}</td>
+        <td>{{ row['year'] }}</td>
+        <td>{{ row['quantity'] }}</td>
+        <td>{{ row['unit'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="no-data">
+    <p>No production records found for the selected filters.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}
+
+
