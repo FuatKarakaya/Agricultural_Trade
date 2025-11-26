@@ -118,7 +118,7 @@ CREATE TABLE Producer_Prices (
 CREATE TABLE Consumer_Prices (
     unique_id SERIAL PRIMARY KEY,
     country_id INTEGER,
-    commodity_id INTEGER,
+    commodity_id INTEGER, --Silinecek
     year INTEGER,
     month SMALLINT,
     value FLOAT,
