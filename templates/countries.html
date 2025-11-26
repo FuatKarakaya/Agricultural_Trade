@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}Countries - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Countries and Their Information</h2>
+  
+</section>
+
+<!-- Stats Section -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Countries</h4>
+      <div class="stat-number">{{ total_countries or 0 }}</div>
+      <p class="stat-detail">Tracked globally</p>
+    </div>
+    <div class="stat-card">
+      <h4>Total Population</h4>
+      <div class="stat-number">{{ "{:,}".format(total_population or 0) }}</div>
+      <p class="stat-detail">Across all regions</p>
+    </div>
+    <div class="stat-card">
+      <h4>Total Land Area</h4>
+      <div class="stat-number">{{ "{:,}".format(total_land_area or 0) }}</div>
+      <p class="stat-detail">Square kilometers</p>
+    </div>
+    <div class="stat-card">
+      <h4>Regions</h4>
+      <div class="stat-number">{{ total_regions or 0 }}</div>
+      <p class="stat-detail">Geographic regions</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- Countries Table -->
+<section class="producers-section">
+  <h3>Countries Database</h3>
+  <p class="section-description">
+    Complete list of countries with population and land area statistics
+  </p>
+  
+  {% if countries %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Country Name</th>
+        <th>Region</th>
+        <th>Population</th>
+        <th>Land Area (km²)</th>
+        <th>Population Density</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for country in countries %}
+      <tr>
+        <td><strong>{{ country['country_name']|default('N/A') }}</strong></td>
+        <td>{{ country['region']|default('N/A') }}</td>
+        <td>{{ "{:,}".format(country['population'] or 0) }}</td>
+        <td>{{ "{:,}".format(country['land_area_sq_km'] or 0) }}</td>
+        <td>
+          {% if country['land_area_sq_km'] and country['land_area_sq_km'] > 0 and country['population'] %}
+            {{ "%.2f"|format(country['population'] / country['land_area_sq_km']) }} per km²
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td>
+          <a href="/countries/{{ country['country_id'] }}" class="btn btn-small">View Details</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="no-data">
+    <p>No countries found matching your criteria.</p>
+  </div>
+  {% endif %}
+</section>
+
+
+{% endblock %}

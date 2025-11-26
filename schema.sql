@@ -78,26 +78,27 @@ CREATE INDEX idx_trade_flows_commodity_year ON Trade_Flows(trade_item, year);
 
 CREATE TABLE Land_Use (
     unique_id SERIAL PRIMARY KEY,
-    country_name INTEGER NOT NULL,
+    country_name VARCHAR(100) NOT NULL,
     land_type VARCHAR(100) NOT NULL,
     unit VARCHAR(50) NOT NULL,
-    land_usage_value INTEGER NOT NULL CHECK (land_usage_value >= 0),
+    land_usage_value FLOAT NOT NULL CHECK (land_usage_value >= 0),
     year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
-    FOREIGN KEY (country_name) REFERENCES Countries(country_id) ON DELETE CASCADE,
-    UNIQUE (country_name, year, land_type)
+    country_id INTEGER NOT NULL,
+    FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON DELETE CASCADE,
+    UNIQUE (country_id, year, land_type)
 );
 
 CREATE TABLE Investments (
     unique_id SERIAL PRIMARY KEY,
-    country_name INTEGER NOT NULL,
-    year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
-    unit VARCHAR(50) NOT NULL,
-    expenditure_value INTEGER NOT NULL CHECK (expenditure_value >= 0),
+    country_name VARCHAR(100) NOT NULL,
     expenditure_type VARCHAR(100) NOT NULL,
-    FOREIGN KEY (country_name) REFERENCES Countries(country_id) ON DELETE CASCADE,
+    unit VARCHAR(50) NOT NULL,
+    expenditure_value FLOAT NOT NULL,
+    year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
+    country_id INTEGER NOT NULL,
+    FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON DELETE CASCADE,
     UNIQUE (country_name, year, expenditure_type)
 );
-
 
 
 CREATE TABLE Producer_Prices (
@@ -109,8 +110,8 @@ CREATE TABLE Producer_Prices (
     month SMALLINT,
     value FLOAT,
     
-    FOREIGN KEY (country_id) REFERENCES Countries(country_id),
-    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code),
+    FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
     UNIQUE(country_id, commodity_id, year, month)
 );
 
@@ -122,7 +123,7 @@ CREATE TABLE Consumer_Prices (
     month SMALLINT,
     value FLOAT,
 
-    FOREIGN KEY (country_id) REFERENCES Countries(country_id),
-    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code),
+    FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+    FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
     UNIQUE(country_id, commodity_id, year, month)
 );

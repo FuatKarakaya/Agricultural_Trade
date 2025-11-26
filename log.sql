@@ -1,4 +1,3 @@
-
 SELECT * FROM countries;
 SELECT * FROM Countries;
 SELECT * FROM Countries;
@@ -369,3 +368,27 @@ COPY staging_temp FROM '/Trade_DetailedTradeMatrix_E_All_Data_NOFLAG.csv' DELIMI
 UPDATE trade_data_long SET reporter_countries = countries.country_id FROM countries WHERE trade_data_long.reporter_countries = countries.country_name;
 UPDATE trade_data_long SET partner_countries = countries.country_id FROM countries WHERE trade_data_long.reporter_countries = countries.country_name;
 UPDATE trade_data_long SET partner_countries = countries.country_id FROM countries WHERE trade_data_long.partner_countries = countries.country_name;
+
+        CREATE TABLE trade_data (
+        area_code               INTEGER,
+        area_code_m49           INTEGER,
+        area                    TEXT,
+        item_code               INTEGER,
+        item_code_cpc           TEXT,
+        item                    TEXT,
+        element_code            INTEGER,
+        element                 TEXT,
+        year_code               INTEGER,
+        year                    INTEGER,
+        unit                    TEXT,
+        value                   NUMERIC,
+        flag                    TEXT,
+        note                    TEXT
+    );
+    
+
+        alter table production drop column extra_column ;
+        
+
+        alter table staging_prod drop column c15;
+        

@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+
+{% block title %}Trade Flows - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Global Trade Flows</h2>
+  <p class="section-description">
+    Track international agricultural trade between countries. See import/export patterns, commodities, and trade values.
+  </p>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Trade Records</h4>
+      <div class="stat-number">{{ total_trades or 0 }}</div>
+      <p class="stat-detail">Tracked transactions</p>
+    </div>
+    <div class="stat-card">
+      <h4>Total Trade Value</h4>
+      <div class="stat-number">${{ "{:,.0f}".format(total_value or 0) }}</div>
+      <p class="stat-detail">Combined imports & exports</p>
+    </div>
+    <div class="stat-card">
+      <h4>Active Countries</h4>
+      <div class="stat-number">{{ active_countries or 0 }}</div>
+      <p class="stat-detail">Trading partners</p>
+    </div>
+    <div class="stat-card">
+      <h4>Commodities Traded</h4>
+      <div class="stat-number">{{ traded_commodities or 0 }}</div>
+      <p class="stat-detail">Different products</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- Trade Flows Table -->
+<section class="trade-section">
+  <h3>Trade Flow Records</h3>
+  <p class="section-description">
+    Detailed trade transactions between countries
+    {% if selected_reporter or selected_partner or selected_trade_type or selected_year or selected_commodity %}
+    (Filtered results)
+    {% endif %}
+  </p>
+  
+  {% if trade_flows %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>Reporter Country</th>
+        <th>Trade Type</th>
+        <th>Partner Country</th>
+        <th>Commodity</th>
+        <th>Value</th>
+        <th>Unit</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for trade in trade_flows %}
+      <tr>
+        <td><strong>{{ trade['year'] }}</strong></td>
+        <td>
+          <a href="/countries/{{ trade['reporter_country'] }}" style="text-decoration: none; color: #2c3e50;">
+            {{ trade['reporter_name'] or 'Unknown' }}
+          </a>
+        </td>
+        <td>
+          <span class="{% if trade['trade_type'] == 'Export' %}positive{% elif trade['trade_type'] == 'Import' %}negative{% endif %}">
+            {{ trade['trade_type'] or 'N/A' }}
+          </span>
+        </td>
+        <td>
+          <a href="/countries/{{ trade['partner_country'] }}" style="text-decoration: none; color: #2c3e50;">
+            {{ trade['partner_name'] or 'Unknown' }}
+          </a>
+        </td>
+        <td>
+          <a href="/commodities/{{ trade['trade_item'] }}" style="text-decoration: none; color: #2c3e50;">
+            {{ trade['commodity_name'] or 'Unknown' }}
+          </a>
+        </td>
+        <td><strong>${{ "{:,}".format(trade['value'] or 0) }}</strong></td>
+        <td>{{ trade['unit'] or 'N/A' }}</td>
+        <td>
+          <a href="/trade-flows/{{ trade['unique_id'] }}" class="btn btn-small">Details</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  <!-- Pagination Info -->
+  {% if total_trades > trade_flows|length %}
+  <div style="text-align: center; margin-top: 1rem; color: #7f8c8d;">
+    Showing {{ trade_flows|length }} of {{ total_trades }} trade records
+  </div>
+  {% endif %}
+  
+  {% else %}
+  <div class="no-data">
+    <p>No trade flows found matching your criteria.</p>
+    <p style="margin-top: 0.5rem;">Try adjusting your filters or <a href="/trade-flows">reset all filters</a>.</p>
+  </div>
+  {% endif %}
+</section>
+
+<!-- Trade Type Breakdown -->
+{% if trade_type_breakdown %}
+<section class="trade-balance-section">
+  <h3>Trade Type Distribution</h3>
+  <p class="section-description">
+    Breakdown of trade flows by transaction type
+  </p>
+  
+  <div class="feature-grid">
+    {% for trade_type, stats in trade_type_breakdown.items() %}
+    <div class="feature-card">
+      <h4>{{ trade_type }}</h4>
+      <div class="info-list">
+        <dt>Total Transactions</dt>
+        <dd><strong>{{ "{:,}".format(stats['count'] or 0) }}</strong></dd>
+        
+        <dt>Total Value</dt>
+        <dd>${{ "{:,.0f}".format(stats['total_value'] or 0) }}</dd>
+        
+        <dt>Average Value</dt>
+        <dd>${{ "{:,.0f}".format(stats['avg_value'] or 0) }}</dd>
+        
+        <dt>Share of Total</dt>
+        <dd>{{ "%.1f"|format(stats['percentage'] or 0) }}%</dd>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Top Trading Partners -->
+{% if top_partners %}
+<section class="partnerships-section">
+  <h3>Top Trading Partners</h3>
+  <p class="section-description">
+    Countries with the highest trade volumes
+  </p>
+  
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Country Pair</th>
+        <th>Total Transactions</th>
+        <th>Total Trade Value</th>
+        <th>Main Commodity</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for partner in top_partners %}
+      <tr>
+        <td><strong>#{{ loop.index }}</strong></td>
+        <td>{{ partner['reporter_name'] }} ↔ {{ partner['partner_name'] }}</td>
+        <td>{{ "{:,}".format(partner['transaction_count'] or 0) }}</td>
+        <td><strong>${{ "{:,}".format(partner['total_value'] or 0) }}</strong></td>
+        <td>{{ partner['top_commodity'] or 'Various' }}</td>
+        <td>
+          <a href="/trade-flows?reporter_country={{ partner['reporter_country'] }}&partner_country={{ partner['partner_country'] }}" class="btn btn-small">View Trades</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<!-- Top Commodities -->
+{% if top_commodities_traded %}
+<section class="commodities-section">
+  <h3>Most Traded Commodities</h3>
+  <p class="section-description">
+    Agricultural products with highest trade volumes
+  </p>
+  
+  <div class="feature-grid">
+    {% for commodity in top_commodities_traded %}
+    <div class="feature-card">
+      <h4>{{ commodity['commodity_name'] }}</h4>
+      <div class="info-list">
+        <dt>Trade Transactions</dt>
+        <dd><strong>{{ "{:,}".format(commodity['trade_count'] or 0) }}</strong></dd>
+        
+        <dt>Total Value</dt>
+        <dd>${{ "{:,.0f}".format(commodity['total_value'] or 0) }}</dd>
+        
+        <dt>Countries Involved</dt>
+        <dd>{{ commodity['country_count'] or 0 }} countries</dd>
+        
+        <dt>Average Price</dt>
+        <dd>${{ "{:,.2f}".format(commodity['avg_value'] or 0) }}</dd>
+      </div>
+      <a href="/commodities/{{ commodity['fao_code'] }}" class="btn btn-small" style="margin-top: 1rem; width: 100%;">View Details</a>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
