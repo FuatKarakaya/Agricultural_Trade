@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+
+{% block title %}Production Values - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+  <h2>Production Values</h2>
+  <p class="section-description">
+    Monetary value of agricultural production by element, year, and country.
+  </p>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Records</h4>
+      <div class="stat-number">{{ stats.total_records or 0 }}</div>
+      <p class="stat-detail">Production value rows</p>
+    </div>
+    <div class="stat-card">
+      <h4>Elements</h4>
+      <div class="stat-number">{{ stats.total_elements or 0 }}</div>
+      <p class="stat-detail">Distinct value elements</p>
+    </div>
+    <div class="stat-card">
+      <h4>Year Range</h4>
+      <div class="stat-number">
+        {% if stats.min_year and stats.max_year %}
+          {{ stats.min_year }}–{{ stats.max_year }}
+        {% else %}
+          N/A
+        {% endif %}
+      </div>
+      <p class="stat-detail">Coverage in years</p>
+    </div>
+    <div class="stat-card">
+      <h4>Total Value</h4>
+      <div class="stat-number">
+        {% if stats.total_value %}
+          {{ "{:,.0f}".format(stats.total_value) }}
+        {% else %}
+          0
+        {% endif %}
+      </div>
+      <p class="stat-detail">Sum across all records</p>
+    </div>
+  </div>
+</section>
+
+<section class="filter-section">
+  <form method="get" class="filter-form">
+    <div class="filter-group">
+      <label for="element">Element</label>
+      <select id="element" name="element" class="filter-select">
+        <option value="">All</option>
+        {% for e in elements or [] %}
+          <option value="{{ e['element'] }}"
+                  {% if selected_element == e['element'] %}selected{% endif %}>
+            {{ e['element'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="year">Year</label>
+      <select id="year" name="year" class="filter-select">
+        <option value="">All</option>
+        {% for y in years or [] %}
+          <option value="{{ y['year'] }}"
+                  {% if selected_year == y['year']|string %}selected{% endif %}>
+            {{ y['year'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="country_code">Country</label>
+      <select id="country_code" name="country_code" class="filter-select">
+        <option value="">All</option>
+        {% for c in countries or [] %}
+          <option value="{{ c['country_id'] }}"
+                  {% if selected_country == c['country_id']|string %}selected{% endif %}>
+            {{ c['country_id'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn">Apply Filters</button>
+  </form>
+</section>
+
+<section class="producers-section">
+  <h3>Top 100 Production Values</h3>
+  <p class="section-description">
+    Sorted by year (newest first) and value (largest first).
+  </p>
+
+  {% if production_values %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Production Value ID</th>
+        <th>Production ID</th>
+        <th>Element</th>
+        <th>Year</th>
+        <th>Unit</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in production_values %}
+      <tr>
+        <td>{{ row['production_value_ID'] }}</td>
+        <td>{{ row['production_ID'] }}</td>
+        <td>{{ row['element'] }}</td>
+        <td>{{ row['year'] }}</td>
+        <td>{{ row['unit'] }}</td>
+        <td>{{ row['value'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="no-data">
+    <p>No production values found for the selected filters.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}
+
+

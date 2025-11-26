@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from database import execute_query
+from database import fetch_query
 
 prod_bp = Blueprint("prod", __name__)
 
@@ -18,8 +18,8 @@ def production():
                    com.item_name,
                    com.item_group_name
             FROM Production p
-            JOIN Countries c ON p.country_code = c.country_id
-            JOIN Commodities com ON p.commodity_code = com.fao_code
+            LEFT JOIN Countries c ON p.country_code = c.country_id
+            LEFT JOIN Commodities com ON p.commodity_code = com.fao_code
             WHERE 1=1
         """
         params = []
@@ -38,22 +38,46 @@ def production():
 
         query += " ORDER BY p.year DESC, p.quantity DESC LIMIT 100"
 
-        production_list = execute_query(query, params)
+        production_list = fetch_query(query, params)
+        if production_list is None:
+            return (
+                render_template(
+                    "error.html",
+                    error="Failed to load production data. "
+                    "Check that the Production table exists and that the query is valid.",
+                ),
+                500,
+            )
+
+        # High-level stats for overview cards
+        stats_result = fetch_query(
+            """
+            SELECT 
+                COUNT(*) AS total_records,
+                COUNT(DISTINCT country_code) AS total_countries,
+                COUNT(DISTINCT commodity_code) AS total_commodities,
+                MIN(year) AS min_year,
+                MAX(year) AS max_year
+            FROM Production
+            """
+        )
+        stats = stats_result[0] if stats_result else {}
 
         # Get filter options
-        countries = execute_query(
+        countries = fetch_query(
             "SELECT DISTINCT country_id FROM Countries ORDER BY country_id"
         )
 
-        commodities = execute_query(
+        commodities = fetch_query(
             "SELECT DISTINCT fao_code, item_name FROM Commodities ORDER BY item_name"
         )
 
-        years = execute_query("SELECT DISTINCT year FROM Production ORDER BY year DESC")
+        years = fetch_query("SELECT DISTINCT year FROM Production ORDER BY year DESC")
 
         return render_template(
             "production.html",
             production=production_list,
+            stats=stats,
             countries=countries,
             commodities=commodities,
             years=years,
@@ -70,7 +94,7 @@ def production_detail(production_id):
     """View production record details"""
     try:
         # Get production details
-        production = execute_query(
+        production = fetch_query(
             """
             SELECT p.*, 
                    c.region,
@@ -95,7 +119,7 @@ def production_detail(production_id):
         production = production[0]
 
         # Get production values for this record
-        production_values = execute_query(
+        production_values = fetch_query(
             """
             SELECT *
             FROM Production_Value
@@ -106,7 +130,7 @@ def production_detail(production_id):
         )
 
         # Get historical production for same country/commodity
-        historical_production = execute_query(
+        historical_production = fetch_query(
             """
             SELECT year, quantity, unit
             FROM Production
@@ -120,7 +144,7 @@ def production_detail(production_id):
         )
 
         # Get comparative production (other countries, same commodity, same year)
-        comparative_production = execute_query(
+        comparative_production = fetch_query(
             """
             SELECT p.country_code, p.quantity, c.region
             FROM Production p

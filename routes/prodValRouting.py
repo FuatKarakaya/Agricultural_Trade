@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from database import execute_query
+from database import fetch_query
 
 prod_val_bp = Blueprint("prod_val", __name__)
 
@@ -20,9 +20,9 @@ def production_values():
                    c.region,
                    com.item_group_name
             FROM Production_Value pv
-            JOIN Production p ON pv.production_ID = p.production_ID
-            JOIN Countries c ON p.country_code = c.country_id
-            JOIN Commodities com ON p.commodity_code = com.fao_code
+            LEFT JOIN Production p ON pv.production_ID = p.production_ID
+            LEFT JOIN Countries c ON p.country_code = c.country_id
+            LEFT JOIN Commodities com ON p.commodity_code = com.fao_code
             WHERE 1=1
         """
         params = []
@@ -41,24 +41,49 @@ def production_values():
 
         query += " ORDER BY pv.year DESC, pv.value DESC LIMIT 100"
 
-        production_values_list = execute_query(query, params)
+        production_values_list = fetch_query(query, params)
+        if production_values_list is None:
+            return (
+                render_template(
+                    "error.html",
+                    error="Failed to load production value data. "
+                    "Check that the Production_Value table exists and that the query is valid.",
+                ),
+                500,
+            )
+
+        # High-level stats for overview cards
+        stats_result = fetch_query(
+            """
+            SELECT 
+                COUNT(*) AS total_records,
+                COUNT(DISTINCT element) AS total_elements,
+                COUNT(DISTINCT year) AS total_years,
+                MIN(year) AS min_year,
+                MAX(year) AS max_year,
+                SUM(value) AS total_value
+            FROM Production_Value
+            """
+        )
+        stats = stats_result[0] if stats_result else {}
 
         # Get filter options
-        elements = execute_query(
+        elements = fetch_query(
             "SELECT DISTINCT element FROM Production_Value WHERE element IS NOT NULL ORDER BY element"
         )
 
-        years = execute_query(
+        years = fetch_query(
             "SELECT DISTINCT year FROM Production_Value ORDER BY year DESC"
         )
 
-        countries = execute_query(
+        countries = fetch_query(
             "SELECT DISTINCT country_id FROM Countries ORDER BY country_id"
         )
 
         return render_template(
             "production_values.html",
             production_values=production_values_list,
+            stats=stats,
             elements=elements,
             years=years,
             countries=countries,
@@ -75,7 +100,7 @@ def production_value_detail(production_value_id):
     """View production value details"""
     try:
         # Get production value details
-        production_value = execute_query(
+        production_value = fetch_query(
             """
             SELECT pv.*, 
                    p.country_code,
@@ -104,7 +129,7 @@ def production_value_detail(production_value_id):
         production_value = production_value[0]
 
         # Get time series for same production record
-        time_series = execute_query(
+        time_series = fetch_query(
             """
             SELECT year, element, value, unit
             FROM Production_Value
@@ -115,7 +140,7 @@ def production_value_detail(production_value_id):
         )
 
         # Get element comparison across countries (same commodity, year, element)
-        element_comparison = execute_query(
+        element_comparison = fetch_query(
             """
             SELECT pv.value, pv.unit, p.country_code, c.region
             FROM Production_Value pv
@@ -138,7 +163,7 @@ def production_value_detail(production_value_id):
         )
 
         # Get yearly trends for same element
-        yearly_trends = execute_query(
+        yearly_trends = fetch_query(
             """
             SELECT 
                 pv.year,
