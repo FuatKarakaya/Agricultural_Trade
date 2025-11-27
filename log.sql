@@ -474,3 +474,12 @@ DROP TABLE tempnotnormalpp;
 DROP TABLE tempcp;
 ;
         
+
+            select count(*)
+            from production
+            where production.commodity_code not in (select fao_code from commodities);
+            
+        ALTER TABLE production
+        ADD CONSTRAINT production_commodity_code_fkey
+        FOREIGN KEY (commodity_code)
+        REFERENCES commodities(fao_code);
