@@ -14,13 +14,18 @@ def production():
 
         # Trying to use 4 tables here, will continue.
         query = """
-            SELECT p.*, 
-                c.country_name, 
+            SELECT 
+                p.production_ID,
+                p.year,
+                p.unit,
+                p.quantity,
+                c.country_name,
+                co.item_name,
+                pv.value AS production_value
             FROM production p
-            LEFT JOIN Countries c ON p.country_code = c.country_id
-            LEFT JOIN Commodities com ON p.commodity_code = com.fao_code
+            INNER JOIN Countries c ON p.country_code = c.country_id
+            INNER JOIN Commodities co ON p.commodity_code = co.fao_code
             LEFT JOIN Production_Value pv ON pv.production_ID = p.production_ID
-            WHERE 1=1
         """
         params = []
 
