@@ -9,6 +9,7 @@
   </head>
   <body>
     <!-- Navigation -->
+<!-- Updated Navigation Bar -->
     <nav class="navbar">
       <div class="nav-container">
         <div class="nav-title">Zlatan Agriculture</div>
@@ -16,13 +17,21 @@
           <li><a href="/" class="nav-link">Dashboard</a></li>
           <li><a href="/countries" class="nav-link">Countries</a></li>
           <li><a href="/commodities" class="nav-link">Commodities</a></li>
+          
+          <!-- Dropdown for Prices -->
+          <li class="nav-dropdown">
+            <span class="nav-link">Prices ▾</span>
+            <div class="dropdown-content">
+                <a href="/producer_prices">Producer Prices</a>
+                <a href="/consumer_prices">Consumer Prices</a>
+            </div>
+          </li>
+
           <li><a href="/production" class="nav-link">Production</a></li>
           <li><a href="/production-values" class="nav-link">Production Value</a></li>
           <li><a href="/trades" class="nav-link">Trade Flows</a></li>
           <li><a href="/landuse" class="nav-link">Land Use</a></li>
           <li><a href="/investments" class="nav-link">Investments</a></li>
-          <li><a href="/producer_prices" class="nav-link">Producer Prices</a></li>
-          <li><a href="/consumer_prices" class="nav-link">Consumer Prices</a></li>
         </ul>
       </div>
     </nav>

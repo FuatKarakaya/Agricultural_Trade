@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block title %}Producer Prices - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Producer Prices Database</h2>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Records</h4>
+      <div class="stat-number">{{ "{:,}".format(total_records or 0) }}</div>
+      <p class="stat-detail">Price points tracked</p>
+    </div>
+    <div class="stat-card">
+      <h4>Commodities</h4>
+      <div class="stat-number">{{ total_commodities or 0 }}</div>
+      <p class="stat-detail">Distinct products</p>
+    </div>
+    <div class="stat-card">
+      <h4>Countries</h4>
+      <div class="stat-number">{{ total_countries or 0 }}</div>
+      <p class="stat-detail">Reporting nations</p>
+    </div>
+    <div class="stat-card">
+      <h4>Data Span</h4>
+      <div class="stat-number">2010-2023</div>
+      <p class="stat-detail">Years of coverage</p>
+    </div>
+  </div>
+</section>
+
+<!-- Filter Section (Optional UI placeholder for future functionality) -->
+<section class="filter-section">
+    <form class="filter-form" method="get" action="/producer_prices">
+        <div class="filter-group">
+            <label for="limit">Rows to Display</label>
+            <select name="limit" id="limit" class="filter-select" onchange="this.form.submit()">
+                <option value="50" {% if current_limit == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if current_limit == 100 %}selected{% endif %}>100</option>
+                <option value="200" {% if current_limit == 200 %}selected{% endif %}>200</option>
+                <option value="500" {% if current_limit == 500 %}selected{% endif %}>500</option>
+            </select>
+        </div>
+    </form>
+</section>
+
+<!-- Prices Table -->
+<section class="producers-section">
+  <h3>Recent Price Data</h3>
+  <p class="section-description">
+    Displaying producer prices for agricultural commodities (Values in standard currency units)
+  </p>
+  
+  {% if prices %}
+  <div style="overflow-x: auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Commodity</th>
+            <th>Month</th>
+            <!-- Displaying last 3 years for brevity -->
+            <th>2021</th>
+            <th>2022</th>
+            <th>2023</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in prices %}
+          <tr>
+            <td><strong>{{ row['country_name'] }}</strong></td>
+            <td>{{ row['item_name'] }}</td>
+            <td>
+                {% if row['month'] == 1 %}January
+                {% elif row['month'] == 2 %}February
+                {% elif row['month'] == 3 %}March
+                {% elif row['month'] == 4 %}April
+                {% elif row['month'] == 5 %}May
+                {% elif row['month'] == 6 %}June
+                {% elif row['month'] == 7 %}July
+                {% elif row['month'] == 8 %}August
+                {% elif row['month'] == 9 %}September
+                {% elif row['month'] == 10 %}October
+                {% elif row['month'] == 11 %}November
+                {% elif row['month'] == 12 %}December
+                {% else %}N/A{% endif %}
+            </td>
+            <!-- Using string keys matching the DB column names -->
+            <td>{{ "{:,.2f}".format(row['Y2021']) if row['Y2021'] is not none else '-' }}</td>
+            <td>{{ "{:,.2f}".format(row['Y2022']) if row['Y2022'] is not none else '-' }}</td>
+            <td>{{ "{:,.2f}".format(row['Y2023']) if row['Y2023'] is not none else '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+  </div>
+  {% else %}
+  <div class="no-data">
+    <p>No price data found.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}
