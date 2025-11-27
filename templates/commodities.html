@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block title %}Commodities - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Commodities Database</h2>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Commodities</h4>
+      <div class="stat-number">{{ "{:,}".format(total_commodities or 0) }}</div>
+      <p class="stat-detail">Registered items</p>
+    </div>
+    <div class="stat-card">
+      <h4>With CPC Codes</h4>
+      <div class="stat-number">{{ "{:,}".format(with_cpc or 0) }}</div>
+      <p class="stat-detail">Standardized classifications</p>
+    </div>
+    <div class="stat-card">
+      <h4>Data Source</h4>
+      <div class="stat-number">FAO</div>
+      <p class="stat-detail">Food and Agriculture Organization</p>
+    </div>
+  </div>
+</section>
+
+<!-- Filter Section -->
+<section class="filter-section">
+    <form class="filter-form" method="get" action="/commodities">
+        <div class="filter-group">
+            <label for="limit">Rows to Display</label>
+            <select name="limit" id="limit" class="filter-select" onchange="this.form.submit()">
+                <option value="50" {% if current_limit == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if current_limit == 100 %}selected{% endif %}>100</option>
+                <option value="200" {% if current_limit == 200 %}selected{% endif %}>200</option>
+                <option value="500" {% if current_limit == 500 %}selected{% endif %}>500</option>
+                <option value="1000" {% if current_limit == 1000 %}selected{% endif %}>1000</option>
+            </select>
+        </div>
+        
+        <!-- Simple Search -->
+        <div class="filter-group">
+            <label for="search">Search Commodity</label>
+            <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="e.g. Apple" class="filter-select">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-small">Apply</button>
+        </div>
+    </form>
+</section>
+
+<!-- Commodities Table -->
+<section class="producers-section">
+  <h3>Commodity List</h3>
+  <p class="section-description">
+    Standardized list of agricultural products and their classification codes
+  </p>
+  
+  {% if commodities %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>FAO Code</th>
+        <th>Item Name</th>
+        <th>CPC Code</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in commodities %}
+      <tr>
+        <td><strong>{{ row['fao_code'] }}</strong></td>
+        <td>{{ row['item_name'] }}</td>
+        <td>{{ row['cpc_code'] or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="no-data">
+    <p>No commodities found matching your criteria.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
