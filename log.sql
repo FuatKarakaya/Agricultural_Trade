@@ -466,3 +466,11 @@ ALTER TABLE tempnotnormalpp DROP COLUMN IF EXISTS "Y2001",
         
 ALTER TABLE tempnotnormalpp DROP COLUMN IF EXISTS "Y2000";
         
+SELECT COUNT(*) FROM Producer_Prices;
+        
+DROP TABLE tempnotnormalpp;
+;
+        
+DROP TABLE tempcp;
+;
+        

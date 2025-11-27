@@ -105,15 +105,26 @@ CREATE TABLE Producer_Prices (
     unique_id SERIAL PRIMARY KEY,
     country_id INTEGER,
     commodity_id INTEGER,
-    price_unit VARCHAR(20),
+    price_unit VARCHAR(20), --silindi hepsi LCU
     year INTEGER,
     month SMALLINT,
     value FLOAT,
-    
     FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
     FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
     UNIQUE(country_id, commodity_id, year, month)
 );
+
+-- CREATE TABLE Producer_Prices (
+--     unique_id SERIAL PRIMARY KEY,
+--     country_id INTEGER,
+--     commodity_id INTEGER,
+--     month SMALLINT,
+--     Y2010 FLOAT,Y2011 FLOAT,Y2012 FLOAT,Y2013 FLOAT,
+--     Y2014 FLOAT,Y2015 FLOAT,Y2016 FLOAT,Y2017 FLOAT,Y2018 FLOAT,
+--     Y2019 FLOAT,Y2020 FLOAT,Y2021 FLOAT,Y2022 FLOAT,Y2023 FLOAT,
+--     FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+--     FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
+-- );
 
 CREATE TABLE Consumer_Prices (
     unique_id SERIAL PRIMARY KEY,
