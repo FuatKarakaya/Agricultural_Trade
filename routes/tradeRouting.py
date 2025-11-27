@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database import execute_query, fetch_query
 
 trade_bp = Blueprint("trade", __name__)
@@ -7,7 +7,7 @@ trade_bp = Blueprint("trade", __name__)
 @trade_bp.route("/trades")
 def Trade_data_long_dashboard():
     
-    # Get filter parameters - match the template form field names
+    # Get filter parameters
     selected_reporter = request.args.get('reporter_country', '')
     selected_partner = request.args.get('partner_country', '')
     selected_trade_type = request.args.get('trade_type', '')
@@ -22,7 +22,6 @@ def Trade_data_long_dashboard():
             tf.reporter_countries AS reporter_country,
             tf.partner_countries AS partner_country,
             tf.item_code AS trade_item,
-            tf.item,
             tf.element AS trade_type,
             tf.unit,
             tf.year,
@@ -77,7 +76,7 @@ def Trade_data_long_dashboard():
     # Fetch trade flows
     trade_flows = fetch_query(query, tuple(params) if params else None)
     
-    # Get all countries for filter dropdowns (template expects 'country_code' and 'country_name')
+    # Get all countries for filter dropdowns
     countries_query = """
         SELECT country_id AS country_code, country_name 
         FROM Countries 
@@ -85,7 +84,7 @@ def Trade_data_long_dashboard():
     """
     countries = fetch_query(countries_query)
     
-    # Get all commodities for filter dropdown (template expects 'fao_code' and 'commodity_name')
+    # Get all commodities for filter dropdown
     commodities_query = """
         SELECT fao_code, item_name AS commodity_name 
         FROM Commodities 
@@ -96,8 +95,16 @@ def Trade_data_long_dashboard():
     # Get available years
     years_data = fetch_query("SELECT DISTINCT year FROM Trade_data_long ORDER BY year DESC")
     available_years = [row['year'] for row in years_data] if years_data else []
+
+    # Get available trade type
+    trade_types_data = fetch_query("SELECT DISTINCT element FROM Trade_data_long WHERE element IS NOT NULL ORDER BY element")
+    available_trade_types = [row['element'] for row in trade_types_data] if trade_types_data else []
+
+    # Get available units
+    units_data = fetch_query("SELECT DISTINCT unit FROM Trade_data_long WHERE unit IS NOT NULL ORDER BY unit")
+    available_units = [row['unit'] for row in units_data] if units_data else []
     
-    # Calculate statistics (apply same filters for accurate stats)
+    # Calculate statistics
     stats_base = """
         FROM Trade_data_long tf
         WHERE 1=1
@@ -131,7 +138,7 @@ def Trade_data_long_dashboard():
     stats_result = fetch_query(stats_query, tuple(stats_params) if stats_params else None)
     stats = stats_result[0] if stats_result else {}
     
-    # Get trade type breakdown (template expects 'trade_type_breakdown' dict)
+    # Get trade type breakdownn
     trade_type_query = f"""
         SELECT 
             element as trade_type,
@@ -201,6 +208,8 @@ def Trade_data_long_dashboard():
         partner_countries=countries or [],
         available_commodities=commodities or [],
         available_years=available_years,
+        available_trade_types=available_trade_types,
+        available_units=available_units,
         # Selected filter values
         selected_reporter=selected_reporter,
         selected_partner=selected_partner,
@@ -218,6 +227,44 @@ def Trade_data_long_dashboard():
         top_partners=top_partners or [],
         top_commodities_traded=top_commodities_traded or [],
     )
+
+
+@trade_bp.route("/trades/add", methods=["POST"])
+def add_trade_flow():
+    
+    try:
+        # Get form data
+        reporter_country = request.form.get('reporter_country')
+        partner_country = request.form.get('partner_country')
+        commodity = request.form.get('commodity')
+        trade_type = request.form.get('trade_type')
+        year = request.form.get('year')
+        value = request.form.get('value')
+        unit = request.form.get('unit')
+
+        
+        if reporter_country == partner_country:
+            flash("Reporter country and partner country must be different!", "error")
+            return redirect(url_for('trade.Trade_data_long_dashboard'))
+
+        # Insert query
+        insert_query = """
+            INSERT INTO Trade_data_long
+            (reporter_countries, partner_countries, item_code, element, unit, year, value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+
+        params = (reporter_country, partner_country, commodity, trade_type, unit, year, value)
+
+        # Execute the insert
+        execute_query(insert_query, params)
+
+        flash("Trade flow record added successfully!", "success")
+        return redirect(url_for('trade.Trade_data_long_dashboard'))
+
+    except Exception as e:
+        flash(f"Error adding trade flow: {str(e)}", "error")
+        return redirect(url_for('trade.Trade_data_long_dashboard'))
 
 
 @trade_bp.route("/trades/<int:trade_id>")

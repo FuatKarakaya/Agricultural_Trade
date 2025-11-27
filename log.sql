@@ -483,3 +483,13 @@ DROP TABLE tempcp;
         ADD CONSTRAINT production_commodity_code_fkey
         FOREIGN KEY (commodity_code)
         REFERENCES commodities(fao_code);
+
+            INSERT INTO Trade_data_long
+            (reporter_countries, partner_countries, item_code, element, unit, year, value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        
+
+            INSERT INTO Trade_data_long
+            (reporter_countries, partner_countries, item_code, element, unit, year, value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        

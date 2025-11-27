@@ -5,7 +5,7 @@
 {% block content %}
 
 
-<!-- Hero Section -->
+<!-- header -->
 <section class="hero-section">
   <h2>Global Trade Flows</h2>
   <p class="section-description">
@@ -13,7 +13,7 @@
   </p>
 </section>
 
-<!-- Stats Section -->
+<!-- statistics -->
 <section class="stats-container">
   <div class="stats-grid">
     <div class="stat-card">
@@ -40,7 +40,78 @@
 </section>
 
 
-<!-- Filters Section -->
+<!-- add new trade flow form -->
+<section class="filters-section" style="margin-bottom: 2rem;">
+  <h3>Add New Trade Flow Record</h3>
+  <form method="POST" action="/trades/add" class="filters-form" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+
+    <div class="filter-group" style="flex: 1; min-width: 180px;">
+      <label for="new_reporter" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Reporter Country *</label>
+      <select name="reporter_country" id="new_reporter" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Select Country</option>
+        {% for country in reporter_countries %}
+        <option value="{{ country['country_code'] }}">{{ country['country_name'] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 1; min-width: 180px;">
+      <label for="new_partner" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Partner Country *</label>
+      <select name="partner_country" id="new_partner" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Select Partner</option>
+        {% for country in partner_countries %}
+        <option value="{{ country['country_code'] }}">{{ country['country_name'] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 1; min-width: 180px;">
+      <label for="new_commodity" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Commodity *</label>
+      <select name="commodity" id="new_commodity" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Select Commodity</option>
+        {% for commodity in available_commodities %}
+        <option value="{{ commodity['fao_code'] }}">{{ commodity['commodity_name'] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 1; min-width: 140px;">
+      <label for="new_trade_type" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Trade Type *</label>
+      <select name="trade_type" id="new_trade_type" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Select Type</option>
+        {% for trade_type in available_trade_types %}
+        <option value="{{ trade_type }}">{{ trade_type }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 1; min-width: 120px;">
+      <label for="new_year" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Year *</label>
+      <input type="number" name="year" id="new_year" required min="1900" max="2100" placeholder="2024" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+    </div>
+
+    <div class="filter-group" style="flex: 1; min-width: 140px;">
+      <label for="new_value" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Value *</label>
+      <input type="number" name="value" id="new_value" required step="0.01" min="0" placeholder="1000.00" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+    </div>
+
+    <div class="filter-group" style="flex: 1; min-width: 120px;">
+      <label for="new_unit" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Unit *</label>
+      <select name="unit" id="new_unit" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Select Unit</option>
+        {% for unit in available_units %}
+        <option value="{{ unit }}">{{ unit }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-actions" style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn" style="padding: 0.5rem 1.5rem;">Add Trade Flow</button>
+    </div>
+  </form>
+</section>
+
+<!-- filter section -->
 <section class="filters-section" style="margin-bottom: 2rem;">
   <h3>Filter Trade Flows</h3>
   <form method="GET" action="/trades" class="filters-form" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
@@ -107,7 +178,7 @@
   </form>
 </section>
 
-<!-- Trade Flows Table -->
+<!-- trade table -->
 <section class="trade-section">
   <h3>Trade Flow Records</h3>
   <p class="section-description">
@@ -154,14 +225,21 @@
             {{ trade['commodity_name'] or 'Unknown' }}
           </a>
         </td>
-        <td><strong>${{ "{:,}".format(trade['value'] or 0) }}</strong></td>
+        <td>
+          <strong>
+            {% if trade['unit'] and ('$' in trade['unit'] or 'USD' in trade['unit']) %}
+              ${{ "{:,}".format(trade['value'] or 0) }}
+            {% else %}
+              {{ "{:,}".format(trade['value'] or 0) }}
+            {% endif %}
+          </strong>
+        </td>
         <td>{{ trade['unit'] or 'N/A' }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   
-  <!-- Pagination Info -->
   {% if total_trades > trade_flows|length %}
   <div style="text-align: center; margin-top: 1rem; color: #7f8c8d;">
     Showing {{ trade_flows|length }} of {{ total_trades }} trade records
@@ -176,7 +254,7 @@
   {% endif %}
 </section>
 
-<!-- Trade Type Breakdown -->
+<!-- trade distribution -->
 {% if trade_type_breakdown %}
 <section class="trade-balance-section">
   <h3>Trade Type Distribution</h3>
@@ -207,7 +285,7 @@
 </section>
 {% endif %}
 
-<!-- Top Trading Partners -->
+<!-- top partners -->
 {% if top_partners %}
 <section class="partnerships-section">
   <h3>Top Trading Partners</h3>
@@ -223,7 +301,6 @@
         <th>Total Transactions</th>
         <th>Total Trade Value</th>
         <th>Main Commodity</th>
-        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -235,7 +312,6 @@
         <td><strong>${{ "{:,}".format(partner['total_value'] or 0) }}</strong></td>
         <td>{{ partner['top_commodity'] or 'Various' }}</td>
         <td>
-          <a href="/trades?reporter_country={{ partner['reporter_country'] }}&partner_country={{ partner['partner_country'] }}" class="btn btn-small">View Trades</a>
         </td>
       </tr>
       {% endfor %}
@@ -244,7 +320,7 @@
 </section>
 {% endif %}
 
-<!-- Top Commodities -->
+<!-- top comodities by volume -->
 {% if top_commodities_traded %}
 <section class="commodities-section">
   <h3>Most Traded Commodities</h3>
@@ -269,7 +345,6 @@
         <dt>Average Price</dt>
         <dd>${{ "{:,.2f}".format(commodity['avg_value'] or 0) }}</dd>
       </div>
-      <a href="/commodities/{{ commodity['fao_code'] }}" class="btn btn-small" style="margin-top: 1rem; width: 100%;">View Details</a>
     </div>
     {% endfor %}
   </div>
