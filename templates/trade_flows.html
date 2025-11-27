@@ -40,6 +40,73 @@
 </section>
 
 
+<!-- Filters Section -->
+<section class="filters-section" style="margin-bottom: 2rem;">
+  <h3>Filter Trade Flows</h3>
+  <form method="GET" action="/trades" class="filters-form" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+    
+    <div class="filter-group" style="flex: 1; min-width: 180px;">
+      <label for="reporter_country" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Reporter Country</label>
+      <select name="reporter_country" id="reporter_country" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">All Countries</option>
+        {% for country in reporter_countries %}
+        <option value="{{ country['country_code'] }}" {% if selected_reporter == country['country_code']|string %}selected{% endif %}>
+          {{ country['country_name'] }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="filter-group" style="flex: 1; min-width: 180px;">
+      <label for="partner_country" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Partner Country</label>
+      <select name="partner_country" id="partner_country" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">All Partners</option>
+        {% for country in partner_countries %}
+        <option value="{{ country['country_code'] }}" {% if selected_partner == country['country_code']|string %}selected{% endif %}>
+          {{ country['country_name'] }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="filter-group" style="flex: 1; min-width: 140px;">
+      <label for="trade_type" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Trade Type</label>
+      <select name="trade_type" id="trade_type" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">All Types</option>
+        <option value="Export" {% if selected_trade_type == 'Export' %}selected{% endif %}>Export</option>
+        <option value="Import" {% if selected_trade_type == 'Import' %}selected{% endif %}>Import</option>
+      </select>
+    </div>
+    
+    <div class="filter-group" style="flex: 1; min-width: 120px;">
+      <label for="year" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Year</label>
+      <select name="year" id="year" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">All Years</option>
+        {% for year in available_years %}
+        <option value="{{ year }}" {% if selected_year == year|string %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="filter-group" style="flex: 1; min-width: 180px;">
+      <label for="commodity" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Commodity</label>
+      <select name="commodity" id="commodity" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">All Commodities</option>
+        {% for commodity in available_commodities %}
+        <option value="{{ commodity['fao_code'] }}" {% if selected_commodity == commodity['fao_code']|string %}selected{% endif %}>
+          {{ commodity['commodity_name'] }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="filter-actions" style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn" style="padding: 0.5rem 1.5rem;">Apply Filters</button>
+      <a href="/trades" class="btn btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none;">Reset</a>
+    </div>
+  </form>
+</section>
+
 <!-- Trade Flows Table -->
 <section class="trade-section">
   <h3>Trade Flow Records</h3>
@@ -61,7 +128,6 @@
         <th>Commodity</th>
         <th>Value</th>
         <th>Unit</th>
-        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -90,9 +156,6 @@
         </td>
         <td><strong>${{ "{:,}".format(trade['value'] or 0) }}</strong></td>
         <td>{{ trade['unit'] or 'N/A' }}</td>
-        <td>
-          <a href="/trade-flows/{{ trade['unique_id'] }}" class="btn btn-small">Details</a>
-        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -108,7 +171,7 @@
   {% else %}
   <div class="no-data">
     <p>No trade flows found matching your criteria.</p>
-    <p style="margin-top: 0.5rem;">Try adjusting your filters or <a href="/trade-flows">reset all filters</a>.</p>
+    <p style="margin-top: 0.5rem;">Try adjusting your filters or <a href="/trades">reset all filters</a>.</p>
   </div>
   {% endif %}
 </section>
@@ -172,7 +235,7 @@
         <td><strong>${{ "{:,}".format(partner['total_value'] or 0) }}</strong></td>
         <td>{{ partner['top_commodity'] or 'Various' }}</td>
         <td>
-          <a href="/trade-flows?reporter_country={{ partner['reporter_country'] }}&partner_country={{ partner['partner_country'] }}" class="btn btn-small">View Trades</a>
+          <a href="/trades?reporter_country={{ partner['reporter_country'] }}&partner_country={{ partner['partner_country'] }}" class="btn btn-small">View Trades</a>
         </td>
       </tr>
       {% endfor %}

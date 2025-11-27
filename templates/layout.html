@@ -8,6 +8,14 @@
     {% block extra_css %}{% endblock %}
   </head>
   <body>
+    <!-- Loading Spinner -->
+    <div id="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+
     <!-- Navigation -->
 <!-- Updated Navigation Bar -->
     <nav class="navbar">
@@ -50,5 +58,28 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Loading Spinner Script -->
+    <script>
+      // Hide loading spinner when page is fully loaded
+      window.addEventListener('load', function() {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.opacity = '0';
+        setTimeout(function() {
+          loadingOverlay.style.display = 'none';
+        }, 300);
+      });
+
+      // Show loading spinner when navigating away
+      document.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          // Only show for internal links
+          if (this.hostname === window.location.hostname && !this.hasAttribute('target')) {
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-overlay').style.opacity = '1';
+          }
+        });
+      });
+    </script>
   </body>
 </html>
