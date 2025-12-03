@@ -6,43 +6,89 @@ prod_val_bp = Blueprint("prod_val", __name__)
 
 @prod_val_bp.route("/production-values")
 def production_values():
-    """Browse production values - SAFE MODE (Single Table Queries)"""
+    """Browse production values with enhanced joins"""
     try:
-        selected_element = request.args.get("element")
-        selected_year = request.args.get("year")
+        selected_element = request.args.get("element", "")
+        selected_year = request.args.get("year", "")
+        country_code = request.args.get("country_code", "")
 
-        query = "SELECT * FROM Production_Value WHERE 1=1"
+        # Enhanced query with multiple JOINs similar to production page
+        query = """
+            SELECT 
+                pv.production_value_ID,
+                pv.production_ID,
+                pv.element,
+                pv.year,
+                pv.unit,
+                pv.value,
+                p.country_code,
+                p.commodity_code,
+                p.unit AS production_unit,
+                c.country_name,
+                c.region,
+                c.subregion,
+                co.item_name,
+                co.cpc_code
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            INNER JOIN Countries c ON p.country_code = c.country_id
+            INNER JOIN Commodities co ON p.commodity_code = co.fao_code
+            WHERE 1=1
+        """
         params = []
 
         if selected_element:
-            query += " AND element = %s"
+            query += " AND pv.element = %s"
             params.append(selected_element)
 
         if selected_year:
-            query += " AND year = %s"
+            query += " AND pv.year = %s"
             params.append(selected_year)
 
-        query += " ORDER BY year DESC, value DESC LIMIT 50"
+        if country_code:
+            query += " AND p.country_code = %s"
+            params.append(country_code)
+
+        query += " ORDER BY pv.year DESC, pv.value DESC LIMIT 50"
 
         production_values_list = fetch_query(query, params)
 
         if production_values_list is None:
             return render_template("error.html", error="Database query failed."), 500
 
+        # Enhanced stats with more information
         stats_result = fetch_query(
-            "SELECT COUNT(*) as total_records, SUM(value) as total_value FROM Production_Value"
+            """
+            SELECT 
+                COUNT(*) as total_records,
+                SUM(pv.value) as total_value,
+                COUNT(DISTINCT pv.element) as total_elements,
+                COUNT(DISTINCT p.country_code) as total_countries,
+                COUNT(DISTINCT p.commodity_code) as total_commodities,
+                MIN(pv.year) as min_year,
+                MAX(pv.year) as max_year
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            """
         )
         stats = stats_result[0] if stats_result else {}
 
+        # Get filter options
         elements = fetch_query(
             "SELECT DISTINCT element FROM Production_Value ORDER BY element"
         )
         years = fetch_query(
             "SELECT DISTINCT year FROM Production_Value ORDER BY year DESC"
         )
-
-        # Countries require joining the Production table, so we leave this empty in Safe Mode
-        countries = []
+        countries = fetch_query(
+            """
+            SELECT DISTINCT c.country_id, c.country_name
+            FROM Countries c
+            INNER JOIN Production p ON c.country_id = p.country_code
+            INNER JOIN Production_Value pv ON p.production_ID = pv.production_ID
+            ORDER BY c.country_name
+            """
+        )
 
         return render_template(
             "production_values.html",
@@ -53,7 +99,7 @@ def production_values():
             countries=countries,
             selected_element=selected_element,
             selected_year=selected_year,
-            selected_country="",
+            selected_country=country_code,
         )
 
     except Exception as e:

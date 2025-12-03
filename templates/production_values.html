@@ -24,6 +24,16 @@
       <p class="stat-detail">Distinct value elements</p>
     </div>
     <div class="stat-card">
+      <h4>Countries</h4>
+      <div class="stat-number">{{ stats.total_countries or 0 }}</div>
+      <p class="stat-detail">With production values</p>
+    </div>
+    <div class="stat-card">
+      <h4>Commodities</h4>
+      <div class="stat-number">{{ stats.total_commodities or 0 }}</div>
+      <p class="stat-detail">Distinct items</p>
+    </div>
+    <div class="stat-card">
       <h4>Year Range</h4>
       <div class="stat-number">
         {% if stats.min_year and stats.max_year %}
@@ -83,7 +93,7 @@
         {% for c in countries or [] %}
           <option value="{{ c['country_id'] }}"
                   {% if selected_country == c['country_id']|string %}selected{% endif %}>
-            {{ c['country_id'] }}
+            {{ c.get('country_name', c['country_id']) }}
           </option>
         {% endfor %}
       </select>
@@ -104,21 +114,23 @@
     <thead>
       <tr>
         <th>Production Value ID</th>
-        <th>Production ID</th>
+        <th>Country</th>
+        <th>Commodity</th>
         <th>Element</th>
         <th>Year</th>
-        <th>Unit</th>
         <th>Value</th>
+        <th>Unit</th>
+        <th>Region</th>
       </tr>
     </thead>
     <tbody>
       {% for row in production_values %}
       <tr>
         <td>{{ row.get('production_value_ID') or row.get('production_value_id') or 'N/A' }}</td>
-        <td>{{ row.get('production_ID') or row.get('production_id') or 'N/A' }}</td>
+        <td>{{ row.get('country_name') or row.get('country_code') or 'N/A' }}</td>
+        <td>{{ row.get('item_name') or 'N/A' }}</td>
         <td>{{ row.get('element') or 'N/A' }}</td>
         <td>{{ row.get('year') or 'N/A' }}</td>
-        <td>{{ row.get('unit') or 'N/A' }}</td>
         <td>
           {% if row.get('value') is not none %}
             {{ "{:,.2f}".format(row.get('value')) }}
@@ -126,6 +138,8 @@
             N/A
           {% endif %}
         </td>
+        <td>{{ row.get('unit') or 'N/A' }}</td>
+        <td>{{ row.get('region') or 'N/A' }}</td>
       </tr>
       {% endfor %}
     </tbody>
