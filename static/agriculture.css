@@ -81,7 +81,7 @@ body {
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: #34495e; /* Slightly lighter than navbar for contrast */
+    background-color: #1e5a42; /* Darker green matching navbar theme */
     min-width: 180px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     border-radius: 4px;

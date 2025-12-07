@@ -572,3 +572,19 @@ DROP TABLE tempcp;
         DELETE FROM Land_Use
         WHERE country_id = %s AND year = %s;
         
+
+            UPDATE Trade_data_long
+            SET reporter_countries = %s,
+                partner_countries = %s,
+                item_code = %s,
+                element = %s,
+                unit = %s,
+                year = %s,
+                value = %s
+            WHERE unique_id = %s
+        
+
+            INSERT INTO Trade_data_long
+            (reporter_countries, partner_countries, item_code, element, unit, year, value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        
