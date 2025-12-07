@@ -493,3 +493,82 @@ DROP TABLE tempcp;
             (reporter_countries, partner_countries, item_code, element, unit, year, value)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+        DELETE FROM Land_Use
+        WHERE country_id = %s AND year = %s;
+        

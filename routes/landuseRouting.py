@@ -97,6 +97,56 @@ def landUsePage():
 
     agri_share = (total_agri_land / total_land_area * 100) if total_land_area > 0 else None
 
+    pie_query = """
+        SELECT
+            SUM(CASE WHEN lu.land_type = 'Arable land' THEN lu.land_usage_value ELSE 0 END) AS total_arable,
+            SUM(CASE WHEN lu.land_type = 'Permanent crops' THEN lu.land_usage_value ELSE 0 END) AS total_permanent_crops,
+            SUM(CASE WHEN lu.land_type = 'Permanent meadows and pastures' THEN lu.land_usage_value ELSE 0 END) AS total_meadows,
+            SUM(CASE WHEN lu.land_type = 'Forest land' THEN lu.land_usage_value ELSE 0 END) AS total_forest,
+            SUM(CASE WHEN lu.land_type = 'Inland waters' THEN lu.land_usage_value ELSE 0 END) AS total_inland_waters,
+            SUM(CASE WHEN lu.land_type = 'Land area' THEN lu.land_usage_value ELSE 0 END) AS total_land_area
+        FROM Land_Use AS lu
+        WHERE lu.year = %s
+    """
+    
+    pie_params = [year]
+    
+    if country_id is not None:
+        pie_query += " AND lu.country_id = %s"
+        pie_params.append(country_id)
+    
+    pie_data_row = fetch_query(pie_query, tuple(pie_params))
+    
+    if pie_data_row and pie_data_row[0]:
+        pie_row = pie_data_row[0]
+        total_land = pie_row['total_land_area'] or 0
+        
+        # Other land hesaplama
+        other_land = total_land - (
+            (pie_row['total_arable'] or 0) +
+            (pie_row['total_permanent_crops'] or 0) +
+            (pie_row['total_meadows'] or 0) +
+            (pie_row['total_forest'] or 0)
+        )
+        
+        pie_chart_data = {
+            'arable_land': pie_row['total_arable'] or 0,
+            'permanent_crops': pie_row['total_permanent_crops'] or 0,
+            'meadows_pastures': pie_row['total_meadows'] or 0,
+            'forest_land': pie_row['total_forest'] or 0,
+            'other_land': other_land,
+            'inland_waters': pie_row['total_inland_waters'] or 0
+        }
+    else:
+        pie_chart_data = {
+            'arable_land': 0,
+            'permanent_crops': 0,
+            'meadows_pastures': 0,
+            'forest_land': 0,
+            'other_land': 0,
+            'inland_waters': 0
+        }
+
     return render_template(
         "land_use.html",
         records=records,
@@ -107,6 +157,7 @@ def landUsePage():
         agri_share=agri_share,
         countries=countries,
         selected_country_id=country_id,
+        pie_chart_data=pie_chart_data,
     )
 
 @landuse_bp.route("/land-use/new", methods=["GET"])
