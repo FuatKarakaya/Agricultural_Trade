@@ -1,0 +1,197 @@
+{% extends "layout.html" %}
+
+{% block title %}Government Investments {{ year }} - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/investments.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Government Investments Summary – {{ year }}</h2>
+  <p>
+    Government expenditure on agriculture, environment, and biodiversity. Select a year between 1961 and 2025 to explore historical data.
+  </p>
+</section>
+
+<!-- Stats Section with Pie Chart -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Countries</h4>
+      <div class="stat-number">{{ total_countries or 0 }}</div>
+      <p class="stat-detail">Countries with investment data in {{ year }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h4>Total Expenditure</h4>
+      <div class="stat-number">{{ "{:,.0f}".format(total_expenditure_sum) }}</div>
+      <p class="stat-detail">Million USD in {{ year }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h4>
+        {% if not selected_country_id %}
+        Global Expenditure Distribution
+        {% else %}
+        Expenditure Distribution
+        {% endif %}
+      </h4>
+      <div class="chart-container">
+        <canvas id="investmentsChart" 
+                data-pie-chart='{{ pie_chart_data | tojson }}'></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Investments Table -->
+<section class="producers-section">
+  <h3>Government Investments Data ({{ year }})</h3>
+
+  <div class="year-filter-bar">
+    <form method="get" action="{{ url_for('investments.investmentsPage') }}" class="filter-form">
+      <label for="year-select">Year:</label>
+      <select id="year-select" name="year" onchange="this.form.submit()">
+        {% for y in years %}
+          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="country-select">Country:</label>
+      <select id="country-select" name="country_id" onchange="this.form.submit()">
+        <option value="" {% if not selected_country_id %}selected{% endif %}>All countries</option>
+        {% for c in countries %}
+          <option value="{{ c['country_id'] }}"
+                  {% if selected_country_id == c['country_id'] %}selected{% endif %}>
+            {{ c['country_name'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+
+    <a href="{{ url_for('investments.add_investment_form', year=year, country_id=selected_country_id) }}"
+       class="btn-add-country">
+      Add Record
+    </a>
+  </div>
+
+  {% if records %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Country</th>
+        <th>Year</th>
+        <th>Unit</th>
+        <th>Total Expenditure</th>
+        <th>Agriculture, Forestry, Fishing</th>
+        <th>Environmental Protection</th>
+        <th>Biodiversity & Landscape</th>
+        <th>R&D Environmental Protection</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for row in records %}
+      <tr>
+        <td>
+          {% if row['country_id'] %}
+            <a href="/countries/{{ row['country_id'] }}" class="country-link">
+              <strong>{{ row['country_name'] }}</strong>
+            </a>
+          {% else %}
+            <strong>{{ row['country_name'] }}</strong>
+          {% endif %}
+        </td>
+
+        <td>{{ row['year'] }}</td>
+        <td>{{ row['unit'] }}</td>
+
+        <td>
+          {% if row['total_expenditure'] is not none %}
+            {{ "{:,.2f}".format(row['total_expenditure']) }}
+          {% else %}N/A{% endif %}
+        </td>
+
+        <td>
+          {% if row['agriculture_forestry_fishing'] is not none %}
+            {{ "{:,.2f}".format(row['agriculture_forestry_fishing']) }}
+            {% if row['agriculture_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['agriculture_pct']) }}%)</span>
+            {% endif %}
+          {% else %}N/A{% endif %}
+        </td>
+
+        <td>
+          {% if row['environmental_protection'] is not none %}
+            {{ "{:,.2f}".format(row['environmental_protection']) }}
+            {% if row['environmental_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['environmental_pct']) }}%)</span>
+            {% endif %}
+          {% else %}N/A{% endif %}
+        </td>
+
+        <td>
+          {% if row['biodiversity_landscape'] is not none %}
+            {{ "{:,.2f}".format(row['biodiversity_landscape']) }}
+            {% if row['biodiversity_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['biodiversity_pct']) }}%)</span>
+            {% endif %}
+          {% else %}N/A{% endif %}
+        </td>
+
+        <td>
+          {% if row['rd_environmental_protection'] is not none %}
+            {{ "{:,.2f}".format(row['rd_environmental_protection']) }}
+            {% if row['rd_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['rd_pct']) }}%)</span>
+            {% endif %}
+          {% else %}N/A{% endif %}
+        </td>
+
+        <td>
+          <a href="{{ url_for('investments.edit_investment_form',
+                      country_id=row['country_id'],
+                      year=row['year']) }}"
+                    class="btn-update">
+                    Update
+          </a>
+
+          <form method="post"
+                action="{{ url_for('investments.delete_investment') }}"
+                style="display: inline;"
+                onsubmit="return confirm('Delete all records for this country and year?');">
+            <input type="hidden" name="country_id" value="{{ row['country_id'] }}">
+            <input type="hidden" name="year" value="{{ row['year'] }}">
+            <input type="hidden" name="redirect_country_id" value="{{ selected_country_id or '' }}">
+            <button type="submit" class="btn-delete">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+  <div class="no-data">
+    <p>No investment records found for {{ year }}.</p>
+  </div>
+  {% endif %}
+</section>
+
+<script src="{{ url_for('static', filename='js/investments.js') }}"></script>
+
+{% endblock %}

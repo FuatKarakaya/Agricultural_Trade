@@ -588,3 +588,63 @@ DROP TABLE tempcp;
             (reporter_countries, partner_countries, item_code, element, unit, year, value)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         
+
+        INSERT INTO Investments (
+            country_name,
+            expenditure_type,
+            unit,
+            expenditure_value,
+            year,
+            country_id
+        )
+        VALUES (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s);
+        
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+        DELETE FROM Investments
+        WHERE country_id = %s AND year = %s;
+        

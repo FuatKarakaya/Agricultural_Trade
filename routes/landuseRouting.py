@@ -492,8 +492,3 @@ def update_land_use():
     return redirect(
         url_for("landuse.edit_land_use_form", country_id=country_id, year=year)
     )
-
-
-@landuse_bp.route('/investments')
-def investmentsPage():
-    return
