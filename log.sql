@@ -474,3 +474,177 @@ DROP TABLE tempnotnormalpp;
 DROP TABLE tempcp;
 ;
         
+
+            select count(*)
+            from production
+            where production.commodity_code not in (select fao_code from commodities);
+            
+        ALTER TABLE production
+        ADD CONSTRAINT production_commodity_code_fkey
+        FOREIGN KEY (commodity_code)
+        REFERENCES commodities(fao_code);
+
+            INSERT INTO Trade_data_long
+            (reporter_countries, partner_countries, item_code, element, unit, year, value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        
+
+            INSERT INTO Trade_data_long
+            (reporter_countries, partner_countries, item_code, element, unit, year, value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                INSERT INTO Land_Use (
+                    country_name,
+                    land_type,
+                    unit,
+                    land_usage_value,
+                    year,
+                    country_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s);
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+        DELETE FROM Land_Use
+        WHERE country_id = %s AND year = %s;
+        
+
+            UPDATE Trade_data_long
+            SET reporter_countries = %s,
+                partner_countries = %s,
+                item_code = %s,
+                element = %s,
+                unit = %s,
+                year = %s,
+                value = %s
+            WHERE unique_id = %s
+        
+
+            INSERT INTO Trade_data_long
+            (reporter_countries, partner_countries, item_code, element, unit, year, value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        
+
+        INSERT INTO Investments (
+            country_name,
+            expenditure_type,
+            unit,
+            expenditure_value,
+            year,
+            country_id
+        )
+        VALUES (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s), (%s, %s, %s, %s, %s, %s);
+        
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+                UPDATE Investments
+                SET expenditure_value = %s,
+                    unit = %s,
+                    country_name = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND expenditure_type = %s;
+                
+
+        DELETE FROM Investments
+        WHERE country_id = %s AND year = %s;
+        

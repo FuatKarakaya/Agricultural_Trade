@@ -13,6 +13,7 @@ from routes import (
     landuse_bp,
     prod_bp,
     prod_val_bp,
+    investments_bp
 )
 
 
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(commodity_bp)
     app.register_blueprint(consumer_price_bp)
     app.register_blueprint(producer_price_bp)
+    app.register_blueprint(investments_bp)
     return app
 
 

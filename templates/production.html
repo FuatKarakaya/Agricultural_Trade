@@ -99,26 +99,24 @@
       <tr>
         <th>Production ID</th>
         <th>Country</th>
-        <th>Production Value ID</th>
-        <th>Fao Code</th>
         <th>Item</th>
         <th>Year</th>
         <th>Quantity</th>
         <th>Unit</th>
+        <th>Value</th>
       </tr>
-    </thead>
-    <tbody>
-      {% for row in production %}
-      <tr> <!-- Trying to use 4 tables here but they keep malfunctioning and i am tired. -->
-        <td>{{ row['production_id'] }}</td>
-        <td>{{ row['country_name'] }}</td> <!-- This comes from the Countries table, only one that works other than Production. -->
-        <td>{{ row['production_value_ID'] }}</td> <!-- Did not implement yet -->
-        <td>{{ row['fao_code'] }}</td> <!-- Could not make this work, shows "None" -->
-        <td>{{ row['item_name'] }}</td>
-        <td>{{ row['year'] }}</td>
-        <td>{{ row['quantity'] }}</td> <!-- shows "None", probably other tables also use the keyword "quantity" -->
-        <td>{{ row['unit'] }}</td>
-      </tr>
+      </thead>
+      <tbody>
+        {% for row in production %}
+        <tr>
+          <td>{{ row['production_id'] }}</td>
+          <td>{{ row['country_name'] }}</td>
+          <td>{{ row['item_name'] }}</td>
+          <td>{{ row['year'] }}</td>
+          <td>{{ row['quantity'] }}</td>
+          <td>{{ row['unit'] }}</td>
+          <td>{{ row['production_value'] or 'N/A' }}</td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

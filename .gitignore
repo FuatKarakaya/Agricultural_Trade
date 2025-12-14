@@ -3,4 +3,5 @@ __pycache__/
 *.pyc
 *.csv
 *.log
+.vscode
 project-proposal.docx

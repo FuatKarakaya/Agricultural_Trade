@@ -7,7 +7,7 @@ country_bp = Blueprint("country", __name__)
 @country_bp.route("/countries")
 def countries_dashboard():
     
-    # Get filter parameters from URL query string
+    # Get filter parameters
     selected_region = request.args.get('region', '')
     sort_by = request.args.get('sort', 'name')
 

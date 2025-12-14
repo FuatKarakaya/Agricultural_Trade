@@ -49,7 +49,7 @@ CREATE TABLE Production_Value (
 );
 
 
-
+/* Eski hali
 CREATE TABLE Trade_Flows (
     unique_id SERIAL PRIMARY KEY,
     reporter_country INTEGER NOT NULL,
@@ -71,6 +71,28 @@ CREATE TABLE Trade_Flows (
     CHECK (reporter_country != partner_country),
     
     UNIQUE(reporter_country, partner_country, trade_item, year)
+);*/
+
+CREATE TABLE Trade_data_long (
+    unique_id SERIAL PRIMARY KEY,
+    reporter_countries INTEGER NOT NULL,
+    partner_countries INTEGER NOT NULL,
+    item_code INTEGER NOT NULL,
+    element TEXT,
+    unit VARCHAR(56),
+    year INTEGER NOT NULL,
+    value NUMERIC NOT NULL,
+    
+    
+    FOREIGN KEY (reporter_countries) REFERENCES Countries(country_id) 
+        ON DELETE CASCADE,
+    FOREIGN KEY (partner_countries) REFERENCES Countries(country_id) 
+        ON DELETE CASCADE,
+    FOREIGN KEY (item_code) REFERENCES Commodities(fao_code) 
+        ON DELETE CASCADE,
+    
+    CHECK (reporter_country != partner_country),
+
 );
 CREATE INDEX idx_trade_flows_exporter_year ON Trade_Flows(reporter_country, year);
 CREATE INDEX idx_trade_flows_importer_year ON Trade_Flows(partner_country, year);

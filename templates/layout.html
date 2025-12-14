@@ -4,15 +4,28 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>{% block title %}Zlatan Agriculture{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/agriculture.css"/>
     {% block extra_css %}{% endblock %}
   </head>
   <body>
+    <!-- Loading Spinner -->
+    <div id="loading-overlay">
+      <div class="loading-spinner">
+        <img src="/static/zlatan.jpg" alt="Loading..." class="loading-image">
+        <p>Loading...</p>
+      </div>
+    </div>
+
     <!-- Navigation -->
 <!-- Updated Navigation Bar -->
     <nav class="navbar">
       <div class="nav-container">
-        <div class="nav-title">Zlatan Agriculture</div>
+        <div class="nav-title">
+          <img src="/static/logo.png" alt="Zlatan Agriculture Logo" class="nav-logo">
+        </div>
         <ul class="nav-menu">
           <li><a href="/" class="nav-link">Dashboard</a></li>
           <li><a href="/countries" class="nav-link">Countries</a></li>
@@ -29,7 +42,16 @@
 
           <li><a href="/production" class="nav-link">Production</a></li>
           <li><a href="/production-values" class="nav-link">Production Value</a></li>
-          <li><a href="/trades" class="nav-link">Trade Flows</a></li>
+
+          <!-- Dropdown for Trade Flows -->
+          <li class="nav-dropdown">
+            <span class="nav-link">Trade Flows ▾</span>
+            <div class="dropdown-content">
+              <a href="/trades">Trade Data</a>
+              <a href="/trades/statistics">Statistics</a>
+            </div>
+          </li>
+
           <li><a href="/landuse" class="nav-link">Land Use</a></li>
           <li><a href="/investments" class="nav-link">Investments</a></li>
         </ul>
@@ -38,17 +60,58 @@
 
     <!-- Main Content -->
     <main class="container">
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages" style="margin: 1rem 0;">
+            {% for category, message in messages %}
+              <div class="flash-message flash-{{ category }}" style="padding: 1rem; margin-bottom: 0.5rem; border-radius: 4px; {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% elif category == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% else %}background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
       {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
     <footer class="footer">
       <p>&copy; 2025-2026 Zlatan Group. All rights reserved.</p>
-      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">
-        Agricultural Data & Analytics Platform
-      </p>
     </footer>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Loading Spinner Script -->
+    <script>
+      // Hide loading spinner when page is fully loaded
+      window.addEventListener('load', function() {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.opacity = '0';
+        setTimeout(function() {
+          loadingOverlay.style.display = 'none';
+        }, 300);
+      });
+
+      // Show loading spinner when navigating away (links)
+      document.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          // Only show for internal links
+          if (this.hostname === window.location.hostname && !this.hasAttribute('target')) {
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-overlay').style.opacity = '1';
+          }
+        });
+      });
+
+      // Show loading spinner when submitting forms
+      document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+          document.getElementById('loading-overlay').style.display = 'flex';
+          document.getElementById('loading-overlay').style.opacity = '1';
+        });
+      });
+    </script>
   </body>
 </html>

@@ -1,39 +1,139 @@
 {% extends "layout.html" %}
 
-{% block title %}Agricultural Trade Dashboard{% endblock %}
+{% block title %}Dashboard - Zlatan Agriculture{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="jumbotron bg-light p-5 rounded-lg">
-        <h1 class="display-4">Welcome to the Agricultural Trade Dashboard</h1>
-        <p class="lead">Explore global agricultural production, trade, and land use data.</p>
-        <hr class="my-4">
-        <p>Use the navigation bar to browse different datasets.</p>
-    </div>
+<!-- header -->
+<section class="hero-section">
+  <h2>Agricultural Trade Dashboard</h2>
+  <p class="section-description">
+    Explore global agricultural production, trade, and land use data
+  </p>
+</section>
 
-    {% if error %}
-        <div class="alert alert-danger" role="alert">
-            Could not load dashboard statistics: {{ error }}
-        </div>
-    {% elif stats %}
-    <div class="row mt-4 text-center">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Countries</h5>
-                    <p class="card-text display-5">{{ stats.country_count | numberformat }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Production Records</h5>
-                    <p class="card-text display-5">{{ stats.production_record_count | numberformat }}</p>
-                </div>
-            </div>
-        </div>
+{% if error %}
+<section class="producers-section">
+  <div class="error-message">
+    Could not load dashboard statistics: {{ error }}
+  </div>
+</section>
+{% elif stats %}
+
+<!-- statistics -->
+<section class="stats-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Countries</h4>
+      <div class="stat-number">{{ "{:,}".format(stats.country_stats.total_countries or 0) }}</div>
+      <p class="stat-detail">Tracked globally</p>
     </div>
-    {% endif %}
-</div>
+    <div class="stat-card">
+      <h4>Production Records</h4>
+      <div class="stat-number">{{ "{:,}".format(stats.production_stats.total_records or 0) }}</div>
+      <p class="stat-detail">Data points collected</p>
+    </div>
+    <div class="stat-card">
+      <h4>Commodities</h4>
+      <div class="stat-number">{{ "{:,}".format(stats.production_stats.total_commodities or 0) }}</div>
+      <p class="stat-detail">Agricultural products</p>
+    </div>
+    <div class="stat-card">
+      <h4>Trade Flows</h4>
+      <div class="stat-number">{{ "{:,}".format(stats.trade_stats.total_trade_records or 0) }}</div>
+      <p class="stat-detail">Export/Import records</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- overview -->
+<section class="top-producers-section">
+  <h3>Global Agriculture Overview</h3>
+  <p class="section-description">
+    Key insights into global agricultural trends
+  </p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h4>Total Land Area</h4>
+      <div class="stat-number">{{ "{:,}".format(stats.country_stats.total_land_area or 0) }}</div>
+      <p class="stat-detail">Square kilometers globally</p>
+    </div>
+    <div class="stat-card">
+      <h4>Total Population</h4>
+      <div class="stat-number">{{ "{:,}".format(stats.country_stats.total_population or 0) }}</div>
+      <p class="stat-detail">Across all countries</p>
+    </div>
+    <div class="stat-card">
+      <h4>Year Range</h4>
+      <div class="stat-number">
+        {% if stats.production_stats.min_year and stats.production_stats.max_year %}
+          {{ stats.production_stats.min_year }}–{{ stats.production_stats.max_year }}
+        {% else %}
+          N/A
+        {% endif %}
+      </div>
+      <p class="stat-detail">Data coverage period</p>
+    </div>
+    <div class="stat-card">
+      <h4>Global Regions</h4>
+      <div class="stat-number">{{ stats.country_stats.total_regions or 0 }}</div>
+      <p class="stat-detail">Major geographic regions</p>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Activity Section -->
+<section class="trade-section">
+  <h3>Database Highlights</h3>
+  <p class="section-description">
+    Overview of all data categories in the platform
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Total Records</th>
+
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Production</strong></td>
+        <td>{{ "{:,}".format(stats.production_stats.total_records or 0) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Trade Flows</strong></td>
+        <td>{{ "{:,}".format(stats.trade_stats.total_trade_records or 0) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Producer Prices</strong></td>
+        <td>{{ "{:,}".format(stats.producer_price_stats.total_producer_prices or 0) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Consumer Prices</strong></td>
+        <td>{{ "{:,}".format(stats.consumer_price_stats.total_consumer_prices or 0) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Land Use</strong></td>
+        <td>{{ "{:,}".format(stats.land_use_stats.total_land_use or 0) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Production Values</strong></td>
+        <td>{{ "{:,}".format(stats.production_value_stats.total_production_values or 0) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Countries</strong></td>
+        <td>{{ "{:,}".format(stats.country_stats.total_countries or 0) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Commodities</strong></td>
+        <td>{{ "{:,}".format(stats.production_stats.total_commodities or 0) }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+{% endif %}
 {% endblock %}

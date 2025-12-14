@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 
-{% block title %}Land Use {{ year }} - Zlatan Agriculture{% endblock %}
+{% block title %}Government Investments {{ year }} - Zlatan Agriculture{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/land_use.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/investments.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -20,9 +20,9 @@
 
 <!-- Hero Section -->
 <section class="hero-section">
-  <h2>Land Use Summary – {{ year }}</h2>
+  <h2>Government Investments Summary – {{ year }}</h2>
   <p>
-    Aggregated land use values by country. Select a year between 1961 and 2023 to explore historical data.
+    Government expenditure on agriculture, environment, and biodiversity. Select a year between 1961 and 2025 to explore historical data.
   </p>
 </section>
 
@@ -32,31 +32,37 @@
     <div class="stat-card">
       <h4>Total Countries</h4>
       <div class="stat-number">{{ total_countries or 0 }}</div>
-      <p class="stat-detail">Countries with land use data in {{ year }}</p>
+      <p class="stat-detail">Countries with investment data in {{ year }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h4>Total Expenditure</h4>
+      <div class="stat-number">{{ "{:,.0f}".format(total_expenditure_sum) }}</div>
+      <p class="stat-detail">Million USD in {{ year }}</p>
     </div>
 
     <div class="stat-card">
       <h4>
         {% if not selected_country_id %}
-        Global Land Distribution
+        Global Expenditure Distribution
         {% else %}
-        Land Distribution
+        Expenditure Distribution
         {% endif %}
       </h4>
       <div class="chart-container">
-        <canvas id="landUseChart" 
+        <canvas id="investmentsChart" 
                 data-pie-chart='{{ pie_chart_data | tojson }}'></canvas>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Land Use Table -->
+<!-- Investments Table -->
 <section class="producers-section">
-  <h3>Land Use Data ({{ year }})</h3>
+  <h3>Government Investments Data ({{ year }})</h3>
 
   <div class="year-filter-bar">
-    <form method="get" action="{{ url_for('landuse.landUsePage') }}" class="filter-form">
+    <form method="get" action="{{ url_for('investments.investmentsPage') }}" class="filter-form">
       <label for="year-select">Year:</label>
       <select id="year-select" name="year" onchange="this.form.submit()">
         {% for y in years %}
@@ -76,7 +82,7 @@
       </select>
     </form>
 
-    <a href="{{ url_for('landuse.add_land_use_form', year=year, country_id=selected_country_id) }}"
+    <a href="{{ url_for('investments.add_investment_form', year=year, country_id=selected_country_id) }}"
        class="btn-add-country">
       Add Record
     </a>
@@ -89,14 +95,11 @@
         <th>Country</th>
         <th>Year</th>
         <th>Unit</th>
-        <th>Country area</th>
-        <th>Land area</th>
-        <th>Inland waters</th>
-        <th>Arable land</th>
-        <th>Permanent crops</th>
-        <th>Permanent meadows and pastures</th>
-        <th>Forest land</th>
-        <th>Other land</th>
+        <th>Total Expenditure</th>
+        <th>Agriculture, Forestry, Fishing</th>
+        <th>Environmental Protection</th>
+        <th>Biodiversity & Landscape</th>
+        <th>R&D Environmental Protection</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -118,55 +121,49 @@
         <td>{{ row['unit'] }}</td>
 
         <td>
-          {% if row['country_area'] is not none %}
-            {{ "{:,}".format(row['country_area']) }}
+          {% if row['total_expenditure'] is not none %}
+            {{ "{:,.2f}".format(row['total_expenditure']) }}
           {% else %}N/A{% endif %}
         </td>
 
         <td>
-          {% if row['land_area'] is not none %}
-            {{ "{:,}".format(row['land_area']) }}
+          {% if row['agriculture_forestry_fishing'] is not none %}
+            {{ "{:,.2f}".format(row['agriculture_forestry_fishing']) }}
+            {% if row['agriculture_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['agriculture_pct']) }}%)</span>
+            {% endif %}
           {% else %}N/A{% endif %}
         </td>
 
         <td>
-          {% if row['inland_waters'] is not none %}
-            {{ "{:,}".format(row['inland_waters']) }}
+          {% if row['environmental_protection'] is not none %}
+            {{ "{:,.2f}".format(row['environmental_protection']) }}
+            {% if row['environmental_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['environmental_pct']) }}%)</span>
+            {% endif %}
           {% else %}N/A{% endif %}
         </td>
 
         <td>
-          {% if row['arable_land'] is not none %}
-            {{ "{:,}".format(row['arable_land']) }}
+          {% if row['biodiversity_landscape'] is not none %}
+            {{ "{:,.2f}".format(row['biodiversity_landscape']) }}
+            {% if row['biodiversity_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['biodiversity_pct']) }}%)</span>
+            {% endif %}
           {% else %}N/A{% endif %}
         </td>
 
         <td>
-          {% if row['permanent_crops'] is not none %}
-            {{ "{:,}".format(row['permanent_crops']) }}
+          {% if row['rd_environmental_protection'] is not none %}
+            {{ "{:,.2f}".format(row['rd_environmental_protection']) }}
+            {% if row['rd_pct'] is not none %}
+              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['rd_pct']) }}%)</span>
+            {% endif %}
           {% else %}N/A{% endif %}
         </td>
 
         <td>
-          {% if row['permanent_meadows_and_pastures'] is not none %}
-            {{ "{:,}".format(row['permanent_meadows_and_pastures']) }}
-          {% else %}N/A{% endif %}
-        </td>
-
-        <td>
-          {% if row['forest_land'] is not none %}
-            {{ "{:,}".format(row['forest_land']) }}
-          {% else %}N/A{% endif %}
-        </td>
-
-        <td>
-          {% if row['other_land'] is not none %}
-            {{ "{:,.2f}".format(row['other_land']) }}
-          {% else %}N/A{% endif %}
-        </td>
-
-        <td>
-          <a href="{{ url_for('landuse.edit_land_use_form',
+          <a href="{{ url_for('investments.edit_investment_form',
                       country_id=row['country_id'],
                       year=row['year']) }}"
                     class="btn-update">
@@ -174,9 +171,9 @@
           </a>
 
           <form method="post"
-                action="{{ url_for('landuse.delete_land_use') }}"
+                action="{{ url_for('investments.delete_investment') }}"
                 style="display: inline;"
-                onsubmit="return confirm('Bu ülke ve yıl için tüm girdiler silinsin mi?');">
+                onsubmit="return confirm('Delete all records for this country and year?');">
             <input type="hidden" name="country_id" value="{{ row['country_id'] }}">
             <input type="hidden" name="year" value="{{ row['year'] }}">
             <input type="hidden" name="redirect_country_id" value="{{ selected_country_id or '' }}">
@@ -190,11 +187,11 @@
 
   {% else %}
   <div class="no-data">
-    <p>No land use records found for {{ year }}.</p>
+    <p>No investment records found for {{ year }}.</p>
   </div>
   {% endif %}
 </section>
 
-<script src="{{ url_for('static', filename='js/land_use.js') }}"></script>
+<script src="{{ url_for('static', filename='js/investments.js') }}"></script>
 
 {% endblock %}
