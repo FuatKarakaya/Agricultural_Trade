@@ -13,27 +13,32 @@
 <!-- Stats Section -->
 <section class="stats-container">
   <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card animated">
+      <div class="stat-card-icon">📊</div>
       <h4>Total Records</h4>
       <div class="stat-number">{{ stats.total_records or 0 }}</div>
       <p class="stat-detail">Production value rows</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.1s;">
+      <div class="stat-card-icon">📋</div>
       <h4>Elements</h4>
       <div class="stat-number">{{ stats.total_elements or 0 }}</div>
       <p class="stat-detail">Distinct value elements</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.2s;">
+      <div class="stat-card-icon">🌍</div>
       <h4>Countries</h4>
       <div class="stat-number">{{ stats.total_countries or 0 }}</div>
       <p class="stat-detail">With production values</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.3s;">
+      <div class="stat-card-icon">🌾</div>
       <h4>Commodities</h4>
       <div class="stat-number">{{ stats.total_commodities or 0 }}</div>
       <p class="stat-detail">Distinct items</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.4s;">
+      <div class="stat-card-icon">📅</div>
       <h4>Year Range</h4>
       <div class="stat-number">
         {% if stats.min_year and stats.max_year %}
@@ -44,7 +49,8 @@
       </div>
       <p class="stat-detail">Coverage in years</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.5s;">
+      <div class="stat-card-icon">💰</div>
       <h4>Total Value</h4>
       <div class="stat-number">
         {% if stats.total_value %}
@@ -58,8 +64,28 @@
   </div>
 </section>
 
+<!-- Chart Section -->
+{% if chart_data %}
+<section class="chart-container fade-in">
+  <h3 class="chart-title">Top 10 Production Values Worldwide</h3>
+  <div class="chart-bars">
+    {% set max_value = chart_data[0]['value'] if chart_data else 1 %}
+    {% for item in chart_data %}
+    <div class="chart-bar-item">
+      <div class="chart-label">{{ item['country_name'][:15] }} - {{ item['item_name'][:20] }}</div>
+      <div class="chart-bar-wrapper">
+        <div class="chart-bar-fill" style="width: {{ (item['value'] / max_value * 100)|int }}%">
+          <span class="chart-value">{{ "{:,.0f}".format(item['value']) }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="filter-section">
-  <form method="get" class="filter-form">
+  <form method="get" class="filter-form" id="filterForm">
     <div class="filter-group">
       <label for="element">Element</label>
       <select id="element" name="element" class="filter-select">
@@ -103,22 +129,36 @@
   </form>
 </section>
 
+<!-- Search and Export Section -->
+<section class="search-container">
+  <div class="search-bar">
+    <input 
+      type="text" 
+      id="searchInput" 
+      class="search-input" 
+      placeholder="Search by country, commodity, element, year, or value..." 
+      value="{{ search or '' }}"
+    >
+    <button type="button" class="btn-export" onclick="exportToCSV()">Export CSV</button>
+  </div>
+</section>
+
 <section class="producers-section">
-  <h3>Top 100 Production Values</h3>
+  <h3>Production Values</h3>
   <p class="section-description">
-    Sorted by year (newest first) and value (largest first).
+    Showing {{ (page - 1) * per_page + 1 if production_values else 0 }} - {{ min((page - 1) * per_page + (production_values|length), total_records) }} of {{ total_records }} records
   </p>
 
   {% if production_values %}
-  <table class="data-table">
+  <table class="data-table" id="productionValuesTable">
     <thead>
       <tr>
-        <th>Production Value ID</th>
-        <th>Country</th>
-        <th>Commodity</th>
-        <th>Element</th>
-        <th>Year</th>
-        <th>Value</th>
+        <th class="sortable" data-sort="id">Value ID</th>
+        <th class="sortable" data-sort="country">Country</th>
+        <th class="sortable" data-sort="commodity">Commodity</th>
+        <th class="sortable" data-sort="element">Element</th>
+        <th class="sortable" data-sort="year">Year</th>
+        <th class="sortable" data-sort="value">Value</th>
         <th>Unit</th>
         <th>Region</th>
       </tr>
@@ -129,9 +169,9 @@
         <td>{{ row.get('production_value_ID') or row.get('production_value_id') or 'N/A' }}</td>
         <td>{{ row.get('country_name') or row.get('country_code') or 'N/A' }}</td>
         <td>{{ row.get('item_name') or 'N/A' }}</td>
-        <td>{{ row.get('element') or 'N/A' }}</td>
+        <td><span class="badge badge-primary">{{ row.get('element') or 'N/A' }}</span></td>
         <td>{{ row.get('year') or 'N/A' }}</td>
-        <td>
+        <td class="text-success">
           {% if row.get('value') is not none %}
             {{ "{:,.2f}".format(row.get('value')) }}
           {% else %}
@@ -144,8 +184,47 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Page {{ page }} of {{ total_pages }} ({{ total_records }} total records)
+    </div>
+    
+    <div class="pagination-controls">
+      {% if page > 1 %}
+        <button class="pagination-btn" onclick="changePage(1)">First</button>
+        <button class="pagination-btn" onclick="changePage({{ page - 1 }})">Previous</button>
+      {% else %}
+        <button class="pagination-btn" disabled>First</button>
+        <button class="pagination-btn" disabled>Previous</button>
+      {% endif %}
+      
+      {% for p in range(max(1, page - 2), min(total_pages + 1, page + 3)) %}
+        <button class="pagination-btn {{ 'active' if p == page else '' }}" onclick="changePage({{ p }})">{{ p }}</button>
+      {% endfor %}
+      
+      {% if page < total_pages %}
+        <button class="pagination-btn" onclick="changePage({{ page + 1 }})">Next</button>
+        <button class="pagination-btn" onclick="changePage({{ total_pages }})">Last</button>
+      {% else %}
+        <button class="pagination-btn" disabled>Next</button>
+        <button class="pagination-btn" disabled>Last</button>
+      {% endif %}
+    </div>
+    
+    <div class="page-size-selector">
+      <label>Per page:</label>
+      <select onchange="changePerPage(this.value)">
+        <option value="25" {{ 'selected' if per_page == 25 else '' }}>25</option>
+        <option value="50" {{ 'selected' if per_page == 50 else '' }}>50</option>
+        <option value="100" {{ 'selected' if per_page == 100 else '' }}>100</option>
+      </select>
+    </div>
+  </div>
   {% else %}
   <div class="no-data">
+    <div class="no-results-icon">🔍</div>
     <p>No production values found for the selected filters.</p>
   </div>
   {% endif %}
@@ -153,4 +232,113 @@
 
 {% endblock %}
 
+{% block extra_js %}
+<script>
+// Search functionality
+let searchTimeout;
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(function() {
+    updateURL('search', e.target.value);
+  }, 500);
+});
+
+// Sorting functionality
+document.querySelectorAll('.sortable').forEach(header => {
+  header.addEventListener('click', function() {
+    const sortBy = this.dataset.sort;
+    const currentSort = '{{ sort_by }}';
+    const currentOrder = '{{ sort_order }}';
+    
+    let newOrder = 'desc';
+    if (sortBy === currentSort && currentOrder === 'desc') {
+      newOrder = 'asc';
+    }
+    
+    updateURL('sort_by', sortBy);
+    updateURL('sort_order', newOrder);
+  });
+});
+
+// Pagination
+function changePage(page) {
+  updateURL('page', page);
+}
+
+function changePerPage(perPage) {
+  updateURL('per_page', perPage);
+  updateURL('page', 1);
+}
+
+// URL update helper
+function updateURL(param, value) {
+  const url = new URL(window.location);
+  if (value === '' || value === null) {
+    url.searchParams.delete(param);
+  } else {
+    url.searchParams.set(param, value);
+  }
+  window.location = url;
+}
+
+// Export to CSV
+function exportToCSV() {
+  const table = document.getElementById('productionValuesTable');
+  let csv = [];
+  
+  // Get headers
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  csv.push(headers.join(','));
+  
+  // Get rows
+  const rows = table.querySelectorAll('tbody tr');
+  rows.forEach(row => {
+    const cells = Array.from(row.querySelectorAll('td')).map(td => {
+      let text = td.textContent.trim();
+      // Escape commas and quotes
+      if (text.includes(',') || text.includes('"')) {
+        text = '"' + text.replace(/"/g, '""') + '"';
+      }
+      return text;
+    });
+    csv.push(cells.join(','));
+  });
+  
+  // Create and download
+  const csvContent = csv.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'production_values_data.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
+
+// Update sort indicators
+document.addEventListener('DOMContentLoaded', function() {
+  const currentSort = '{{ sort_by }}';
+  const currentOrder = '{{ sort_order }}';
+  
+  document.querySelectorAll('.sortable').forEach(header => {
+    if (header.dataset.sort === currentSort) {
+      header.classList.add(currentOrder);
+    }
+  });
+  
+  // Animate chart bars
+  setTimeout(function() {
+    document.querySelectorAll('.chart-bar-fill').forEach(bar => {
+      const width = bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(function() {
+        bar.style.width = width;
+      }, 100);
+    });
+  }, 300);
+});
+</script>
+{% endblock %}
 
