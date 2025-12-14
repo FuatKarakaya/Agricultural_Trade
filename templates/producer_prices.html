@@ -3,12 +3,10 @@
 {% block title %}Producer Prices - Zlatan Agriculture{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="hero-section">
   <h2>Producer Prices Database</h2>
 </section>
 
-<!-- Stats Section -->
 <section class="stats-container">
   <div class="stats-grid">
     <div class="stat-card">
@@ -34,22 +32,43 @@
   </div>
 </section>
 
-<!-- Filter Section (Optional UI placeholder for future functionality) -->
+<!-- Filter Section -->
 <section class="filter-section">
     <form class="filter-form" method="get" action="/producer_prices">
         <div class="filter-group">
+            <label for="country">Country</label>
+            <select name="country" id="country" class="filter-select">
+                <option value="">All Countries</option>
+                {% for c in countries %}
+                <option value="{{ c['country_id'] }}" {% if selected_country == c['country_id']|string %}selected{% endif %}>{{ c['country_name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="commodity">Commodity</label>
+            <select name="commodity" id="commodity" class="filter-select">
+                <option value="">All Commodities</option>
+                {% for cm in commodities %}
+                <option value="{{ cm['fao_code'] }}" {% if selected_commodity == cm['fao_code']|string %}selected{% endif %}>{{ cm['item_name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
             <label for="limit">Rows to Display</label>
-            <select name="limit" id="limit" class="filter-select" onchange="this.form.submit()">
+            <select name="limit" id="limit" class="filter-select">
                 <option value="50" {% if current_limit == 50 %}selected{% endif %}>50</option>
                 <option value="100" {% if current_limit == 100 %}selected{% endif %}>100</option>
                 <option value="200" {% if current_limit == 200 %}selected{% endif %}>200</option>
                 <option value="500" {% if current_limit == 500 %}selected{% endif %}>500</option>
             </select>
         </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="filter-button">Apply Filters</button>
+        </div>
     </form>
 </section>
 
-<!-- Prices Table -->
 <section class="producers-section">
   <h3>Recent Price Data</h3>
   <p class="section-description">
@@ -64,7 +83,6 @@
             <th>Country</th>
             <th>Commodity</th>
             <th>Month</th>
-            <!-- Displaying last 3 years for brevity -->
             <th>2021</th>
             <th>2022</th>
             <th>2023</th>

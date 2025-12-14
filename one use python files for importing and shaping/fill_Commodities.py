@@ -11,5 +11,4 @@ if __name__ == "__main__":
         FROM commodity
         WHERE "Item Code" ~ '^[0-9]+$'
         ORDER BY "Item", "Item Code"
-        ON CONFLICT DO NOTHING;
     """)

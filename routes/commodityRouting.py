@@ -5,7 +5,6 @@ commodity_bp = Blueprint("commodity", __name__)
 
 @commodity_bp.route("/commodities")
 def commodities_dashboard():
-    # 1. Handle Filter Parameters
     try:
         limit = int(request.args.get('limit', 50))
     except ValueError:
@@ -28,7 +27,6 @@ def commodities_dashboard():
     
     commodities = fetch_query(base_query, tuple(params))
 
-    # 3. Statistics Query
     stats_query = """
         SELECT 
             COUNT(*) as total_commodities,

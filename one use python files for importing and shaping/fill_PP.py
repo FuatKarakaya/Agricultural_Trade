@@ -17,6 +17,8 @@ def migrate_sql():
     
     ALTER TABLE Producer_Prices {', '.join(y_cols_def)};
 
+    
+
     INSERT INTO Producer_Prices (country_id, commodity_id, month, {', '.join(y_cols_ins)})
     SELECT
         c.country_id,

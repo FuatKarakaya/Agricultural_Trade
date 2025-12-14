@@ -3,12 +3,10 @@
 {% block title %}Commodities - Zlatan Agriculture{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="hero-section">
   <h2>Commodities Database</h2>
 </section>
 
-<!-- Stats Section -->
 <section class="stats-container">
   <div class="stats-grid">
     <div class="stat-card">
@@ -29,7 +27,6 @@
   </div>
 </section>
 
-<!-- Filter Section -->
 <section class="filter-section">
     <form class="filter-form" method="get" action="/commodities">
         <div class="filter-group">
@@ -43,7 +40,6 @@
             </select>
         </div>
         
-        <!-- Simple Search -->
         <div class="filter-group">
             <label for="search">Search Commodity</label>
             <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="e.g. Apple" class="filter-select">
@@ -55,7 +51,6 @@
     </form>
 </section>
 
-<!-- Commodities Table -->
 <section class="producers-section">
   <h3>Commodity List</h3>
   <p class="section-description">

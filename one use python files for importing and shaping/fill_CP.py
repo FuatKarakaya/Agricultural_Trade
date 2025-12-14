@@ -5,30 +5,22 @@ def migrate_cp_sql():
     cur = conn.cursor()
 
     sql = """
-    -- 1. Alter Schema
-    ALTER TABLE Consumer_Prices
-        DROP COLUMN IF EXISTS commodity_id CASCADE;
 
-    ALTER TABLE Consumer_Prices
-        ADD COLUMN IF NOT EXISTS type SMALLINT;
-
-    -- 2. Migrate Data
     INSERT INTO Consumer_Prices (country_id, year, month, value, type)
     SELECT
-        c.country_id,
-        CAST(t."Year" AS INTEGER),
-        CASE t."Months"
+        countries.country_id,
+        CAST(tempcp."Year" AS INTEGER),
+        CASE tempcp."Months"
             WHEN 'January' THEN 1 WHEN 'February' THEN 2 WHEN 'March' THEN 3
             WHEN 'April' THEN 4   WHEN 'May' THEN 5      WHEN 'June' THEN 6
             WHEN 'July' THEN 7    WHEN 'August' THEN 8   WHEN 'September' THEN 9
             WHEN 'October' THEN 10 WHEN 'November' THEN 11 WHEN 'December' THEN 12
         END,
-        CAST(t."Value" AS FLOAT),
-        CAST(t."Type" AS SMALLINT)
-    FROM tempcp t
-    JOIN countries c ON t."Area" = c.country_name
-    WHERE t."Element Code" != '6121'
-      AND t."Months" != 'Annual value';
+        CAST(tempcp."Value" AS FLOAT),
+        CAST(tempcp."Type" AS SMALLINT)
+    FROM tempcp
+    JOIN countries ON tempcp."Area" = countries.country_name
+    WHERE tempcp."Months" != 'Annual value';
     """
     
     try:

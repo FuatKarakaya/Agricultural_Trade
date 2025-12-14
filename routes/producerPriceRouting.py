@@ -9,9 +9,30 @@ def producer_prices_dashboard():
         limit = int(request.args.get('limit', 30))
     except ValueError:
         limit = 30
+    
+    # Get filter parameters
+    country_filter = request.args.get('country', '')
+    commodity_filter = request.args.get('commodity', '')
 
-    #join Producer_Prices with Countries and Commodities to get readable names
-    #fetch the IDs and the last 3 years of data (Y2021, Y2022, Y2023)
+    # Fetch countries for dropdown
+    countries_query = """
+        SELECT DISTINCT c.country_id, c.country_name
+        FROM countries c
+        JOIN Producer_Prices p ON c.country_id = p.country_id
+        ORDER BY c.country_name
+    """
+    countries = fetch_query(countries_query)
+
+    # Fetch commodities for dropdown
+    commodities_query = """
+        SELECT DISTINCT cm.fao_code, cm.item_name
+        FROM commodities cm
+        JOIN Producer_Prices p ON cm.fao_code = p.commodity_id
+        ORDER BY cm.item_name
+    """
+    commodities = fetch_query(commodities_query)
+
+    # Build dynamic query with filters
     query = """
         SELECT 
             p.unique_id,
@@ -24,10 +45,22 @@ def producer_prices_dashboard():
         FROM Producer_Prices p
         JOIN countries c ON p.country_id = c.country_id
         JOIN commodities cm ON p.commodity_id = cm.fao_code
-        ORDER BY c.country_name, cm.item_name, p.month
-        LIMIT %s
+        WHERE 1=1
     """
-    prices = fetch_query(query, (limit,))
+    params = []
+    
+    if country_filter:
+        query += " AND c.country_id = %s"
+        params.append(country_filter)
+    
+    if commodity_filter:
+        query += " AND cm.fao_code = %s"
+        params.append(commodity_filter)
+    
+    query += " ORDER BY c.country_name, cm.item_name, p.month LIMIT %s"
+    params.append(limit)
+    
+    prices = fetch_query(query, tuple(params))
 
     #Statistics Query
     stats_query = """
@@ -43,6 +76,10 @@ def producer_prices_dashboard():
     return render_template(
         'producer_prices.html',
         prices=prices,
+        countries=countries,
+        commodities=commodities,
+        selected_country=country_filter,
+        selected_commodity=commodity_filter,
         total_records=stats.get('total_records', 0),
         total_countries=stats.get('total_countries', 0),
         total_commodities=stats.get('total_commodities', 0),
