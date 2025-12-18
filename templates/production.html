@@ -47,21 +47,21 @@
 </section>
 
 <section class="filter-section">
-  <form method="get" class="filter-form" id="filterForm">
-    <div class="filter-group">
+  <form method="get" class="filter-form" id="filterForm" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+    <div class="filter-group" style="flex: 0 0 auto; min-width: 180px;">
       <label for="country_code">Country</label>
       <select id="country_code" name="country_code" class="filter-select">
         <option value="">All</option>
         {% for c in countries or [] %}
           <option value="{{ c['country_id'] }}"
                   {% if selected_country == c['country_id']|string %}selected{% endif %}>
-            {{ c['country_id'] }}
+            {{ c.get('country_name', c['country_id']) }}
           </option>
         {% endfor %}
       </select>
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group" style="flex: 1 1 auto; min-width: 300px; max-width: 381px;">
       <label for="commodity_code">Commodity</label>
       <select id="commodity_code" name="commodity_code" class="filter-select">
         <option value="">All</option>
@@ -74,7 +74,7 @@
       </select>
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group" style="flex: 0 0 auto; min-width: 180px;">
       <label for="year">Year</label>
       <select id="year" name="year" class="filter-select">
         <option value="">All</option>
@@ -87,28 +87,18 @@
       </select>
     </div>
 
-    <button type="submit" class="btn">Apply Filters</button>
+    <button type="submit" class="btn" style="margin-top: auto;">Apply Filters</button>
+    <button type="button" class="btn" style="margin-top: auto;" onclick="window.location.href='/production'">Clear Filters</button>
   </form>
 </section>
 
-<!-- Search and Export Section -->
-<section class="search-container">
-  <div class="search-bar">
-    <input 
-      type="text" 
-      id="searchInput" 
-      class="search-input" 
-      placeholder="Search by country, commodity, year, or quantity..." 
-      value="{{ search or '' }}"
-    >
-    <button type="button" class="btn-export" onclick="exportToCSV()">Export CSV</button>
-  </div>
-</section>
-
 <section class="producers-section">
-  <h3>Production Records</h3>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h3>Production Records</h3>
+    <button type="button" class="btn" onclick="exportToCSV()">Export CSV</button>
+  </div>
   <p class="section-description">
-    Showing {{ (page - 1) * per_page + 1 if production else 0 }} - {{ min((page - 1) * per_page + (production|length), total_records) }} of {{ total_records }} records
+    Showing {{ production|length if production else 0 }} records
   </p>
 
   {% if production %}
@@ -139,43 +129,7 @@
     </tbody>
   </table>
 
-  <!-- Pagination Controls -->
-  <div class="pagination-container">
-    <div class="pagination-info">
-      Page {{ page }} of {{ total_pages }} ({{ total_records }} total records)
-    </div>
-    
-    <div class="pagination-controls">
-      {% if page > 1 %}
-        <button class="pagination-btn" onclick="changePage(1)">First</button>
-        <button class="pagination-btn" onclick="changePage({{ page - 1 }})">Previous</button>
-      {% else %}
-        <button class="pagination-btn" disabled>First</button>
-        <button class="pagination-btn" disabled>Previous</button>
-      {% endif %}
-      
-      {% for p in range(max(1, page - 2), min(total_pages + 1, page + 3)) %}
-        <button class="pagination-btn {{ 'active' if p == page else '' }}" onclick="changePage({{ p }})">{{ p }}</button>
-      {% endfor %}
-      
-      {% if page < total_pages %}
-        <button class="pagination-btn" onclick="changePage({{ page + 1 }})">Next</button>
-        <button class="pagination-btn" onclick="changePage({{ total_pages }})">Last</button>
-      {% else %}
-        <button class="pagination-btn" disabled>Next</button>
-        <button class="pagination-btn" disabled>Last</button>
-      {% endif %}
-    </div>
-    
-    <div class="page-size-selector">
-      <label>Per page:</label>
-      <select onchange="changePerPage(this.value)">
-        <option value="25" {{ 'selected' if per_page == 25 else '' }}>25</option>
-        <option value="50" {{ 'selected' if per_page == 50 else '' }}>50</option>
-        <option value="100" {{ 'selected' if per_page == 100 else '' }}>100</option>
-      </select>
-    </div>
-  </div>
+
   {% else %}
   <div class="no-data">
     <div class="no-results-icon">🔍</div>
@@ -188,53 +142,6 @@
 
 {% block extra_js %}
 <script>
-// Search functionality
-let searchTimeout;
-document.getElementById('searchInput').addEventListener('input', function(e) {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(function() {
-    updateURL('search', e.target.value);
-  }, 500);
-});
-
-// Sorting functionality
-document.querySelectorAll('.sortable').forEach(header => {
-  header.addEventListener('click', function() {
-    const sortBy = this.dataset.sort;
-    const currentSort = '{{ sort_by }}';
-    const currentOrder = '{{ sort_order }}';
-    
-    let newOrder = 'desc';
-    if (sortBy === currentSort && currentOrder === 'desc') {
-      newOrder = 'asc';
-    }
-    
-    updateURL('sort_by', sortBy);
-    updateURL('sort_order', newOrder);
-  });
-});
-
-// Pagination
-function changePage(page) {
-  updateURL('page', page);
-}
-
-function changePerPage(perPage) {
-  updateURL('per_page', perPage);
-  updateURL('page', 1);
-}
-
-// URL update helper
-function updateURL(param, value) {
-  const url = new URL(window.location);
-  if (value === '' || value === null) {
-    url.searchParams.delete(param);
-  } else {
-    url.searchParams.set(param, value);
-  }
-  window.location = url;
-}
-
 // Export to CSV
 function exportToCSV() {
   const table = document.getElementById('productionTable');
@@ -270,18 +177,6 @@ function exportToCSV() {
   document.body.removeChild(a);
   window.URL.revokeObjectURL(url);
 }
-
-// Update sort indicators
-document.addEventListener('DOMContentLoaded', function() {
-  const currentSort = '{{ sort_by }}';
-  const currentOrder = '{{ sort_order }}';
-  
-  document.querySelectorAll('.sortable').forEach(header => {
-    if (header.dataset.sort === currentSort) {
-      header.classList.add(currentOrder);
-    }
-  });
-});
 </script>
 {% endblock %}
 
