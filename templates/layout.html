@@ -20,7 +20,7 @@
     </div>
 
     <!-- Navigation -->
-<!-- Updated Navigation Bar -->
+    <!-- Updated Navigation Bar -->
     <nav class="navbar">
       <div class="nav-container">
         <div class="nav-title">
@@ -55,6 +55,33 @@
           <li><a href="/landuse" class="nav-link">Land Use</a></li>
           <li><a href="/investments" class="nav-link">Investments</a></li>
         </ul>
+
+        <!-- User Section - YENİ EKLENEN KISIM -->
+        <div class="nav-user-section">
+          {% if user_logged_in %}
+            <div class="user-info-wrapper">
+              <span class="user-name-badge">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1c-2.67 0-8 1.34-8 4v1h16v-1c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                {{ username }}
+              </span>
+              {% if is_admin %}
+                <span class="admin-badge">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0l2 5h5l-4 3.5 2 5.5-5-3.5-5 3.5 2-5.5-4-3.5h5z"/>
+                  </svg>
+                  ADMIN
+                </span>
+              {% endif %}
+              <a href="{{ url_for('auth.logout') }}" class="btn-logout">Logout</a>
+            </div>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn-login-nav">Login</a>
+          {% endif %}
+        </div>
+        <!-- User Section Sonu -->
+
       </div>
     </nav>
 

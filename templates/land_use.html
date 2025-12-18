@@ -76,10 +76,13 @@
       </select>
     </form>
 
+    <!-- ADD RECORD BUTONU - Sadece Admin Görebilir -->
+    {% if is_admin %}
     <a href="{{ url_for('landuse.add_land_use_form', year=year, country_id=selected_country_id) }}"
        class="btn-add-country">
       Add Record
     </a>
+    {% endif %}
   </div>
 
   {% if records %}
@@ -97,7 +100,10 @@
         <th>Permanent meadows and pastures</th>
         <th>Forest land</th>
         <th>Other land</th>
+        <!-- ACTIONS SÜTUNU - Sadece Admin Görebilir -->
+        {% if is_admin %}
         <th>Actions</th>
+        {% endif %}
       </tr>
     </thead>
 
@@ -165,6 +171,8 @@
           {% else %}N/A{% endif %}
         </td>
 
+        <!-- UPDATE VE DELETE BUTONLARI - Sadece Admin Görebilir -->
+        {% if is_admin %}
         <td>
           <a href="{{ url_for('landuse.edit_land_use_form',
                       country_id=row['country_id'],
@@ -183,6 +191,7 @@
             <button type="submit" class="btn-delete">Delete</button>
           </form>
         </td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>

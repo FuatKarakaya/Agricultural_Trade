@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database import execute_query, fetch_query
+from routes.auth_routes import login_required, admin_required
 
 investments_bp = Blueprint("investments", __name__)
 
 @investments_bp.route('/investments')
-@investments_bp.route('/investments')
+@login_required
 def investmentsPage():
     # Yıl: yoksa 2023
     year = request.args.get("year", 2023, type=int)
@@ -146,6 +147,7 @@ def investmentsPage():
     )
 
 @investments_bp.route("/investments/new", methods=["GET"])
+@admin_required
 def add_investment_form():
     # Default yıl
     year = request.args.get("year", 2023, type=int)
@@ -171,6 +173,7 @@ def add_investment_form():
     )
 
 @investments_bp.route("/investments/add", methods=["POST"])
+@admin_required
 def add_investment():
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
@@ -266,6 +269,7 @@ def add_investment():
     )
 
 @investments_bp.route("/investments/delete", methods=["POST"])
+@admin_required
 def delete_investment():
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
@@ -296,6 +300,7 @@ def delete_investment():
     )
 
 @investments_bp.route("/investments/edit", methods=["GET"])
+@admin_required
 def edit_investment_form():
     """
     Belirli bir (country_id, year) için var olan Investments kayıtlarını
@@ -363,6 +368,7 @@ def edit_investment_form():
     )
 
 @investments_bp.route("/investments/update", methods=["POST"])
+@admin_required
 def update_investment():
     """
     Bir (country_id, year) için tüm expenditure_type değerlerini tek formdan günceller.

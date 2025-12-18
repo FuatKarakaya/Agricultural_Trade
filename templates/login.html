@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block title %}Login - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Welcome Back</h2>
+  <p class="section-description">
+    Sign in to access the Agricultural Trade Dashboard
+  </p>
+</section>
+
+<!-- Login Form Section -->
+<section class="producers-section">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <h3>🔐 Sign In</h3>
+        <p>Enter your credentials to continue</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                {% if category == 'error' %}
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                {% elif category == 'success' %}
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                {% endif %}
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" class="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            class="form-input"
+            placeholder="Enter your username"
+            required 
+            autofocus
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-input"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn-login">
+          Sign In →
+        </button>
+      </form>
+
+      <!-- Test Credentials Info -->
+      <div class="credentials-info">
+        <h4>🔑 Test Credentials</h4>
+        <div class="credentials-grid">
+          <div class="credential-item">
+            <span class="credential-label">👑 Administrator</span>
+            <span class="credential-value">admin / 123</span>
+          </div>
+          <div class="credential-item">
+            <span class="credential-label">👤 Regular User</span>
+            <span class="credential-value">user1 / 123</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

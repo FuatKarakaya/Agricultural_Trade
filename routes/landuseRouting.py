@@ -1,11 +1,12 @@
 from flask import Blueprint
 from flask import Flask, render_template,request,redirect,url_for,flash
 from database import execute_query, fetch_query
+from routes.auth_routes import login_required, admin_required
 
 landuse_bp = Blueprint("landuse", __name__)
 
 @landuse_bp.route('/landuse')
-
+@login_required
 def landUsePage():
     # Yıl: yoksa 2023
     year = request.args.get("year", 2023, type=int)
@@ -161,6 +162,7 @@ def landUsePage():
     )
 
 @landuse_bp.route("/land-use/new", methods=["GET"])
+@admin_required
 def add_land_use_form():
     # Default yıl
     year = request.args.get("year", 2023, type=int)
@@ -186,6 +188,7 @@ def add_land_use_form():
     )
 
 @landuse_bp.route("/land-use/add", methods=["POST"])
+@admin_required
 def add_land_use():
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
@@ -285,6 +288,7 @@ def add_land_use():
     )
 
 @landuse_bp.route("/land-use/delete", methods=["POST"])
+@admin_required
 def delete_land_use():
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
@@ -314,6 +318,7 @@ def delete_land_use():
         )
     )
 @landuse_bp.route("/land-use/edit", methods=["GET"])
+@admin_required
 def edit_land_use_form():
     """
     Belirli bir (country_id, year) için var olan Land_Use kayıtlarını
@@ -383,6 +388,7 @@ def edit_land_use_form():
     )
 
 @landuse_bp.route("/land-use/update", methods=["POST"])
+@admin_required
 def update_land_use():
     """
     Bir (country_id, year) için tüm land_type değerlerini tek formdan günceller.

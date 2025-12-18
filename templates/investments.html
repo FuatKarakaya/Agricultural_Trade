@@ -82,10 +82,13 @@
       </select>
     </form>
 
+    <!-- ADD RECORD BUTONU - Sadece Admin Görebilir -->
+    {% if is_admin %}
     <a href="{{ url_for('investments.add_investment_form', year=year, country_id=selected_country_id) }}"
        class="btn-add-country">
       Add Record
     </a>
+    {% endif %}
   </div>
 
   {% if records %}
@@ -100,7 +103,10 @@
         <th>Environmental Protection</th>
         <th>Biodiversity & Landscape</th>
         <th>R&D Environmental Protection</th>
+        <!-- ACTIONS SÜTUNU - Sadece Admin Görebilir -->
+        {% if is_admin %}
         <th>Actions</th>
+        {% endif %}
       </tr>
     </thead>
 
@@ -162,6 +168,8 @@
           {% else %}N/A{% endif %}
         </td>
 
+        <!-- UPDATE VE DELETE BUTONLARI - Sadece Admin Görebilir -->
+        {% if is_admin %}
         <td>
           <a href="{{ url_for('investments.edit_investment_form',
                       country_id=row['country_id'],
@@ -180,6 +188,7 @@
             <button type="submit" class="btn-delete">Delete</button>
           </form>
         </td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>
