@@ -6,41 +6,16 @@ prod_bp = Blueprint("prod", __name__)
 
 @prod_bp.route("/production")
 def production():
-    """Browse production records with filters, pagination, sorting, and search"""
+    """Browse production records with filters"""
     try:
-        # Get filter parameters
         country_code = request.args.get("country_code", "")
         commodity_code = request.args.get("commodity_code", "")
         year = request.args.get("year", "")
-        
-        # Get pagination parameters
-        page = int(request.args.get("page", 1))
-        per_page = int(request.args.get("per_page", 50))
-        
-        # Get sorting parameters
-        sort_by = request.args.get("sort_by", "year")
-        sort_order = request.args.get("sort_order", "desc")
-        
-        # Get search parameter
-        search = request.args.get("search", "").strip()
 
-        # Valid sort columns
-        valid_sort_columns = {
-            "year": "p.year",
-            "quantity": "p.quantity",
-            "country": "c.country_name",
-            "item": "co.item_name",
-            "value": "pv.value"
-        }
-        
-        # Default to year if invalid sort column
-        sort_column = valid_sort_columns.get(sort_by, "p.year")
-        sort_direction = "ASC" if sort_order == "asc" else "DESC"
-
-        # Build query
+        # Trying to use 4 tables here, will continue.
         query = """
             SELECT 
-                p.production_ID,
+                p.production_ID AS production_id,
                 p.year,
                 p.unit,
                 p.quantity,
@@ -66,32 +41,11 @@ def production():
         if year:
             query += " AND p.year = %s"
             params.append(year)
-            
-        # Add search filter
-        if search:
-            query += """ AND (
-                c.country_name LIKE %s OR
-                co.item_name LIKE %s OR
-                CAST(p.year AS CHAR) LIKE %s OR
-                CAST(p.quantity AS CHAR) LIKE %s
-            )"""
-            search_param = f"%{search}%"
-            params.extend([search_param, search_param, search_param, search_param])
 
-        # Get total count for pagination
-        count_query = f"SELECT COUNT(*) as total FROM ({query}) as filtered"
-        count_result = fetch_query(count_query, params)
-        total_records = count_result[0]['total'] if count_result else 0
-        
-        # Calculate pagination
-        total_pages = (total_records + per_page - 1) // per_page
-        offset = (page - 1) * per_page
-
-        # Add sorting and pagination
-        query += f" ORDER BY {sort_column} {sort_direction}, p.production_ID DESC"
-        query += f" LIMIT {per_page} OFFSET {offset}"
+        query += " ORDER BY p.year DESC, p.quantity DESC LIMIT 50"
 
         production_list = fetch_query(query, params)
+
 
         if production_list is None:
             return (
@@ -119,7 +73,7 @@ def production():
 
         # Get filter options
         countries = fetch_query(
-            "SELECT DISTINCT country_id FROM Countries ORDER BY country_id"
+            "SELECT DISTINCT country_id, country_name FROM Countries ORDER BY country_name"
         )
 
         commodities = fetch_query(
@@ -138,20 +92,21 @@ def production():
             selected_country=country_code,
             selected_commodity=commodity_code,
             selected_year=year,
-            # Pagination
-            page=page,
-            per_page=per_page,
-            total_records=total_records,
-            total_pages=total_pages,
-            # Sorting
-            sort_by=sort_by,
-            sort_order=sort_order,
-            # Search
-            search=search
+            # Add pagination variables for template compatibility
+            page=1,
+            per_page=50,
+            total_records=len(production_list) if production_list else 0,
+            total_pages=1,
+            # Add sorting variables
+            sort_by="year",
+            sort_order="desc",
+            # Add search variable
+            search=""
         )
     except Exception as e:
-        return render_template("error.html", error=str(e)), 500
-
+        print(f"Error in production: {e}")
+        # Return simple error response without template
+        return f"<h1>Error</h1><p>{str(e)}</p>", 500
 
 
 @prod_bp.route("/production/<int:production_id>")

@@ -6,41 +6,17 @@ prod_val_bp = Blueprint("prod_val", __name__)
 
 @prod_val_bp.route("/production-values")
 def production_values():
-    """Browse production values with enhanced joins, pagination, sorting, and search"""
+    """Browse production values with enhanced joins"""
     try:
-        # Get filter parameters
         selected_element = request.args.get("element", "")
         selected_year = request.args.get("year", "")
         country_code = request.args.get("country_code", "")
-        
-        # Get pagination parameters
-        page = int(request.args.get("page", 1))
-        per_page = int(request.args.get("per_page", 50))
-        
-        # Get sorting parameters
-        sort_by = request.args.get("sort_by", "year")
-        sort_order = request.args.get("sort_order", "desc")
-        
-        # Get search parameter
-        search = request.args.get("search", "").strip()
-
-        # Valid sort columns
-        valid_sort_columns = {
-            "year": "pv.year",
-            "value": "pv.value",
-            "element": "pv.element",
-            "country": "c.country_name",
-            "commodity": "co.item_name"
-        }
-        
-        sort_column = valid_sort_columns.get(sort_by, "pv.year")
-        sort_direction = "ASC" if sort_order == "asc" else "DESC"
 
         # Enhanced query with multiple JOINs similar to production page
         query = """
             SELECT 
-                pv.production_value_ID,
-                pv.production_ID,
+                pv.production_value_ID AS production_value_id,
+                pv.production_ID AS production_id,
                 pv.element,
                 pv.year,
                 pv.unit,
@@ -72,31 +48,8 @@ def production_values():
         if country_code:
             query += " AND p.country_code = %s"
             params.append(country_code)
-            
-        # Add search filter
-        if search:
-            query += """ AND (
-                c.country_name LIKE %s OR
-                co.item_name LIKE %s OR
-                pv.element LIKE %s OR
-                CAST(pv.year AS CHAR) LIKE %s OR
-                CAST(pv.value AS CHAR) LIKE %s
-            )"""
-            search_param = f"%{search}%"
-            params.extend([search_param, search_param, search_param, search_param, search_param])
 
-        # Get total count for pagination
-        count_query = f"SELECT COUNT(*) as total FROM ({query}) as filtered"
-        count_result = fetch_query(count_query, params)
-        total_records = count_result[0]['total'] if count_result else 0
-        
-        # Calculate pagination
-        total_pages = (total_records + per_page - 1) // per_page
-        offset = (page - 1) * per_page
-
-        # Add sorting and pagination
-        query += f" ORDER BY {sort_column} {sort_direction}, pv.production_value_ID DESC"
-        query += f" LIMIT {per_page} OFFSET {offset}"
+        query += " ORDER BY pv.year DESC, pv.value DESC LIMIT 50"
 
         production_values_list = fetch_query(query, params)
 
@@ -119,24 +72,6 @@ def production_values():
             """
         )
         stats = stats_result[0] if stats_result else {}
-        
-        # Get chart data - Top 10 production values
-        chart_data = fetch_query(
-            """
-            SELECT 
-                c.country_name,
-                co.item_name,
-                pv.value,
-                pv.year
-            FROM Production_Value pv
-            INNER JOIN Production p ON pv.production_ID = p.production_ID
-            INNER JOIN Countries c ON p.country_code = c.country_id
-            INNER JOIN Commodities co ON p.commodity_code = co.fao_code
-            WHERE pv.value IS NOT NULL
-            ORDER BY pv.value DESC
-            LIMIT 10
-            """
-        )
 
         # Get filter options
         elements = fetch_query(
@@ -165,24 +100,24 @@ def production_values():
             selected_element=selected_element,
             selected_year=selected_year,
             selected_country=country_code,
-            # Pagination
-            page=page,
-            per_page=per_page,
-            total_records=total_records,
-            total_pages=total_pages,
-            # Sorting
-            sort_by=sort_by,
-            sort_order=sort_order,
-            # Search
-            search=search,
-            # Chart data
-            chart_data=chart_data or []
+            # Add pagination variables for template compatibility
+            page=1,
+            per_page=50,
+            total_records=len(production_values_list) if production_values_list else 0,
+            total_pages=1,
+            # Add sorting variables
+            sort_by="year",
+            sort_order="desc",
+            # Add search variable
+            search="",
+            # Add chart data
+            chart_data=[]
         )
 
     except Exception as e:
         print(f"Error in production_values: {e}")
-        return render_template("error.html", error=str(e)), 500
-
+        # Return simple error response without template
+        return f"<h1>Error</h1><p>{str(e)}</p>", 500
 
 
 @prod_val_bp.route("/production-value/<int:production_value_id>")
