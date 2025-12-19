@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request
-from database import fetch_query
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from database import fetch_query, execute_query
 
 prod_val_bp = Blueprint("prod_val", __name__)
 
@@ -11,6 +11,8 @@ def production_values():
         selected_element = request.args.get("element", "")
         selected_year = request.args.get("year", "")
         country_code = request.args.get("country_code", "")
+        commodity_code = request.args.get("commodity_code", "")
+        region = request.args.get("region", "")
 
         # Enhanced query with multiple JOINs similar to production page
         query = """
@@ -48,6 +50,14 @@ def production_values():
         if country_code:
             query += " AND p.country_code = %s"
             params.append(country_code)
+        
+        if commodity_code:
+            query += " AND p.commodity_code = %s"
+            params.append(commodity_code)
+        
+        if region:
+            query += " AND c.region = %s"
+            params.append(region)
 
         query += " ORDER BY pv.year DESC, pv.value DESC LIMIT 50"
 
@@ -89,6 +99,15 @@ def production_values():
             ORDER BY c.country_name
             """
         )
+        
+        # Get filter options
+        commodities = fetch_query(
+            "SELECT DISTINCT fao_code, item_name FROM Commodities ORDER BY item_name"
+        )
+        
+        regions = fetch_query(
+            "SELECT DISTINCT region FROM Countries WHERE region IS NOT NULL ORDER BY region"
+        )
 
         return render_template(
             "production_values.html",
@@ -97,9 +116,13 @@ def production_values():
             elements=elements,
             years=years,
             countries=countries,
+            commodities=commodities,
+            regions=regions,
             selected_element=selected_element,
             selected_year=selected_year,
             selected_country=country_code,
+            selected_commodity=commodity_code,
+            selected_region=region,
             # Add pagination variables for template compatibility
             page=1,
             per_page=50,
@@ -173,3 +196,140 @@ def production_value_detail(production_value_id):
     except Exception as e:
         print(f"Error in production_value_detail: {e}")
         return render_template("error.html", error=str(e)), 500
+
+
+@prod_val_bp.route("/production-values/new", methods=["GET"])
+def add_production_value_form():
+    """Display form to add new production value record"""
+    year = request.args.get("year", 2023, type=int)
+    years = list(range(1990, 2026))
+    
+    productions = fetch_query(
+        """
+        SELECT p.production_ID, p.year, c.country_name, com.item_name
+        FROM Production p
+        JOIN Countries c ON p.country_code = c.country_id
+        JOIN Commodities com ON p.commodity_code = com.fao_code
+        ORDER BY p.year DESC, c.country_name, com.item_name
+        LIMIT 1000
+        """
+    )
+    
+    # Get distinct elements with their units from existing records
+    elements = fetch_query(
+        """
+        SELECT DISTINCT element, unit 
+        FROM Production_Value 
+        WHERE element IS NOT NULL 
+        ORDER BY element
+        """
+    )
+    
+    # Get countries for dropdown (with region for filtering)
+    countries = fetch_query(
+        "SELECT DISTINCT country_id, country_name, region FROM Countries ORDER BY country_name"
+    )
+    
+    # Get commodities for dropdown
+    commodities = fetch_query(
+        "SELECT DISTINCT fao_code, item_name FROM Commodities ORDER BY item_name"
+    )
+    
+    # Get regions for dropdown
+    regions = fetch_query(
+        "SELECT DISTINCT region FROM Countries WHERE region IS NOT NULL ORDER BY region"
+    )
+    
+    return render_template(
+        "production_value_add.html",
+        years=years,
+        year=year,
+        elements=elements,
+        countries=countries,
+        commodities=commodities,
+        regions=regions,
+    )
+
+
+@prod_val_bp.route("/production-values/add", methods=["POST"])
+def add_production_value():
+    """Handle production value record addition"""
+    try:
+        # Get form data
+        country_id = request.form.get("country", type=int)
+        commodity_code = request.form.get("commodity", type=int)
+        element = request.form.get("element", "").strip()
+        year = request.form.get("year", type=int)
+        value = request.form.get("value", type=float)
+        
+        # Validation
+        if not country_id:
+            flash("Country is required.", "error")
+            return redirect(url_for("prod_val.add_production_value_form"))
+        
+        if not commodity_code:
+            flash("Commodity is required.", "error")
+            return redirect(url_for("prod_val.add_production_value_form"))
+        
+        if not element:
+            flash("Element is required.", "error")
+            return redirect(url_for("prod_val.add_production_value_form"))
+        
+        if not year:
+            flash("Year is required.", "error")
+            return redirect(url_for("prod_val.add_production_value_form"))
+        
+        if value is None:
+            flash("Value is required.", "error")
+            return redirect(url_for("prod_val.add_production_value_form"))
+        
+        # Get unit from element
+        unit_row = fetch_query(
+            "SELECT unit FROM Production_Value WHERE element = %s LIMIT 1",
+            (element,)
+        )
+        unit = unit_row[0]["unit"] if unit_row else ""
+        
+        # Look up production_id from country + commodity + year
+        production_row = fetch_query(
+            """
+            SELECT production_ID 
+            FROM Production 
+            WHERE country_code = %s AND commodity_code = %s AND year = %s
+            """,
+            (country_id, commodity_code, year)
+        )
+        
+        if not production_row:
+            flash("No production record found for this country, commodity, and year combination. Please add the production record first.", "error")
+            return redirect(url_for("prod_val.add_production_value_form"))
+        
+        production_id = production_row[0]["production_id"]
+        
+        # Check for duplicate
+        existing = fetch_query(
+            """
+            SELECT production_value_ID
+            FROM Production_Value
+            WHERE production_ID = %s AND element = %s AND year = %s
+            """,
+            (production_id, element, year)
+        )
+        
+        if existing:
+            flash("Record already exists for this production, element, and year.", "error")
+            return redirect(url_for("prod_val.add_production_value_form"))
+        
+        # Insert new record
+        insert_query = """
+            INSERT INTO Production_Value (production_ID, element, year, unit, value)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        execute_query(insert_query, (production_id, element, year, unit, value))
+        
+        flash("Production value record added successfully!", "success")
+        return redirect(url_for("prod_val.add_production_value_form"))
+        
+    except Exception as e:
+        flash(f"Error adding production value record: {str(e)}", "error")
+        return redirect(url_for("prod_val.add_production_value_form"))

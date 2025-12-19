@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request
-from database import fetch_query
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from database import fetch_query, execute_query
 
 prod_bp = Blueprint("prod", __name__)
 
@@ -11,6 +11,7 @@ def production():
         country_code = request.args.get("country_code", "")
         commodity_code = request.args.get("commodity_code", "")
         year = request.args.get("year", "")
+        unit = request.args.get("unit", "")
 
         # Trying to use 4 tables here, will continue.
         query = """
@@ -41,6 +42,10 @@ def production():
         if year:
             query += " AND p.year = %s"
             params.append(year)
+        
+        if unit:
+            query += " AND p.unit = %s"
+            params.append(unit)
 
         query += " ORDER BY p.year DESC, p.quantity DESC LIMIT 50"
 
@@ -81,6 +86,8 @@ def production():
         )
 
         years = fetch_query("SELECT DISTINCT year FROM production ORDER BY year DESC")
+        
+        units = fetch_query("SELECT DISTINCT unit FROM production WHERE unit IS NOT NULL ORDER BY unit")
 
         return render_template(
             "production.html",
@@ -89,9 +96,11 @@ def production():
             countries=countries,
             commodities=commodities,
             years=years,
+            units=units,
             selected_country=country_code,
             selected_commodity=commodity_code,
             selected_year=year,
+            selected_unit=unit,
             # Add pagination variables for template compatibility
             page=1,
             per_page=50,
@@ -188,3 +197,91 @@ def production_detail(production_id):
         )
     except Exception as e:
         return render_template("error.html", error=str(e)), 500
+
+
+@prod_bp.route("/production/new", methods=["GET"])
+def add_production_form():
+    """Display form to add new production record"""
+    year = request.args.get("year", 2023, type=int)
+    selected_country_id = request.args.get("country_id", type=int)
+    selected_commodity_code = request.args.get("commodity_code", type=int)
+    
+    years = list(range(1990, 2026))
+    
+    countries = fetch_query(
+        "SELECT DISTINCT country_id, country_name FROM Countries ORDER BY country_name"
+    )
+    
+    commodities = fetch_query(
+        "SELECT DISTINCT fao_code, item_name FROM Commodities ORDER BY item_name"
+    )
+    
+    return render_template(
+        "production_add.html",
+        years=years,
+        year=year,
+        countries=countries,
+        commodities=commodities,
+        selected_country_id=selected_country_id,
+        selected_commodity_code=selected_commodity_code,
+    )
+
+
+@prod_bp.route("/production/add", methods=["POST"])
+def add_production():
+    """Handle production record addition"""
+    try:
+        # Get form data
+        country_code = request.form.get("country_code", type=int)
+        commodity_code = request.form.get("commodity_code", type=int)
+        year = request.form.get("year", type=int)
+        unit = request.form.get("unit", "t")
+        quantity = request.form.get("quantity", type=float)
+        
+        # Validation
+        if not country_code or not commodity_code or not year:
+            flash("Country, commodity, and year are required.", "error")
+            return redirect(url_for("prod.production"))
+        
+        if quantity is None or quantity < 0:
+            flash("Quantity must be a non-negative number.", "error")
+            return redirect(url_for("prod.production"))
+        
+        # Get item_name from commodity
+        commodity_row = fetch_query(
+            "SELECT item_name FROM Commodities WHERE fao_code = %s",
+            (commodity_code,)
+        )
+        if not commodity_row:
+            flash("Selected commodity not found.", "error")
+            return redirect(url_for("prod.production"))
+        
+        item_name = commodity_row[0]["item_name"]
+        
+        # Check for duplicate
+        existing = fetch_query(
+            """
+            SELECT production_ID
+            FROM Production
+            WHERE country_code = %s AND commodity_code = %s AND year = %s
+            """,
+            (country_code, commodity_code, year)
+        )
+        
+        if existing:
+            flash("Record already exists for this country, commodity, and year.", "error")
+            return redirect(url_for("prod.production"))
+        
+        # Insert new record
+        insert_query = """
+            INSERT INTO Production (country_code, commodity_code, item_name, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        execute_query(insert_query, (country_code, commodity_code, item_name, year, unit, quantity))
+        
+        flash("Production record added successfully!", "success")
+        return redirect(url_for("prod.production"))
+        
+    except Exception as e:
+        flash(f"Error adding production record: {str(e)}", "error")
+        return redirect(url_for("prod.production"))

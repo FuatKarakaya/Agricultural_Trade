@@ -704,3 +704,29 @@ DROP TABLE tempcp;
                   AND year = %s
                   AND expenditure_type = %s;
                 
+
+            SELECT setval('production_production_id_seq', 
+                          (SELECT COALESCE(MAX(production_id), 0) + 1 FROM Production), 
+                          false);
+        
+
+            SELECT setval('production_value_production_value_id_seq', 
+                          (SELECT COALESCE(MAX(production_value_id), 0) + 1 FROM Production_Value), 
+                          false);
+        
+
+            INSERT INTO Production (country_code, commodity_code, item_name, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        
+
+            INSERT INTO Production (country_code, commodity_code, item_name, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        
+
+            INSERT INTO Production (country_code, commodity_code, item_name, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        
+
+            INSERT INTO Production_Value (production_ID, element, year, unit, value)
+            VALUES (%s, %s, %s, %s, %s)
+        

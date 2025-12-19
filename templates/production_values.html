@@ -86,7 +86,7 @@
 
 <section class="filter-section">
   <form method="get" class="filter-form" id="filterForm" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-    <div class="filter-group" style="flex: 0 0 auto; min-width: 170px; max-width: 436px;">
+    <div class="filter-group" style="flex: 0 0 auto; min-width: 120px; max-width: 160px;">
       <label for="element">Element</label>
       <select id="element" name="element" class="filter-select">
         <option value="">All</option>
@@ -99,7 +99,7 @@
       </select>
     </div>
 
-    <div class="filter-group" style="flex: 0 0 auto; min-width: 140px;">
+    <div class="filter-group" style="flex: 0 0 auto; min-width: 120px; max-width: 160px;">
       <label for="year">Year</label>
       <select id="year" name="year" class="filter-select">
         <option value="">All</option>
@@ -112,7 +112,7 @@
       </select>
     </div>
 
-    <div class="filter-group" style="flex: 1 1 auto; min-width: 170px; max-width: 230px;">
+    <div class="filter-group" style="flex: 1 1 auto; min-width: 120px; max-width: 160px;">
       <label for="country_code">Country</label>
       <select id="country_code" name="country_code" class="filter-select">
         <option value="">All</option>
@@ -120,6 +120,32 @@
           <option value="{{ c['country_id'] }}"
                   {% if selected_country == c['country_id']|string %}selected{% endif %}>
             {{ c.get('country_name', c['country_id']) }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 1 1 auto; min-width: 120px; max-width: 160px;">
+      <label for="commodity_code">Commodity</label>
+      <select id="commodity_code" name="commodity_code" class="filter-select">
+        <option value="">All</option>
+        {% for com in commodities or [] %}
+          <option value="{{ com['fao_code'] }}"
+                  {% if selected_commodity == com['fao_code']|string %}selected{% endif %}>
+            {{ com['item_name'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 0 0 auto; min-width: 170px; max-width: 160px;">
+      <label for="region">Region</label>
+      <select id="region" name="region" class="filter-select">
+        <option value="">All</option>
+        {% for r in regions or [] %}
+          <option value="{{ r['region'] }}"
+                  {% if selected_region == r['region'] %}selected{% endif %}>
+            {{ r['region'] }}
           </option>
         {% endfor %}
       </select>
@@ -133,7 +159,10 @@
 <section class="producers-section">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h3>Production Values</h3>
-    <button type="button" class="btn" onclick="exportToCSV()">Export CSV</button>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{{ url_for('prod_val.add_production_value_form') }}" class="btn">Add New Record</a>
+      <button type="button" class="btn" onclick="exportToCSV()">Export CSV</button>
+    </div>
   </div>
   <p class="section-description">
     Showing {{ production_values|length if production_values else 0 }} records
@@ -144,6 +173,7 @@
     <thead>
       <tr>
         <th class="sortable" data-sort="id">Value ID</th>
+        <th class="sortable" data-sort="prod_id">Prod ID</th>
         <th class="sortable" data-sort="country">Country</th>
         <th class="sortable" data-sort="commodity">Commodity</th>
         <th class="sortable" data-sort="element">Element</th>
@@ -157,6 +187,7 @@
       {% for row in production_values %}
       <tr>
         <td>{{ row.get('production_value_ID') or row.get('production_value_id') or 'N/A' }}</td>
+        <td>{{ row.get('production_ID') or row.get('production_id') or 'N/A' }}</td>
         <td>{{ row.get('country_name') or row.get('country_code') or 'N/A' }}</td>
         <td>{{ row.get('item_name') or 'N/A' }}</td>
         <td><span class="badge badge-primary">{{ row.get('element') or 'N/A' }}</span></td>
