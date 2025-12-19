@@ -13,6 +13,7 @@ def production_values():
         country_code = request.args.get("country_code", "")
         commodity_code = request.args.get("commodity_code", "")
         region = request.args.get("region", "")
+        search = request.args.get("search", "").strip()
 
         # Enhanced query with multiple JOINs similar to production page
         query = """
@@ -58,8 +59,29 @@ def production_values():
         if region:
             query += " AND c.region = %s"
             params.append(region)
+        
+        if search:
+            query += """ AND (
+                CAST(pv.production_value_ID AS TEXT) LIKE %s
+                OR CAST(pv.production_ID AS TEXT) LIKE %s
+                OR c.country_name ILIKE %s
+                OR co.item_name ILIKE %s
+                OR pv.element ILIKE %s
+                OR CAST(pv.year AS TEXT) LIKE %s
+                OR CAST(pv.value AS TEXT) LIKE %s
+                OR pv.unit ILIKE %s
+                OR c.region ILIKE %s
+            )"""
+            search_param = f"%{search}%"
+            params.extend([search_param] * 9)
 
-        query += " ORDER BY pv.year DESC, pv.value DESC LIMIT 50"
+        # Order by: prioritize complete rows (no nulls), then by year and value
+        query += """ ORDER BY 
+            CASE WHEN pv.value IS NOT NULL AND pv.unit IS NOT NULL AND pv.element IS NOT NULL
+                      AND c.country_name IS NOT NULL AND co.item_name IS NOT NULL AND c.region IS NOT NULL
+                 THEN 0 ELSE 1 END,
+            pv.year DESC, pv.value DESC NULLS LAST
+            LIMIT 50"""
 
         production_values_list = fetch_query(query, params)
 
@@ -123,6 +145,7 @@ def production_values():
             selected_country=country_code,
             selected_commodity=commodity_code,
             selected_region=region,
+            search=search,
             # Add pagination variables for template compatibility
             page=1,
             per_page=50,
@@ -131,8 +154,6 @@ def production_values():
             # Add sorting variables
             sort_by="year",
             sort_order="desc",
-            # Add search variable
-            search="",
             # Add chart data
             chart_data=[]
         )

@@ -86,7 +86,7 @@
 
 <section class="filter-section">
   <form method="get" class="filter-form" id="filterForm" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-    <div class="filter-group" style="flex: 0 0 auto; min-width: 120px; max-width: 160px;">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="element">Element</label>
       <select id="element" name="element" class="filter-select">
         <option value="">All</option>
@@ -99,7 +99,7 @@
       </select>
     </div>
 
-    <div class="filter-group" style="flex: 0 0 auto; min-width: 120px; max-width: 160px;">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="year">Year</label>
       <select id="year" name="year" class="filter-select">
         <option value="">All</option>
@@ -112,7 +112,7 @@
       </select>
     </div>
 
-    <div class="filter-group" style="flex: 1 1 auto; min-width: 120px; max-width: 160px;">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="country_code">Country</label>
       <select id="country_code" name="country_code" class="filter-select">
         <option value="">All</option>
@@ -125,7 +125,7 @@
       </select>
     </div>
 
-    <div class="filter-group" style="flex: 1 1 auto; min-width: 120px; max-width: 160px;">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="commodity_code">Commodity</label>
       <select id="commodity_code" name="commodity_code" class="filter-select">
         <option value="">All</option>
@@ -138,7 +138,7 @@
       </select>
     </div>
 
-    <div class="filter-group" style="flex: 0 0 auto; min-width: 170px; max-width: 160px;">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="region">Region</label>
       <select id="region" name="region" class="filter-select">
         <option value="">All</option>
@@ -151,10 +151,68 @@
       </select>
     </div>
 
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
+      <label for="search">Search</label>
+      <input type="text" id="search" name="search" class="filter-select" 
+             placeholder="Search all fields..." value="{{ search or '' }}">
+    </div>
+
     <button type="submit" class="btn" style="margin-top: auto;">Apply Filters</button>
     <button type="button" class="btn" style="margin-top: auto;" onclick="window.location.href='/production-values'">Clear Filters</button>
   </form>
 </section>
+
+<!-- Chart Section -->
+{% if chart_data %}
+<section class="stats-container">
+  <h3>Top Countries by Production Value</h3>
+  <p class="section-description">Top 10 countries by total production value</p>
+  <div class="chart-wrapper" style="position: relative; height: 400px; margin-top: 1rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+    <canvas id="productionValueChart"></canvas>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const chartData = {{ chart_data | tojson }};
+  if (chartData && chartData.length > 0) {
+    const ctx = document.getElementById('productionValueChart');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.map(item => item.country),
+        datasets: [{
+          label: 'Total Value',
+          data: chartData.map(item => item.value),
+          backgroundColor: 'rgba(52, 152, 219, 0.8)',
+          borderColor: 'rgba(52, 152, 219, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                if (value >= 1000000000) return '$' + (value / 1000000000).toFixed(1) + 'B';
+                if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                if (value >= 1000) return '$' + (value / 1000).toFixed(1) + 'K';
+                return '$' + value;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endif %}
 
 <section class="producers-section">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">

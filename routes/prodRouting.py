@@ -12,8 +12,9 @@ def production():
         commodity_code = request.args.get("commodity_code", "")
         year = request.args.get("year", "")
         unit = request.args.get("unit", "")
+        search = request.args.get("search", "").strip()
 
-        # Trying to use 4 tables here, will continue.
+        # Simple query with 3 tables - no duplicates possible
         query = """
             SELECT 
                 p.production_ID AS production_id,
@@ -21,12 +22,10 @@ def production():
                 p.unit,
                 p.quantity,
                 c.country_name,
-                co.item_name,
-                pv.value AS production_value
+                co.item_name
             FROM production p
             INNER JOIN Countries c ON p.country_code = c.country_id
             INNER JOIN Commodities co ON p.commodity_code = co.fao_code
-            LEFT JOIN Production_Value pv ON pv.production_ID = p.production_ID
             WHERE 1=1
         """
         params = []
@@ -46,8 +45,26 @@ def production():
         if unit:
             query += " AND p.unit = %s"
             params.append(unit)
+        
+        if search:
+            query += """ AND (
+                CAST(p.production_ID AS TEXT) LIKE %s 
+                OR c.country_name ILIKE %s
+                OR co.item_name ILIKE %s
+                OR CAST(p.year AS TEXT) LIKE %s
+                OR CAST(p.quantity AS TEXT) LIKE %s
+                OR p.unit ILIKE %s
+            )"""
+            search_param = f"%{search}%"
+            params.extend([search_param] * 6)
 
-        query += " ORDER BY p.year DESC, p.quantity DESC LIMIT 50"
+        # Order by year and quantity
+        query += """ ORDER BY 
+            CASE WHEN p.quantity IS NOT NULL AND p.unit IS NOT NULL 
+                      AND c.country_name IS NOT NULL AND co.item_name IS NOT NULL 
+                 THEN 0 ELSE 1 END,
+            p.year DESC, p.quantity DESC NULLS LAST
+            LIMIT 50"""
 
         production_list = fetch_query(query, params)
 
@@ -88,6 +105,23 @@ def production():
         years = fetch_query("SELECT DISTINCT year FROM production ORDER BY year DESC")
         
         units = fetch_query("SELECT DISTINCT unit FROM production WHERE unit IS NOT NULL ORDER BY unit")
+        
+        # Chart: Top 10 countries by total production quantity
+        # Uses LEFT OUTER JOIN to include productions without values, GROUP BY for aggregation
+        chart_query = """
+            SELECT c.country_name, SUM(p.quantity) as total_quantity
+            FROM production p
+            INNER JOIN Countries c ON p.country_code = c.country_id
+            LEFT OUTER JOIN Production_Value pv ON pv.production_ID = p.production_ID
+            WHERE p.quantity IS NOT NULL
+            GROUP BY c.country_name
+            ORDER BY total_quantity DESC
+            LIMIT 10
+        """
+        chart_result = fetch_query(chart_query)
+        chart_data = []
+        if chart_result:
+            chart_data = [{"country": row["country_name"], "quantity": float(row["total_quantity"] or 0)} for row in chart_result]
 
         return render_template(
             "production.html",
@@ -101,6 +135,8 @@ def production():
             selected_commodity=commodity_code,
             selected_year=year,
             selected_unit=unit,
+            search=search,
+            chart_data=chart_data,
             # Add pagination variables for template compatibility
             page=1,
             per_page=50,
@@ -109,8 +145,6 @@ def production():
             # Add sorting variables
             sort_by="year",
             sort_order="desc",
-            # Add search variable
-            search=""
         )
     except Exception as e:
         print(f"Error in production: {e}")
