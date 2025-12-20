@@ -218,6 +218,21 @@
     </div>
 
     <div class="performer-card">
+      <h4>📊 Highest Diversity Score</h4>
+      <ol>
+        {% for country in top_by_diversity_score %}
+        <li>
+          <strong>{{ country['country_name'] }}</strong><br>
+          <small>
+            Score: {{ "{:,.0f}".format(country['crop_diversity_score'] or 0) }} • 
+            {{ country['crop_diversity'] or 0 }} crops
+          </small>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <div class="performer-card">
       <h4>🚜 Highest Agricultural Land %</h4>
       <ol>
         {% for country in top_by_agricultural_percentage %}

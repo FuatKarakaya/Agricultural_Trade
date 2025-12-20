@@ -950,8 +950,8 @@ def land_efficiency_analysis():
             CASE 
                 WHEN lt.agricultural_land_total > 0 AND ap.total_agricultural_production > 0
                 THEN (
-                    (ap.total_agricultural_production / lt.agricultural_land_total) * 0.6 +
-                    (ap.crop_diversity * 100) * 0.4
+                    (ap.total_agricultural_production / lt.agricultural_land_total) * 0.75 +
+                    (ap.crop_diversity * 100) * 0.25
                 )
                 ELSE 0
             END AS land_productivity_index,
@@ -1013,7 +1013,7 @@ def land_efficiency_analysis():
             ON c.region = rls.region
         
         WHERE c.country_id IS NOT NULL
-            AND COALESCE(lt.agricultural_land_total, 0) >= 10  -- Ana filtre: 10 bin hektardan az tarım alanı olanlar hariç
+            AND COALESCE(lt.agricultural_land_total, 0) >= 200  -- critic part for agricultural land minimum 100
         ORDER BY {sort_by} {order.upper()} NULLS LAST;
     """
     
@@ -1059,6 +1059,12 @@ def land_efficiency_analysis():
         reverse=True
     )[:10]
     
+    top_by_diversity_score = sorted(
+        [r for r in records if (r.get("crop_diversity_score") or 0) > 0],
+        key=lambda x: (x.get("crop_diversity_score") or 0),
+        reverse=True
+    )[:10]
+    
     top_by_agricultural_percentage = sorted(
         [r for r in records if (r.get("agricultural_land_percentage") or 0) > 0],
         key=lambda x: (x.get("agricultural_land_percentage") or 0),
@@ -1077,6 +1083,7 @@ def land_efficiency_analysis():
         top_by_productivity=top_by_productivity,
         top_by_production_density=top_by_production_density,
         top_by_crop_diversity=top_by_crop_diversity,
+        top_by_diversity_score=top_by_diversity_score,
         top_by_agricultural_percentage=top_by_agricultural_percentage,
         sort_by=sort_by,
         order=order,
