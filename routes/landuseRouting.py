@@ -942,7 +942,7 @@ def land_efficiency_analysis():
             -- CROP DIVERSITY SCORE (diversity * production density)
             CASE 
                 WHEN lt.agricultural_land_total > 0 AND ap.crop_diversity > 0
-                THEN (ap.crop_diversity * (ap.total_agricultural_production / lt.agricultural_land_total))
+                THEN (ap.crop_diversity * LN((ap.total_agricultural_production / lt.agricultural_land_total) + 1))
                 ELSE 0
             END AS crop_diversity_score,
             
