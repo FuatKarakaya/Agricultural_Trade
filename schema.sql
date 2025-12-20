@@ -100,7 +100,6 @@ CREATE INDEX idx_trade_flows_commodity_year ON Trade_Flows(trade_item, year);
 
 CREATE TABLE Land_Use (
     unique_id SERIAL PRIMARY KEY,
-    country_name VARCHAR(100) NOT NULL,
     land_type VARCHAR(100) NOT NULL,
     unit VARCHAR(50) NOT NULL,
     land_usage_value FLOAT NOT NULL CHECK (land_usage_value >= 0),
@@ -112,14 +111,13 @@ CREATE TABLE Land_Use (
 
 CREATE TABLE Investments (
     unique_id SERIAL PRIMARY KEY,
-    country_name VARCHAR(100) NOT NULL,
     expenditure_type VARCHAR(100) NOT NULL,
     unit VARCHAR(50) NOT NULL,
     expenditure_value FLOAT NOT NULL,
     year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
     country_id INTEGER NOT NULL,
     FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON DELETE CASCADE,
-    UNIQUE (country_name, year, expenditure_type)
+    UNIQUE (country_id, year, expenditure_type)
 );
 
 -- eski hali

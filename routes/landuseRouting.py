@@ -66,7 +66,7 @@ def landUsePage():
             ) AS other_land
         FROM (
             SELECT
-                lu.country_name,
+                c.country_name,
                 lu.country_id,
                 lu.year,
                 lu.unit,
@@ -79,6 +79,7 @@ def landUsePage():
                     AS permanent_meadows_and_pastures,
                 MAX(CASE WHEN lu.land_type = 'Forest land' THEN lu.land_usage_value END) AS forest_land
             FROM Land_Use AS lu
+            INNER JOIN Countries AS c ON lu.country_id = c.country_id
             WHERE lu.year = %s
     """
     params = [year]
@@ -89,7 +90,7 @@ def landUsePage():
         params.append(country_id)
 
     base_query += """
-            GROUP BY lu.country_name, lu.country_id, lu.year, lu.unit
+            GROUP BY c.country_name, lu.country_id, lu.year, lu.unit
         ) AS t
     """
     
@@ -197,8 +198,6 @@ def landUsePage():
         order=order,
     )
 
-
-# Diğer fonksiyonlar aynı kalıyor...
 @landuse_bp.route("/land-use/new", methods=["GET"])
 @admin_required
 def add_land_use_form():
@@ -264,6 +263,48 @@ def add_land_use():
             url_for("landuse.add_land_use_form", year=year or 2023, country_id=country_id)
         )
 
+    # --- VALIDATION RULES ---
+    country_area = values["Country area"]
+    land_area = values["Land area"]
+    inland_waters = values["Inland waters"]
+    arable_land = values["Arable land"]
+    permanent_crops = values["Permanent crops"]
+    meadows_pastures = values["Permanent meadows and pastures"]
+    forest_land = values["Forest land"]
+
+    # Rule 1: Country area = Land area + Inland waters
+    expected_country_area = land_area + inland_waters
+    tolerance = 0.01  # Küçük yuvarlama hataları için tolerans
+    
+    if abs(country_area - expected_country_area) > tolerance:
+        errors.append(
+            f"Country area ({country_area}) must equal Land area ({land_area}) + "
+            f"Inland waters ({inland_waters}) = {expected_country_area}"
+        )
+
+    # Rule 2: Agricultural land types + Forest land <= Land area
+    agricultural_and_forest_total = (
+        arable_land + 
+        permanent_crops + 
+        meadows_pastures + 
+        forest_land
+    )
+    
+    if agricultural_and_forest_total > land_area + tolerance:
+        errors.append(
+            f"Sum of Arable land ({arable_land}) + Permanent crops ({permanent_crops}) + "
+            f"Meadows & pastures ({meadows_pastures}) + Forest land ({forest_land}) = "
+            f"{agricultural_and_forest_total} cannot exceed Land area ({land_area})"
+        )
+
+    if errors:
+        for e in errors:
+            flash(e, "error")
+        return redirect(
+            url_for("landuse.add_land_use_form", year=year or 2023, country_id=country_id)
+        )
+
+    # Ülke kontrolü
     country_row = fetch_query(
         "SELECT country_name FROM Countries WHERE country_id = %s;",
         (country_id,)
@@ -273,8 +314,6 @@ def add_land_use():
         return redirect(
             url_for("landuse.add_land_use_form", year=year or 2023, country_id=country_id)
         )
-
-    country_name = country_row[0]["country_name"]
 
     land_type_list = list(values.keys())
     placeholders = ", ".join(["%s"] * len(land_type_list))
@@ -296,16 +335,16 @@ def add_land_use():
             url_for("landuse.add_land_use_form", year=year, country_id=country_id)
         )
 
+    # INSERT - artık country_name yok
     params = []
     for lt, v in values.items():
-        params.extend([country_name, lt, unit, v, year, country_id])
+        params.extend([lt, unit, v, year, country_id])
 
-    values_sql = ", ".join(["(%s, %s, %s, %s, %s, %s)"] * len(values))
+    values_sql = ", ".join(["(%s, %s, %s, %s, %s)"] * len(values))
 
     execute_query(
         f"""
         INSERT INTO Land_Use (
-            country_name,
             land_type,
             unit,
             land_usage_value,
@@ -467,7 +506,48 @@ def update_land_use():
             url_for("landuse.edit_land_use_form", country_id=country_id, year=year or 2023)
         )
 
-    # Ülke adı doğrula
+    # --- VALIDATION RULES ---
+    country_area = values["Country area"]
+    land_area = values["Land area"]
+    inland_waters = values["Inland waters"]
+    arable_land = values["Arable land"]
+    permanent_crops = values["Permanent crops"]
+    meadows_pastures = values["Permanent meadows and pastures"]
+    forest_land = values["Forest land"]
+
+    # Rule 1: Country area = Land area + Inland waters
+    expected_country_area = land_area + inland_waters
+    tolerance = 0.01  # Küçük yuvarlama hataları için tolerans
+    
+    if abs(country_area - expected_country_area) > tolerance:
+        errors.append(
+            f"Country area ({country_area}) must equal Land area ({land_area}) + "
+            f"Inland waters ({inland_waters}) = {expected_country_area}"
+        )
+
+    # Rule 2: Agricultural land types + Forest land <= Land area
+    agricultural_and_forest_total = (
+        arable_land + 
+        permanent_crops + 
+        meadows_pastures + 
+        forest_land
+    )
+    
+    if agricultural_and_forest_total > land_area + tolerance:
+        errors.append(
+            f"Sum of Arable land ({arable_land}) + Permanent crops ({permanent_crops}) + "
+            f"Meadows & pastures ({meadows_pastures}) + Forest land ({forest_land}) = "
+            f"{agricultural_and_forest_total} cannot exceed Land area ({land_area})"
+        )
+
+    if errors:
+        for e in errors:
+            flash(e, "error")
+        return redirect(
+            url_for("landuse.edit_land_use_form", country_id=country_id, year=year or 2023)
+        )
+
+    # Ülke doğrula
     country_row = fetch_query(
         "SELECT country_name FROM Countries WHERE country_id = %s;",
         (country_id,)
@@ -477,8 +557,6 @@ def update_land_use():
         return redirect(
             url_for("landuse.edit_land_use_form", country_id=country_id, year=year or 2023)
         )
-
-    country_name = country_row[0]["country_name"]
 
     # Mevcut tipleri bul
     land_type_list = list(values.keys())
@@ -501,32 +579,32 @@ def update_land_use():
     for lt in land_type_list:
         v = values[lt]
         if lt in existing_types:
+            # UPDATE - artık country_name yok
             execute_query(
                 """
                 UPDATE Land_Use
                 SET land_usage_value = %s,
-                    unit = %s,
-                    country_name = %s
+                    unit = %s
                 WHERE country_id = %s
                   AND year = %s
                   AND land_type = %s;
                 """,
-                (v, unit, country_name, country_id, year, lt),
+                (v, unit, country_id, year, lt),
             )
         else:
+            # INSERT - artık country_name yok
             execute_query(
                 """
                 INSERT INTO Land_Use (
-                    country_name,
                     land_type,
                     unit,
                     land_usage_value,
                     year,
                     country_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s);
+                VALUES (%s, %s, %s, %s, %s);
                 """,
-                (country_name, lt, unit, v, year, country_id),
+                (lt, unit, v, year, country_id),
             )
 
     flash("Records updated successfully.", "success")

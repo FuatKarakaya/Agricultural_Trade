@@ -55,7 +55,7 @@ def investmentsPage():
             t.rd_environmental_protection
         FROM (
             SELECT
-                inv.country_name,
+                c.country_name,
                 inv.country_id,
                 inv.year,
                 inv.unit,
@@ -70,6 +70,7 @@ def investmentsPage():
                 MAX(CASE WHEN inv.expenditure_type = 'R&D Environmental Protection (general government expenditure)' 
                     THEN inv.expenditure_value END) AS rd_environmental_protection
             FROM Investments AS inv
+            INNER JOIN Countries AS c ON inv.country_id = c.country_id
             WHERE inv.year = %s
     """
     params = [year]
@@ -80,7 +81,7 @@ def investmentsPage():
         params.append(country_id)
 
     base_query += """
-            GROUP BY inv.country_name, inv.country_id, inv.year, inv.unit
+            GROUP BY c.country_name, inv.country_id, inv.year, inv.unit
         ) AS t
     """
     
@@ -192,7 +193,6 @@ def add_investment_form():
         countries=countries,
         selected_country_id=selected_country_id,
     )
-
 @investments_bp.route("/investments/add", methods=["POST"])
 @admin_required
 def add_investment():
@@ -230,6 +230,34 @@ def add_investment():
             url_for("investments.add_investment_form", year=year or 2023, country_id=country_id)
         )
 
+    # --- VALIDATION RULE ---
+    total_expenditure = values["Total Expenditure (general government)"]
+    agriculture = values["Agriculture, forestry, fishing (general government expenditure)"]
+    environmental = values["Environmental protection (general government expenditure)"]
+    biodiversity = values["Protection of Biodiversity and Landscape (general government expenditure)"]
+    rd_environmental = values["R&D Environmental Protection (general government expenditure)"]
+
+    # Rule: Sectoral expenditures cannot exceed total expenditure
+    sectoral_total = agriculture + environmental + biodiversity + rd_environmental
+    tolerance = 0.01  # Float precision için
+    
+    if sectoral_total > total_expenditure + tolerance:
+        errors.append(
+            f"Sum of sectoral expenditures: Agriculture ({agriculture}) + "
+            f"Environmental Protection ({environmental}) + "
+            f"Biodiversity & Landscape ({biodiversity}) + "
+            f"R&D Environmental ({rd_environmental}) = {sectoral_total} "
+            f"cannot exceed Total Expenditure ({total_expenditure})"
+        )
+
+    if errors:
+        for e in errors:
+            flash(e, "error")
+        return redirect(
+            url_for("investments.add_investment_form", year=year or 2023, country_id=country_id)
+        )
+
+    # Ülke kontrolü
     country_row = fetch_query(
         "SELECT country_name FROM Countries WHERE country_id = %s;",
         (country_id,)
@@ -239,8 +267,6 @@ def add_investment():
         return redirect(
             url_for("investments.add_investment_form", year=year or 2023, country_id=country_id)
         )
-
-    country_name = country_row[0]["country_name"]
 
     expenditure_type_list = list(values.keys())
     placeholders = ", ".join(["%s"] * len(expenditure_type_list))
@@ -262,16 +288,16 @@ def add_investment():
             url_for("investments.add_investment_form", year=year, country_id=country_id)
         )
 
+    # INSERT - artık country_name yok
     params = []
     for et, v in values.items():
-        params.extend([country_name, et, unit, v, year, country_id])
+        params.extend([et, unit, v, year, country_id])
 
-    values_sql = ", ".join(["(%s, %s, %s, %s, %s, %s)"] * len(values))
+    values_sql = ", ".join(["(%s, %s, %s, %s, %s)"] * len(values))
 
     execute_query(
         f"""
         INSERT INTO Investments (
-            country_name,
             expenditure_type,
             unit,
             expenditure_value,
@@ -429,7 +455,34 @@ def update_investment():
             url_for("investments.edit_investment_form", country_id=country_id, year=year or 2023)
         )
 
-    # Ülke adı doğrula
+    # --- VALIDATION RULE ---
+    total_expenditure = values["Total Expenditure (general government)"]
+    agriculture = values["Agriculture, forestry, fishing (general government expenditure)"]
+    environmental = values["Environmental protection (general government expenditure)"]
+    biodiversity = values["Protection of Biodiversity and Landscape (general government expenditure)"]
+    rd_environmental = values["R&D Environmental Protection (general government expenditure)"]
+
+    # Rule: Sectoral expenditures cannot exceed total expenditure
+    sectoral_total = agriculture + environmental + biodiversity + rd_environmental
+    tolerance = 0.01  # Float precision için
+    
+    if sectoral_total > total_expenditure + tolerance:
+        errors.append(
+            f"Sum of sectoral expenditures: Agriculture ({agriculture}) + "
+            f"Environmental Protection ({environmental}) + "
+            f"Biodiversity & Landscape ({biodiversity}) + "
+            f"R&D Environmental ({rd_environmental}) = {sectoral_total} "
+            f"cannot exceed Total Expenditure ({total_expenditure})"
+        )
+
+    if errors:
+        for e in errors:
+            flash(e, "error")
+        return redirect(
+            url_for("investments.edit_investment_form", country_id=country_id, year=year or 2023)
+        )
+
+    # Ülke doğrula
     country_row = fetch_query(
         "SELECT country_name FROM Countries WHERE country_id = %s;",
         (country_id,)
@@ -439,8 +492,6 @@ def update_investment():
         return redirect(
             url_for("investments.edit_investment_form", country_id=country_id, year=year or 2023)
         )
-
-    country_name = country_row[0]["country_name"]
 
     # Mevcut tipleri bul
     expenditure_type_list = list(values.keys())
@@ -463,32 +514,32 @@ def update_investment():
     for et in expenditure_type_list:
         v = values[et]
         if et in existing_types:
+            # UPDATE - artık country_name yok
             execute_query(
                 """
                 UPDATE Investments
                 SET expenditure_value = %s,
-                    unit = %s,
-                    country_name = %s
+                    unit = %s
                 WHERE country_id = %s
                   AND year = %s
                   AND expenditure_type = %s;
                 """,
-                (v, unit, country_name, country_id, year, et),
+                (v, unit, country_id, year, et),
             )
         else:
+            # INSERT - artık country_name yok
             execute_query(
                 """
                 INSERT INTO Investments (
-                    country_name,
                     expenditure_type,
                     unit,
                     expenditure_value,
                     year,
                     country_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s);
+                VALUES (%s, %s, %s, %s, %s);
                 """,
-                (country_name, et, unit, v, year, country_id),
+                (et, unit, v, year, country_id),
             )
 
     flash("Records updated successfully.", "success")
