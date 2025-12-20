@@ -17,15 +17,15 @@ def login_required(f):
     return decorated_function
 
 def admin_required(f):
-    """Sadece admin erişebilir"""
+    """Only admin users can access"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('logged_in'):
-            flash("Bu sayfaya erişmek için giriş yapmalısınız.", "error")
+            flash("Please log in to access this page.", "error")
             return redirect(url_for('auth.login'))
         
         if not session.get('is_admin'):
-            flash("Bu işlem için admin yetkisi gerekli.", "error")
+            flash("Admin privileges are required for this operation.", "error")
             return redirect(request.referrer or url_for('main.dashboard'))
         
         return f(*args, **kwargs)

@@ -64,26 +64,6 @@
   </div>
 </section>
 
-<!-- Chart Section -->
-{% if chart_data %}
-<section class="chart-container fade-in">
-  <h3 class="chart-title">Top 10 Production Values Worldwide</h3>
-  <div class="chart-bars">
-    {% set max_value = chart_data[0]['value'] if chart_data else 1 %}
-    {% for item in chart_data %}
-    <div class="chart-bar-item">
-      <div class="chart-label">{{ item['country_name'][:15] }} - {{ item['item_name'][:20] }}</div>
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar-fill" style="width: {{ (item['value'] / max_value * 100)|int }}%">
-          <span class="chart-value">{{ "{:,.0f}".format(item['value']) }}</span>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
 <section class="filter-section">
   <form method="get" class="filter-form" id="filterForm" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
     <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">

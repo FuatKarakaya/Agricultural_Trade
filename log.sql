@@ -966,3 +966,13 @@ DELETE FROM trade_data_final WHERE unique_id = %s
             WHERE production_value_ID = %s
         
 DELETE FROM Production WHERE production_ID = %s
+
+            UPDATE Production 
+            SET unit = %s, quantity = %s
+            WHERE production_ID = %s
+        
+
+            UPDATE Production 
+            SET unit = %s, quantity = %s
+            WHERE production_ID = %s
+        

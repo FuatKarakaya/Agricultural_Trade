@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database import fetch_query, execute_query
+from routes.auth_routes import admin_required
 
 prod_val_bp = Blueprint("prod_val", __name__)
 
@@ -135,6 +136,22 @@ def production_values():
             "SELECT DISTINCT region FROM Countries WHERE region IS NOT NULL ORDER BY region"
         )
 
+        # Chart: Top 10 countries by total production value
+        chart_query = """
+            SELECT c.country_name, SUM(pv.value) as total_value
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            INNER JOIN Countries c ON p.country_code = c.country_id
+            WHERE pv.value IS NOT NULL
+            GROUP BY c.country_name
+            ORDER BY total_value DESC
+            LIMIT 10
+        """
+        chart_result = fetch_query(chart_query)
+        chart_data = []
+        if chart_result:
+            chart_data = [{"country": row["country_name"], "value": float(row["total_value"] or 0)} for row in chart_result]
+
         return render_template(
             "production_values.html",
             production_values=production_values_list,
@@ -159,7 +176,7 @@ def production_values():
             sort_by="year",
             sort_order="desc",
             # Add chart data
-            chart_data=[]
+            chart_data=chart_data
         )
 
     except Exception as e:
@@ -226,6 +243,7 @@ def production_value_detail(production_value_id):
 
 
 @prod_val_bp.route("/production-values/new", methods=["GET"])
+@admin_required
 def add_production_value_form():
     """Display form to add new production value record"""
     year = request.args.get("year", 2023, type=int)
@@ -279,6 +297,7 @@ def add_production_value_form():
 
 
 @prod_val_bp.route("/production-values/add", methods=["POST"])
+@admin_required
 def add_production_value():
     """Handle production value record addition"""
     try:
@@ -363,6 +382,7 @@ def add_production_value():
 
 
 @prod_val_bp.route("/production-value/<int:production_value_id>/edit", methods=["GET"])
+@admin_required
 def edit_production_value_form(production_value_id):
     """Display form to edit existing production value record"""
     try:
@@ -409,6 +429,7 @@ def edit_production_value_form(production_value_id):
 
 
 @prod_val_bp.route("/production-value/<int:production_value_id>/edit", methods=["POST"])
+@admin_required
 def edit_production_value(production_value_id):
     """Handle production value record update"""
     try:
@@ -447,6 +468,7 @@ def edit_production_value(production_value_id):
 
 
 @prod_val_bp.route("/production-value/<int:production_value_id>/delete", methods=["POST"])
+@admin_required
 def delete_production_value(production_value_id):
     """Handle production value record deletion"""
     try:

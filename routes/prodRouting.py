@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database import fetch_query, execute_query
+from routes.auth_routes import admin_required
 
 prod_bp = Blueprint("prod", __name__)
 
@@ -106,22 +107,19 @@ def production():
         
         units = fetch_query("SELECT DISTINCT unit FROM production WHERE unit IS NOT NULL ORDER BY unit")
         
-        # Chart: Top 10 countries by total production quantity
-        # Uses LEFT OUTER JOIN to include productions without values, GROUP BY for aggregation
+        # Chart: Top 10 countries by number of distinct items produced
         chart_query = """
-            SELECT c.country_name, SUM(p.quantity) as total_quantity
+            SELECT c.country_name, COUNT(DISTINCT p.commodity_code) as item_count
             FROM production p
             INNER JOIN Countries c ON p.country_code = c.country_id
-            LEFT OUTER JOIN Production_Value pv ON pv.production_ID = p.production_ID
-            WHERE p.quantity IS NOT NULL
             GROUP BY c.country_name
-            ORDER BY total_quantity DESC
+            ORDER BY item_count DESC
             LIMIT 10
         """
         chart_result = fetch_query(chart_query)
         chart_data = []
         if chart_result:
-            chart_data = [{"country": row["country_name"], "quantity": float(row["total_quantity"] or 0)} for row in chart_result]
+            chart_data = [{"country": row["country_name"], "quantity": int(row["item_count"] or 0)} for row in chart_result]
 
         return render_template(
             "production.html",
@@ -233,6 +231,7 @@ def production_detail(production_id):
 
 
 @prod_bp.route("/production/new", methods=["GET"])
+@admin_required
 def add_production_form():
     """Display form to add new production record"""
     year = request.args.get("year", 2023, type=int)
@@ -261,6 +260,7 @@ def add_production_form():
 
 
 @prod_bp.route("/production/add", methods=["POST"])
+@admin_required
 def add_production():
     """Handle production record addition"""
     try:
@@ -319,6 +319,7 @@ def add_production():
 
 
 @prod_bp.route("/production/<int:production_id>/edit", methods=["GET"])
+@admin_required
 def edit_production_form(production_id):
     """Display form to edit existing production record"""
     try:
@@ -352,6 +353,7 @@ def edit_production_form(production_id):
 
 
 @prod_bp.route("/production/<int:production_id>/edit", methods=["POST"])
+@admin_required
 def edit_production(production_id):
     """Handle production record update"""
     try:
@@ -379,6 +381,7 @@ def edit_production(production_id):
 
 
 @prod_bp.route("/production/<int:production_id>/delete", methods=["POST"])
+@admin_required
 def delete_production(production_id):
     """Handle production record deletion (CASCADE deletes related Production_Value records)"""
     try:

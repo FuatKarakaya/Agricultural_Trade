@@ -114,8 +114,8 @@
 <!-- Chart Section -->
 {% if chart_data %}
 <section class="stats-container">
-  <h3>Top Producing Countries by Quantity</h3>
-  <p class="section-description">Top 10 countries by total production quantity</p>
+  <h3>Countries with Most Diverse Production</h3>
+  <p class="section-description">Top 10 countries by number of distinct commodities produced</p>
   <div class="chart-wrapper" style="position: relative; height: 400px; margin-top: 1rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
     <canvas id="productionChart"></canvas>
   </div>
@@ -130,7 +130,7 @@
       data: {
         labels: chartData.map(item => item.country),
         datasets: [{
-          label: 'Total Quantity',
+          label: 'Number of Items',
           data: chartData.map(item => item.quantity),
           backgroundColor: 'rgba(39, 174, 96, 0.8)',
           borderColor: 'rgba(39, 174, 96, 1)',
@@ -148,12 +148,7 @@
           x: {
             beginAtZero: true,
             ticks: {
-              callback: function(value) {
-                if (value >= 1000000000) return (value / 1000000000).toFixed(1) + 'B';
-                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-                if (value >= 1000) return (value / 1000).toFixed(1) + 'K';
-                return value;
-              }
+              stepSize: 10
             }
           }
         }
