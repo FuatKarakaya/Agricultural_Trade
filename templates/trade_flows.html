@@ -18,7 +18,7 @@
   <div class="stats-grid">
     <div class="stat-card">
       <h4>Total Trade Records</h4>
-      <div class="stat-number">{{ total_trades or 0 }}</div>
+      <div class="stat-number">${{ "{:,.0f}".format(total_trades or 0) }}</div>
       <p class="stat-detail">Tracked transactions</p>
     </div>
     <div class="stat-card">
@@ -116,25 +116,74 @@
 
 <!-- trade table -->
 <section class="trade-section">
-  <h3>Trade Flow Records</h3>
-  <p class="section-description">
-    Detailed trade transactions between countries
-    {% if selected_reporter or selected_partner or selected_trade_type or selected_year or selected_commodity %}
-    (Filtered results)
-    {% endif %}
-  </p>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <div>
+      <h3 style="margin-bottom: 0.5rem;">Trade Flow Records</h3>
+      <p class="section-description" style="margin: 0;">
+        Detailed trade transactions between countries
+        {% if selected_reporter or selected_partner or selected_trade_type or selected_year or selected_commodity %}
+        (Filtered results)
+        {% endif %}
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="?trade_type=Import&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&year={{ selected_year }}&commodity={{ selected_commodity }}&sort={{ sort_by }}"
+         class="btn"
+         style="padding: 0.75rem 1.5rem; text-decoration: none; {% if selected_trade_type == 'Import' %}background-color: #2980b9; border-color: #2980b9;{% else %}background-color: #95a5a6; border-color: #95a5a6;{% endif %}">
+        Import
+      </a>
+      <a href="?trade_type=Export&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&year={{ selected_year }}&commodity={{ selected_commodity }}&sort={{ sort_by }}"
+         class="btn"
+         style="padding: 0.75rem 1.5rem; text-decoration: none; {% if selected_trade_type == 'Export' %}background-color: #27ae60; border-color: #27ae60;{% else %}background-color: #95a5a6; border-color: #95a5a6;{% endif %}">
+        Export
+      </a>
+      <a href="?reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&year={{ selected_year }}&commodity={{ selected_commodity }}&sort={{ sort_by }}"
+         class="btn btn-secondary"
+         style="padding: 0.75rem 1.5rem; text-decoration: none; {% if not selected_trade_type %}background-color: #34495e; border-color: #34495e; color: white;{% endif %}">
+        All
+      </a>
+    </div>
+  </div>
   
   {% if trade_flows %}
   <table class="data-table">
     <thead>
       <tr>
-        <th>Year</th>
-        <th>Reporter Country</th>
-        <th>Trade Type</th>
-        <th>Partner Country</th>
-        <th>Commodity</th>
-        <th>Value</th>
-        <th>Unit</th>
+        <th>
+          <a href="?sort={% if sort_by == 'year_asc' %}year_desc{% else %}year_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+            Year {% if sort_by == 'year_desc' %}▼{% elif sort_by == 'year_asc' %}▲{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?sort={% if sort_by == 'reporter_asc' %}reporter_desc{% else %}reporter_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+            Reporter Country {% if sort_by == 'reporter_desc' %}▼{% elif sort_by == 'reporter_asc' %}▲{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?sort={% if sort_by == 'type_asc' %}type_desc{% else %}type_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+            Trade Type {% if sort_by == 'type_desc' %}▼{% elif sort_by == 'type_asc' %}▲{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?sort={% if sort_by == 'partner_asc' %}partner_desc{% else %}partner_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+            Partner Country {% if sort_by == 'partner_desc' %}▼{% elif sort_by == 'partner_asc' %}▲{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?sort={% if sort_by == 'commodity_asc' %}commodity_desc{% else %}commodity_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+            Commodity {% if sort_by == 'commodity_desc' %}▼{% elif sort_by == 'commodity_asc' %}▲{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?sort={% if sort_by == 'qty_asc' %}qty_desc{% else %}qty_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+            Quantity (tonnes) {% if sort_by == 'qty_desc' %}▼{% elif sort_by == 'qty_asc' %}▲{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?sort={% if sort_by == 'value_asc' %}value_desc{% else %}value_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+            Value (USD) {% if sort_by == 'value_desc' %}▼{% elif sort_by == 'value_asc' %}▲{% endif %}
+          </a>
+        </th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -158,22 +207,18 @@
           </a>
         </td>
         <td>
-          <a href="/commodities/{{ trade['trade_item'] }}" style="text-decoration: none; color: #2c3e50;">
+          <a href="/commodities?limit=50&search={{ trade['commodity_name']|replace(' ', '+') }}" style="text-decoration: none; color: #2c3e50;">
             {{ trade['commodity_name'] or 'Unknown' }}
           </a>
         </td>
         <td>
-          <strong>
-            {% if trade['unit'] and ('$' in trade['unit'] or 'USD' in trade['unit']) %}
-              ${{ "{:,}".format(trade['value'] or 0) }}
-            {% else %}
-              {{ "{:,}".format(trade['value'] or 0) }}
-            {% endif %}
-          </strong>
+          <strong>{{ "{:,.0f}".format(trade['qty_tonnes'] or 0) }}</strong>
         </td>
-        <td>{{ trade['unit'] or 'N/A' }}</td>
         <td>
-          <button onclick="openEditModal({{ trade['unique_id'] }}, '{{ trade['reporter_country'] }}', '{{ trade['partner_country'] }}', '{{ trade['trade_item'] }}', '{{ trade['trade_type'] }}', {{ trade['year'] }}, {{ trade['value'] }}, '{{ trade['unit'] }}')"
+          <strong>${{ "{:,.0f}".format((trade['val_1k_usd'] or 0) * 1000) }}</strong>
+        </td>
+        <td>
+          <button onclick="openEditModal({{ trade['unique_id'] }}, '{{ trade['reporter_country'] }}', '{{ trade['partner_country'] }}', '{{ trade['trade_item'] }}', '{{ trade['trade_type'] }}', {{ trade['year'] }}, {{ trade['qty_tonnes']|default(0) }}, {{ trade['val_1k_usd']|default(0) }})"
                   class="btn-action btn-edit" title="Edit">
             Edit
           </button>
@@ -186,10 +231,63 @@
       {% endfor %}
     </tbody>
   </table>
-  
-  {% if total_trades > trade_flows|length %}
+
+  <!-- Pagination Controls -->
+  {% if total_pages > 1 %}
+  <div class="pagination-container" style="display: flex; justify-content: center; align-items: center; margin-top: 2rem; gap: 0.5rem;">
+    <!-- Previous Button -->
+    {% if page > 1 %}
+      <a href="?page={{ page - 1 }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-btn" style="padding: 0.5rem 1rem; background-color: #27ae60; color: white; text-decoration: none; border-radius: 4px;">
+        ← Previous
+      </a>
+    {% else %}
+      <span class="pagination-btn disabled" style="padding: 0.5rem 1rem; background-color: #95a5a6; color: white; border-radius: 4px; cursor: not-allowed;">
+        ← Previous
+      </span>
+    {% endif %}
+
+    <!-- Page Numbers -->
+    <div style="display: flex; gap: 0.25rem;">
+      {% set start_page = [1, page - 2]|max %}
+      {% set end_page = [total_pages, page + 2]|min %}
+
+      {% if start_page > 1 %}
+        <a href="?page=1&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">1</a>
+        {% if start_page > 2 %}
+          <span style="padding: 0.5rem 0.75rem;">...</span>
+        {% endif %}
+      {% endif %}
+
+      {% for p in range(start_page, end_page + 1) %}
+        {% if p == page %}
+          <span class="pagination-number active" style="padding: 0.5rem 0.75rem; background-color: #27ae60; color: white; border-radius: 4px; font-weight: bold;">{{ p }}</span>
+        {% else %}
+          <a href="?page={{ p }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if end_page < total_pages %}
+        {% if end_page < total_pages - 1 %}
+          <span style="padding: 0.5rem 0.75rem;">...</span>
+        {% endif %}
+        <a href="?page={{ total_pages }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">{{ total_pages }}</a>
+      {% endif %}
+    </div>
+
+    <!-- Next Button -->
+    {% if page < total_pages %}
+      <a href="?page={{ page + 1 }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-btn" style="padding: 0.5rem 1rem; background-color: #27ae60; color: white; text-decoration: none; border-radius: 4px;">
+        Next →
+      </a>
+    {% else %}
+      <span class="pagination-btn disabled" style="padding: 0.5rem 1rem; background-color: #95a5a6; color: white; border-radius: 4px; cursor: not-allowed;">
+        Next →
+      </span>
+    {% endif %}
+  </div>
+
   <div style="text-align: center; margin-top: 1rem; color: #7f8c8d;">
-    Showing {{ trade_flows|length }} of {{ total_trades }} trade records
+    Showing {{ ((page - 1) * per_page) + 1 }} to {{ [page * per_page, total_count]|min }} of {{ total_count }} trade records (Page {{ page }} of {{ total_pages }})
   </div>
   {% endif %}
   
@@ -200,103 +298,6 @@
   </div>
   {% endif %}
 </section>
-
-<!-- trade distribution -->
-{% if trade_type_breakdown %}
-<section class="trade-balance-section">
-  <h3>Trade Type Distribution</h3>
-  <p class="section-description">
-    Breakdown of trade flows by transaction type
-  </p>
-  
-  <div class="feature-grid">
-    {% for trade_type, stats in trade_type_breakdown.items() %}
-    <div class="feature-card">
-      <h4>{{ trade_type }}</h4>
-      <div class="info-list">
-        <dt>Total Transactions</dt>
-        <dd><strong>{{ "{:,}".format(stats['count'] or 0) }}</strong></dd>
-        
-        <dt>Total Value</dt>
-        <dd>${{ "{:,.0f}".format(stats['total_value'] or 0) }}</dd>
-        
-        <dt>Average Value</dt>
-        <dd>${{ "{:,.0f}".format(stats['avg_value'] or 0) }}</dd>
-        
-        <dt>Share of Total</dt>
-        <dd>{{ "%.1f"|format(stats['percentage'] or 0) }}%</dd>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
-<!-- top partners -->
-{% if top_partners %}
-<section class="partnerships-section">
-  <h3>Top Trading Partners</h3>
-  <p class="section-description">
-    Countries with the highest trade volumes
-  </p>
-  
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Rank</th>
-        <th>Country Pair</th>
-        <th>Total Transactions</th>
-        <th>Total Trade Value</th>
-        <th>Main Commodity</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for partner in top_partners %}
-      <tr>
-        <td><strong>#{{ loop.index }}</strong></td>
-        <td>{{ partner['reporter_name'] }} ↔ {{ partner['partner_name'] }}</td>
-        <td>{{ "{:,}".format(partner['transaction_count'] or 0) }}</td>
-        <td><strong>${{ "{:,}".format(partner['total_value'] or 0) }}</strong></td>
-        <td>{{ partner['top_commodity'] or 'Various' }}</td>
-        <td>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-{% endif %}
-
-<!-- top comodities by volume -->
-{% if top_commodities_traded %}
-<section class="commodities-section">
-  <h3>Most Traded Commodities</h3>
-  <p class="section-description">
-    Agricultural products with highest trade volumes
-  </p>
-  
-  <div class="feature-grid">
-    {% for commodity in top_commodities_traded %}
-    <div class="feature-card">
-      <h4>{{ commodity['commodity_name'] }}</h4>
-      <div class="info-list">
-        <dt>Trade Transactions</dt>
-        <dd><strong>{{ "{:,}".format(commodity['trade_count'] or 0) }}</strong></dd>
-        
-        <dt>Total Value</dt>
-        <dd>${{ "{:,.0f}".format(commodity['total_value'] or 0) }}</dd>
-        
-        <dt>Countries Involved</dt>
-        <dd>{{ commodity['country_count'] or 0 }} countries</dd>
-        
-        <dt>Average Price</dt>
-        <dd>${{ "{:,.2f}".format(commodity['avg_value'] or 0) }}</dd>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
 
 <!-- Add Trade Modal -->
 <div id="addModal" class="modal">
@@ -353,18 +354,13 @@
         </div>
 
         <div class="form-group">
-          <label for="add_value">Value *</label>
-          <input type="number" name="value" id="add_value" required step="0.01" min="0" placeholder="1000.00">
+          <label for="add_qty_tonnes">Quantity (tonnes) *</label>
+          <input type="number" name="qty_tonnes" id="add_qty_tonnes" required step="0.01" min="0" placeholder="1000.00">
         </div>
 
         <div class="form-group">
-          <label for="add_unit">Unit *</label>
-          <select name="unit" id="add_unit" required>
-            <option value="">Select Unit</option>
-            {% for unit in available_units %}
-            <option value="{{ unit }}">{{ unit }}</option>
-            {% endfor %}
-          </select>
+          <label for="add_val_1k_usd">Value (USD) *</label>
+          <input type="number" name="val_1k_usd" id="add_val_1k_usd" required step="0.01" min="0" placeholder="500.00">
         </div>
       </div>
 
@@ -433,18 +429,13 @@
         </div>
 
         <div class="form-group">
-          <label for="edit_value">Value *</label>
-          <input type="number" name="value" id="edit_value" required step="0.01" min="0">
+          <label for="edit_qty_tonnes">Quantity (tonnes) *</label>
+          <input type="number" name="qty_tonnes" id="edit_qty_tonnes" required step="0.01" min="0">
         </div>
 
         <div class="form-group">
-          <label for="edit_unit">Unit *</label>
-          <select name="unit" id="edit_unit" required>
-            <option value="">Select Unit</option>
-            {% for unit in available_units %}
-            <option value="{{ unit }}">{{ unit }}</option>
-            {% endfor %}
-          </select>
+          <label for="edit_val_1k_usd">Value (1k USD) *</label>
+          <input type="number" name="val_1k_usd" id="edit_val_1k_usd" required step="0.01" min="0">
         </div>
       </div>
 
@@ -645,15 +636,15 @@ function closeAddModal() {
 }
 
 // Edit Modal Functions
-function openEditModal(id, reporter, partner, commodity, tradeType, year, value, unit) {
+function openEditModal(id, reporter, partner, commodity, tradeType, year, qtyTonnes, val1kUsd) {
   document.getElementById('edit_trade_id').value = id;
   document.getElementById('edit_reporter').value = reporter;
   document.getElementById('edit_partner').value = partner;
   document.getElementById('edit_commodity').value = commodity;
   document.getElementById('edit_trade_type').value = tradeType;
   document.getElementById('edit_year').value = year;
-  document.getElementById('edit_value').value = value;
-  document.getElementById('edit_unit').value = unit;
+  document.getElementById('edit_qty_tonnes').value = qtyTonnes;
+  document.getElementById('edit_val_1k_usd').value = val1kUsd;
 
   document.getElementById('editForm').action = '/trades/edit/' + id;
   document.getElementById('editModal').style.display = 'block';

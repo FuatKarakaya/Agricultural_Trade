@@ -34,7 +34,7 @@ def dashboard():
         # Trade statistics
         trade_stats = fetch_query("""
             SELECT COUNT(*) as total_trade_records
-            FROM Trade_data_long
+            FROM trade_data_final
         """)
 
         # Producer prices count

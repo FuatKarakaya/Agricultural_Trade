@@ -790,3 +790,9 @@ DROP TABLE tempcp;
         DELETE FROM Investments
         WHERE country_id = %s AND year = %s;
         
+
+            INSERT INTO trade_data_final
+            (reporter_code, partner_code, item_code, trade_type, year, qty_tonnes, val_1k_usd)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        
+DELETE FROM trade_data_final WHERE unique_id = %s

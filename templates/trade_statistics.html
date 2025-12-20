@@ -39,6 +39,104 @@
   </div>
 </section>
 
+<!-- trade distribution -->
+{% if trade_type_breakdown %}
+<section class="trade-balance-section">
+  <h3>Trade Type Distribution</h3>
+  <p class="section-description">
+    Breakdown of trade flows by transaction type
+  </p>
+
+  <div class="feature-grid">
+    {% for trade_type, stats in trade_type_breakdown.items() %}
+    <div class="feature-card">
+      <h4>{{ trade_type }}</h4>
+      <div class="info-list">
+        <dt>Total Transactions</dt>
+        <dd><strong>{{ "{:,}".format(stats['count'] or 0) }}</strong></dd>
+
+        <dt>Total Value</dt>
+        <dd>${{ "{:,.0f}".format(stats['total_value'] or 0) }}</dd>
+
+        <dt>Average Value</dt>
+        <dd>${{ "{:,.0f}".format(stats['avg_value'] or 0) }}</dd>
+
+        <dt>Share of Total</dt>
+        <dd>{{ "%.1f"|format(stats['percentage'] or 0) }}%</dd>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- top partners -->
+{% if top_partners %}
+<section class="partnerships-section">
+  <h3>Top Trading Partners</h3>
+  <p class="section-description">
+    Countries with the highest trade volumes
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Country Pair</th>
+        <th>Total Transactions</th>
+        <th>Total Trade Value</th>
+        <th>Main Commodity</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for partner in top_partners %}
+      <tr>
+        <td><strong>#{{ loop.index }}</strong></td>
+        <td>{{ partner['reporter_name'] }} ↔ {{ partner['partner_name'] }}</td>
+        <td>{{ "{:,}".format(partner['transaction_count'] or 0) }}</td>
+        <td><strong>${{ "{:,}".format(partner['total_value'] or 0) }}</strong></td>
+        <td>{{ partner['top_commodity'] or 'Various' }}</td>
+        <td>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<!-- top comodities by volume -->
+{% if top_commodities_traded %}
+<section class="commodities-section">
+  <h3>Most Traded Commodities</h3>
+  <p class="section-description">
+    Agricultural products with highest trade volumes
+  </p>
+
+  <div class="feature-grid">
+    {% for commodity in top_commodities_traded %}
+    <div class="feature-card">
+      <h4>{{ commodity['commodity_name'] }}</h4>
+      <div class="info-list">
+        <dt>Trade Transactions</dt>
+        <dd><strong>{{ "{:,}".format(commodity['trade_count'] or 0) }}</strong></dd>
+
+        <dt>Total Value</dt>
+        <dd>${{ "{:,.0f}".format(commodity['total_value'] or 0) }}</dd>
+
+        <dt>Countries Involved</dt>
+        <dd>{{ commodity['country_count'] or 0 }} countries</dd>
+
+        <dt>Average Price</dt>
+        <dd>${{ "{:,.2f}".format(commodity['avg_value'] or 0) }}</dd>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+
 <!-- Chart Section 1: Time Series - Exports vs Imports -->
 <section class="stats-container">
   <h3>Exports vs Imports Over Time</h3>
