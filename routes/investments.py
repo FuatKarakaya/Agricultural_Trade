@@ -12,6 +12,23 @@ def investmentsPage():
 
     # Ülke: yoksa None (yani "All Countries" modu)
     country_id = request.args.get("country_id", type=int)
+    
+    # Sıralama parametreleri
+    sort_by = request.args.get("sort", "country_name")  # varsayılan: country_name
+    order = request.args.get("order", "asc")  # varsayılan: asc
+    
+    # Geçerli sıralama sütunları
+    valid_sort_columns = [
+        "country_name", "total_expenditure", "agriculture_forestry_fishing",
+        "environmental_protection", "biodiversity_landscape", "rd_environmental_protection"
+    ]
+    
+    # Güvenlik kontrolü
+    if sort_by not in valid_sort_columns:
+        sort_by = "country_name"
+    
+    if order not in ["asc", "desc"]:
+        order = "asc"
 
     # Yıl dropdown'u
     years = list(range(1961, 2026))
@@ -65,8 +82,10 @@ def investmentsPage():
     base_query += """
             GROUP BY inv.country_name, inv.country_id, inv.year, inv.unit
         ) AS t
-        ORDER BY t.country_name ASC;
     """
+    
+    # Dinamik ORDER BY ekleme
+    base_query += f" ORDER BY t.{sort_by} {order.upper()} NULLS LAST;"
 
     records = fetch_query(base_query, tuple(params)) or []
 
@@ -144,6 +163,8 @@ def investmentsPage():
         selected_country_id=country_id,
         pie_chart_data=pie_chart_data,
         total_expenditure_sum=total_expenditure_sum,
+        sort_by=sort_by,
+        order=order,
     )
 
 @investments_bp.route("/investments/new", methods=["GET"])
@@ -475,4 +496,147 @@ def update_investment():
     # Edit sayfasında kal, flash mesajı orada gör
     return redirect(
         url_for("investments.edit_investment_form", country_id=country_id, year=year)
+    )
+
+@investments_bp.route('/investments/country-timeline')
+@login_required
+def country_timeline():
+    """
+    Belirli bir ülkenin 1961-2025 arası tüm investments verilerini gösterir.
+    """
+    country_id = request.args.get("country_id", type=int)
+    
+    # Sıralama parametreleri
+    sort_by = request.args.get("sort", "year")  # varsayılan: year
+    order = request.args.get("order", "desc")  # varsayılan: desc (en yeni üstte)
+    
+    # Geçerli sıralama sütunları
+    valid_sort_columns = [
+        "year", "total_expenditure", "agriculture_forestry_fishing",
+        "environmental_protection", "biodiversity_landscape", "rd_environmental_protection"
+    ]
+    
+    # Güvenlik kontrolü
+    if sort_by not in valid_sort_columns:
+        sort_by = "year"
+    
+    if order not in ["asc", "desc"]:
+        order = "desc"
+
+    # Ülke dropdown'u için Countries tablosu
+    countries_query = """
+        SELECT country_id, country_name
+        FROM Countries
+        ORDER BY country_name ASC;
+    """
+    countries = fetch_query(countries_query, ())
+
+    # Eğer ülke seçilmemişse sadece form göster
+    if not country_id:
+        return render_template(
+            "investments_timeline.html",
+            countries=countries,
+            selected_country_id=None,
+            country_name=None,
+            records=[],
+            sort_by=sort_by,
+            order=order,
+        )
+
+    # Seçilen ülkenin adını al
+    country_row = fetch_query(
+        "SELECT country_name FROM Countries WHERE country_id = %s;",
+        (country_id,)
+    )
+    
+    if not country_row:
+        flash("Selected country not found.", "error")
+        return redirect(url_for("investments.country_timeline"))
+    
+    country_name = country_row[0]["country_name"]
+
+    # Seçilen ülkenin TÜM yıllar için investments verilerini çek
+    base_query = """
+        SELECT
+            t.year,
+            t.unit,
+            t.total_expenditure,
+            t.agriculture_forestry_fishing,
+            t.environmental_protection,
+            t.biodiversity_landscape,
+            t.rd_environmental_protection
+        FROM (
+            SELECT
+                inv.year,
+                inv.unit,
+                MAX(CASE WHEN inv.expenditure_type = 'Total Expenditure (general government)' 
+                    THEN inv.expenditure_value END) AS total_expenditure,
+                MAX(CASE WHEN inv.expenditure_type = 'Agriculture, forestry, fishing (general government expenditure)' 
+                    THEN inv.expenditure_value END) AS agriculture_forestry_fishing,
+                MAX(CASE WHEN inv.expenditure_type = 'Environmental protection (general government expenditure)' 
+                    THEN inv.expenditure_value END) AS environmental_protection,
+                MAX(CASE WHEN inv.expenditure_type = 'Protection of Biodiversity and Landscape (general government expenditure)' 
+                    THEN inv.expenditure_value END) AS biodiversity_landscape,
+                MAX(CASE WHEN inv.expenditure_type = 'R&D Environmental Protection (general government expenditure)' 
+                    THEN inv.expenditure_value END) AS rd_environmental_protection
+            FROM Investments AS inv
+            WHERE inv.country_id = %s
+            GROUP BY inv.year, inv.unit
+        ) AS t
+    """
+    
+    # Dinamik ORDER BY ekleme
+    base_query += f" ORDER BY t.{sort_by} {order.upper()} NULLS LAST;"
+
+    records = fetch_query(base_query, (country_id,)) or []
+
+    # Yüzde hesaplamalarını ekle
+    for row in records:
+        total = row["total_expenditure"] or 0
+        if total > 0:
+            row["agriculture_pct"] = (row["agriculture_forestry_fishing"] or 0) / total * 100
+            row["environmental_pct"] = (row["environmental_protection"] or 0) / total * 100
+            row["biodiversity_pct"] = (row["biodiversity_landscape"] or 0) / total * 100
+            row["rd_pct"] = (row["rd_environmental_protection"] or 0) / total * 100
+        else:
+            row["agriculture_pct"] = None
+            row["environmental_pct"] = None
+            row["biodiversity_pct"] = None
+            row["rd_pct"] = None
+
+    # İstatistikler
+    total_years = len(records)
+    
+    # Grafik için veri hazırla (sadece 2001 ve sonrası)
+    chart_data = {
+        'years': [],
+        'total_expenditure': [],
+        'agriculture_forestry_fishing': [],
+        'environmental_protection': [],
+        'biodiversity_landscape': [],
+        'rd_environmental_protection': [],
+    }
+    
+    # Grafik için kayıtları yıla göre sırala ve 2001+ filtrele
+    sorted_records = sorted(records, key=lambda x: x['year'])
+    filtered_records = [r for r in sorted_records if r['year'] >= 2001]
+    
+    for row in filtered_records:
+        chart_data['years'].append(row['year'])
+        chart_data['total_expenditure'].append(row['total_expenditure'] or 0)
+        chart_data['agriculture_forestry_fishing'].append(row['agriculture_forestry_fishing'] or 0)
+        chart_data['environmental_protection'].append(row['environmental_protection'] or 0)
+        chart_data['biodiversity_landscape'].append(row['biodiversity_landscape'] or 0)
+        chart_data['rd_environmental_protection'].append(row['rd_environmental_protection'] or 0)
+
+    return render_template(
+        "investments_timeline.html",
+        countries=countries,
+        selected_country_id=country_id,
+        country_name=country_name,
+        records=records,
+        total_years=total_years,
+        sort_by=sort_by,
+        order=order,
+        chart_data=chart_data,
     )

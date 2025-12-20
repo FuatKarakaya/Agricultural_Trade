@@ -26,7 +26,7 @@ def admin_required(f):
         
         if not session.get('is_admin'):
             flash("Bu işlem için admin yetkisi gerekli.", "error")
-            return redirect(request.referrer or url_for('main.index'))
+            return redirect(request.referrer or url_for('main.dashboard'))
         
         return f(*args, **kwargs)
     return decorated_function

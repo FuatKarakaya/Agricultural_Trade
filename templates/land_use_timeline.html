@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Land Use {{ year }} - Zlatan Agriculture{% endblock %}
+{% block title %}Land Use Timeline - {{ country_name or 'Select Country' }} - Zlatan Agriculture{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/land_use.css') }}">
@@ -30,6 +30,18 @@
   opacity: 1;
   font-weight: bold;
 }
+
+.timeline-chart-container {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.timeline-chart-container canvas {
+  max-height: 400px;
+}
 </style>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -46,53 +58,21 @@
 
 <!-- Hero Section -->
 <section class="hero-section">
-  <h2>Land Use Summary – {{ year }}</h2>
+  <h2>Land Use Timeline {% if country_name %}– {{ country_name }}{% endif %}</h2>
   <p>
-    Aggregated land use values by country. Select a year between 1961 and 2023 to explore historical data.
+    View historical land use data for a specific country from 1961 to 2025.
   </p>
 </section>
 
-<!-- Stats Section with Pie Chart -->
-<section class="stats-container">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <h4>Total Countries</h4>
-      <div class="stat-number">{{ total_countries or 0 }}</div>
-      <p class="stat-detail">Countries with land use data in {{ year }}</p>
-    </div>
-
-    <div class="stat-card">
-      <h4>
-        {% if not selected_country_id %}
-        Global Land Distribution
-        {% else %}
-        Land Distribution
-        {% endif %}
-      </h4>
-      <div class="chart-container">
-        <canvas id="landUseChart" 
-                data-pie-chart='{{ pie_chart_data | tojson }}'></canvas>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Land Use Table -->
+<!-- Country Selection -->
 <section class="producers-section">
-  <h3>Land Use Data ({{ year }})</h3>
+  <h3>Select Country</h3>
 
   <div class="year-filter-bar">
-    <form method="get" action="{{ url_for('landuse.landUsePage') }}" class="filter-form">
-      <label for="year-select">Year:</label>
-      <select id="year-select" name="year" onchange="this.form.submit()">
-        {% for y in years %}
-          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-      </select>
-
+    <form method="get" action="{{ url_for('landuse.country_timeline') }}" class="filter-form">
       <label for="country-select">Country:</label>
-      <select id="country-select" name="country_id" onchange="this.form.submit()">
-        <option value="" {% if not selected_country_id %}selected{% endif %}>All countries</option>
+      <select id="country-select" name="country_id" onchange="this.form.submit()" required>
+        <option value="">-- Select a country --</option>
         {% for c in countries %}
           <option value="{{ c['country_id'] }}"
                   {% if selected_country_id == c['country_id'] %}selected{% endif %}>
@@ -102,20 +82,41 @@
       </select>
     </form>
 
-    <!-- ADD RECORD BUTONU - Sadece Admin Görebilir -->
-    {% if is_admin %}
-    <a href="{{ url_for('landuse.add_land_use_form', year=year, country_id=selected_country_id) }}"
-       class="btn-add-country">
-      Add Record
+    {% if country_name %}
+    <a href="{{ url_for('landuse.landUsePage') }}" class="btn-add-country">
+      ← Back to All Countries
     </a>
     {% endif %}
-    <a href="{{ url_for('landuse.country_timeline', country_id=selected_country_id) }}"
-       class="btn-add-country">
-      Timeline View
-    </a>
   </div>
 
-  {% if records %}
+  {% if country_name and records %}
+  
+  <!-- Stats Card -->
+  <div class="stats-container" style="margin-top: 20px;">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h4>Country</h4>
+        <div class="stat-number" style="font-size: 1.5em;">{{ country_name }}</div>
+        <p class="stat-detail">Historical land use data</p>
+      </div>
+      
+      <div class="stat-card">
+        <h4>Years Available</h4>
+        <div class="stat-number">{{ total_years }}</div>
+        <p class="stat-detail">Records from {{ records|map(attribute='year')|min }} to {{ records|map(attribute='year')|max }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline Chart -->
+  <div class="timeline-chart-container">
+    <h4 style="text-align: center; color: #333; margin-bottom: 20px;">Land Use Evolution Over Time</h4>
+    <canvas id="timelineChart"></canvas>
+  </div>
+
+  <!-- Data Table -->
+  <h3 style="margin-top: 40px;">Historical Data Table</h3>
+  
   <table class="data-table">
     <thead>
       <tr>
@@ -126,8 +127,7 @@
             {% if order == 'desc' %}
               {# Şu an descending → Bir sonraki tıklamada ascending #}
               <th class="sortable-header" 
-                  onclick="window.location.href='{{ url_for('landuse.landUsePage', 
-                    year=year, 
+                  onclick="window.location.href='{{ url_for('landuse.country_timeline', 
                     country_id=selected_country_id, 
                     sort=column, 
                     order='asc') }}'">
@@ -137,8 +137,7 @@
             {% else %}
               {# Şu an ascending → Bir sonraki tıklamada varsayılana dön #}
               <th class="sortable-header" 
-                  onclick="window.location.href='{{ url_for('landuse.landUsePage', 
-                    year=year, 
+                  onclick="window.location.href='{{ url_for('landuse.country_timeline', 
                     country_id=selected_country_id) }}'">
                 {{ display_name }}
                 <span class="sort-icon active">▲</span>
@@ -147,8 +146,7 @@
           {% else %}
             {# Bu sütuna göre sıralama aktif değil → İlk tıklamada descending #}
             <th class="sortable-header" 
-                onclick="window.location.href='{{ url_for('landuse.landUsePage', 
-                  year=year, 
+                onclick="window.location.href='{{ url_for('landuse.country_timeline', 
                   country_id=selected_country_id, 
                   sort=column, 
                   order='desc') }}'">
@@ -158,8 +156,7 @@
           {% endif %}
         {% endmacro %}
 
-        {{ sortable_th('country_name', 'Country') }}
-        <th>Year</th>
+        {{ sortable_th('year', 'Year') }}
         <th>Unit</th>
         {{ sortable_th('country_area', 'Country area') }}
         {{ sortable_th('land_area', 'Land area') }}
@@ -180,17 +177,7 @@
     <tbody>
       {% for row in records %}
       <tr>
-        <td>
-          {% if row['country_id'] %}
-            <a href="/countries/{{ row['country_id'] }}" class="country-link">
-              <strong>{{ row['country_name'] }}</strong>
-            </a>
-          {% else %}
-            <strong>{{ row['country_name'] }}</strong>
-          {% endif %}
-        </td>
-
-        <td>{{ row['year'] }}</td>
+        <td><strong>{{ row['year'] }}</strong></td>
         <td>{{ row['unit'] }}</td>
 
         <td>
@@ -245,7 +232,7 @@
         {% if is_admin %}
         <td>
           <a href="{{ url_for('landuse.edit_land_use_form',
-                      country_id=row['country_id'],
+                      country_id=selected_country_id,
                       year=row['year']) }}"
                     class="btn-update">
                     Update
@@ -254,10 +241,10 @@
           <form method="post"
                 action="{{ url_for('landuse.delete_land_use') }}"
                 style="display: inline;"
-                onsubmit="return confirm('Bu ülke ve yıl için tüm girdiler silinsin mi?');">
-            <input type="hidden" name="country_id" value="{{ row['country_id'] }}">
+                onsubmit="return confirm('Bu yıl için tüm girdiler silinsin mi?');">
+            <input type="hidden" name="country_id" value="{{ selected_country_id }}">
             <input type="hidden" name="year" value="{{ row['year'] }}">
-            <input type="hidden" name="redirect_country_id" value="{{ selected_country_id or '' }}">
+            <input type="hidden" name="redirect_country_id" value="{{ selected_country_id }}">
             <button type="submit" class="btn-delete">Delete</button>
           </form>
         </td>
@@ -267,13 +254,18 @@
     </tbody>
   </table>
 
-  {% else %}
+  {% elif country_name and not records %}
   <div class="no-data">
-    <p>No land use records found for {{ year }}.</p>
+    <p>No land use records found for {{ country_name }}.</p>
   </div>
   {% endif %}
 </section>
 
-<script src="{{ url_for('static', filename='js/land_use.js') }}"></script>
+{% if country_name and records %}
+<script>
+  const chartData = {{ chart_data | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/land_use_timeline.js') }}"></script>
+{% endif %}
 
 {% endblock %}

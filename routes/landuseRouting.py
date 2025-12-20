@@ -13,6 +13,24 @@ def landUsePage():
 
     # Ülke: yoksa None (yani "All Countries" modu)
     country_id = request.args.get("country_id", type=int)
+    
+    # Sıralama parametreleri
+    sort_by = request.args.get("sort", "country_name")  # varsayılan: country_name
+    order = request.args.get("order", "asc")  # varsayılan: asc
+    
+    # Geçerli sıralama sütunları
+    valid_sort_columns = [
+        "country_name", "country_area", "land_area", "inland_waters",
+        "arable_land", "permanent_crops", "permanent_meadows_and_pastures",
+        "forest_land", "other_land"
+    ]
+    
+    # Güvenlik kontrolü
+    if sort_by not in valid_sort_columns:
+        sort_by = "country_name"
+    
+    if order not in ["asc", "desc"]:
+        order = "asc"
 
     # Yıl dropdown'u
     years = list(range(1961, 2026))
@@ -73,8 +91,24 @@ def landUsePage():
     base_query += """
             GROUP BY lu.country_name, lu.country_id, lu.year, lu.unit
         ) AS t
-        ORDER BY t.country_name ASC;
     """
+    
+    # Dinamik ORDER BY ekleme
+    # "other_land" hesaplanmış bir alan olduğu için özel işlem
+    if sort_by == "other_land":
+        # Hesaplanmış alanı doğrudan ORDER BY'da kullan
+        base_query += f"""
+        ORDER BY (
+            t.land_area
+            - COALESCE(t.arable_land, 0)
+            - COALESCE(t.permanent_crops, 0)
+            - COALESCE(t.permanent_meadows_and_pastures, 0)
+            - COALESCE(t.forest_land, 0)
+        ) {order.upper()} NULLS LAST;
+        """
+    else:
+        # Diğer sütunlar için normal sıralama
+        base_query += f" ORDER BY t.{sort_by} {order.upper()} NULLS LAST;"
 
     records = fetch_query(base_query, tuple(params)) or []
 
@@ -159,8 +193,12 @@ def landUsePage():
         countries=countries,
         selected_country_id=country_id,
         pie_chart_data=pie_chart_data,
+        sort_by=sort_by,
+        order=order,
     )
 
+
+# Diğer fonksiyonlar aynı kalıyor...
 @landuse_bp.route("/land-use/new", methods=["GET"])
 @admin_required
 def add_land_use_form():
@@ -252,13 +290,11 @@ def add_land_use():
         (country_id, year, *land_type_list),
     )
 
-    # ==== BURASI SADELEŞTİ ====
     if existing:
         flash("Already existing record.", "error")
         return redirect(
             url_for("landuse.add_land_use_form", year=year, country_id=country_id)
         )
-    # ==========================
 
     params = []
     for lt, v in values.items():
@@ -314,9 +350,10 @@ def delete_land_use():
         url_for(
             "landuse.landUsePage",
             year=year,
-            country_id=redirect_country_id,  # All countries ise boş gelir
+            country_id=redirect_country_id,
         )
     )
+
 @landuse_bp.route("/land-use/edit", methods=["GET"])
 @admin_required
 def edit_land_use_form():
@@ -497,4 +534,152 @@ def update_land_use():
     # Edit sayfasında kal, flash mesajı orada gör
     return redirect(
         url_for("landuse.edit_land_use_form", country_id=country_id, year=year)
+    )
+
+@landuse_bp.route('/landuse/country-timeline')
+@login_required
+def country_timeline():
+    """
+    Belirli bir ülkenin 1961-2025 arası tüm land use verilerini gösterir.
+    """
+    country_id = request.args.get("country_id", type=int)
+    
+    # Sıralama parametreleri
+    sort_by = request.args.get("sort", "year")  # varsayılan: year
+    order = request.args.get("order", "desc")  # varsayılan: desc (en yeni üstte)
+    
+    # Geçerli sıralama sütunları
+    valid_sort_columns = [
+        "year", "country_area", "land_area", "inland_waters",
+        "arable_land", "permanent_crops", "permanent_meadows_and_pastures",
+        "forest_land", "other_land"
+    ]
+    
+    # Güvenlik kontrolü
+    if sort_by not in valid_sort_columns:
+        sort_by = "year"
+    
+    if order not in ["asc", "desc"]:
+        order = "desc"
+
+    # Ülke dropdown'u için Countries tablosu
+    countries_query = """
+        SELECT country_id, country_name
+        FROM Countries
+        ORDER BY country_name ASC;
+    """
+    countries = fetch_query(countries_query, ())
+
+    # Eğer ülke seçilmemişse sadece form göster
+    if not country_id:
+        return render_template(
+            "land_use_timeline.html",
+            countries=countries,
+            selected_country_id=None,
+            country_name=None,
+            records=[],
+            sort_by=sort_by,
+            order=order,
+        )
+
+    # Seçilen ülkenin adını al
+    country_row = fetch_query(
+        "SELECT country_name FROM Countries WHERE country_id = %s;",
+        (country_id,)
+    )
+    
+    if not country_row:
+        flash("Selected country not found.", "error")
+        return redirect(url_for("landuse.country_timeline"))
+    
+    country_name = country_row[0]["country_name"]
+
+    # Seçilen ülkenin TÜM yıllar için land use verilerini çek
+    base_query = """
+        SELECT
+            t.year,
+            t.unit,
+            t.country_area,
+            t.land_area,
+            t.inland_waters,
+            t.arable_land,
+            t.permanent_crops,
+            t.permanent_meadows_and_pastures,
+            t.forest_land,
+            (
+                t.land_area
+                - COALESCE(t.arable_land, 0)
+                - COALESCE(t.permanent_crops, 0)
+                - COALESCE(t.permanent_meadows_and_pastures, 0)
+                - COALESCE(t.forest_land, 0)
+            ) AS other_land
+        FROM (
+            SELECT
+                lu.year,
+                lu.unit,
+                MAX(CASE WHEN lu.land_type = 'Country area' THEN lu.land_usage_value END) AS country_area,
+                MAX(CASE WHEN lu.land_type = 'Land area' THEN lu.land_usage_value END) AS land_area,
+                MAX(CASE WHEN lu.land_type = 'Inland waters' THEN lu.land_usage_value END) AS inland_waters,
+                MAX(CASE WHEN lu.land_type = 'Arable land' THEN lu.land_usage_value END) AS arable_land,
+                MAX(CASE WHEN lu.land_type = 'Permanent crops' THEN lu.land_usage_value END) AS permanent_crops,
+                MAX(CASE WHEN lu.land_type = 'Permanent meadows and pastures' THEN lu.land_usage_value END)
+                    AS permanent_meadows_and_pastures,
+                MAX(CASE WHEN lu.land_type = 'Forest land' THEN lu.land_usage_value END) AS forest_land
+            FROM Land_Use AS lu
+            WHERE lu.country_id = %s
+            GROUP BY lu.year, lu.unit
+        ) AS t
+    """
+    
+    # Dinamik ORDER BY ekleme
+    if sort_by == "other_land":
+        base_query += f"""
+        ORDER BY (
+            t.land_area
+            - COALESCE(t.arable_land, 0)
+            - COALESCE(t.permanent_crops, 0)
+            - COALESCE(t.permanent_meadows_and_pastures, 0)
+            - COALESCE(t.forest_land, 0)
+        ) {order.upper()} NULLS LAST;
+        """
+    else:
+        base_query += f" ORDER BY t.{sort_by} {order.upper()} NULLS LAST;"
+
+    records = fetch_query(base_query, (country_id,)) or []
+
+    # İstatistikler
+    total_years = len(records)
+    
+    # Grafik için veri hazırla (sadece 1990 ve sonrası)
+    chart_data = {
+        'years': [],
+        'arable_land': [],
+        'permanent_crops': [],
+        'meadows_pastures': [],
+        'forest_land': [],
+        'other_land': [],
+    }
+    
+    # Grafik için kayıtları yıla göre sırala ve 1990+ filtrele
+    sorted_records = sorted(records, key=lambda x: x['year'])
+    filtered_records = [r for r in sorted_records if r['year'] >= 1990]
+    
+    for row in filtered_records:
+        chart_data['years'].append(row['year'])
+        chart_data['arable_land'].append(row['arable_land'] or 0)
+        chart_data['permanent_crops'].append(row['permanent_crops'] or 0)
+        chart_data['meadows_pastures'].append(row['permanent_meadows_and_pastures'] or 0)
+        chart_data['forest_land'].append(row['forest_land'] or 0)
+        chart_data['other_land'].append(row['other_land'] if row['other_land'] is not None else 0)
+
+    return render_template(
+        "land_use_timeline.html",
+        countries=countries,
+        selected_country_id=country_id,
+        country_name=country_name,
+        records=records,
+        total_years=total_years,
+        sort_by=sort_by,
+        order=order,
+        chart_data=chart_data,
     )
