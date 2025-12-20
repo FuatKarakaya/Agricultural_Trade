@@ -15,7 +15,7 @@ def production():
         unit = request.args.get("unit", "")
         search = request.args.get("search", "").strip()
 
-        # Simple query with 3 tables - no duplicates possible
+        # Advanced query with 4 tables including LEFT OUTER JOIN and nested subquery
         query = """
             SELECT 
                 p.production_ID AS production_id,
@@ -23,10 +23,32 @@ def production():
                 p.unit,
                 p.quantity,
                 c.country_name,
-                co.item_name
+                c.region,
+                c.subregion,
+                co.item_name,
+                co.cpc_code,
+                -- Element count from Production_Value (shows data completeness)
+                COALESCE(pv_agg.element_count, 0) AS element_count,
+                -- Calculated metric: Production density (per capita if population available)
+                CASE 
+                    WHEN c.population > 0 THEN p.quantity / c.population
+                    ELSE 0 
+                END AS production_per_capita
             FROM production p
+            -- Join 1: Countries table for geographic metadata
             INNER JOIN Countries c ON p.country_code = c.country_id
+            -- Join 2: Commodities table for item details
             INNER JOIN Commodities co ON p.commodity_code = co.fao_code
+            -- Join 3 (LEFT OUTER): Nested subquery with GROUP BY for aggregating production values
+            LEFT OUTER JOIN (
+                SELECT 
+                    production_ID,
+                    SUM(value) AS total_value,
+                    COUNT(DISTINCT element) AS element_count
+                FROM Production_Value
+                WHERE value IS NOT NULL
+                GROUP BY production_ID
+            ) AS pv_agg ON p.production_ID = pv_agg.production_ID
             WHERE 1=1
         """
         params = []

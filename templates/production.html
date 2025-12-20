@@ -176,10 +176,13 @@
       <tr>
         <th class="sortable" data-sort="id">Production ID</th>
         <th class="sortable" data-sort="country">Country</th>
+        <th class="sortable" data-sort="region">Region</th>
         <th class="sortable" data-sort="item">Item</th>
+        <th>CPC Code</th>
         <th class="sortable" data-sort="year">Year</th>
         <th class="sortable" data-sort="quantity">Quantity</th>
         <th>Unit</th>
+        <th class="sortable" data-sort="per_capita">Per Capita</th>
         <th>Actions</th>
       </tr>
       </thead>
@@ -188,10 +191,13 @@
         <tr>
           <td>{{ row['production_id'] }}</td>
           <td>{{ row['country_name'] }}</td>
+          <td>{{ row['region'] or 'N/A' }}</td>
           <td>{{ row['item_name'] }}</td>
+          <td>{{ row['cpc_code'] or '-' }}</td>
           <td>{{ row['year'] }}</td>
           <td>{{ "{:,.0f}".format(row['quantity']) if row['quantity'] else 'N/A' }}</td>
           <td>{{ row['unit'] }}</td>
+          <td>{{ "{:,.4f}".format(row['production_per_capita']) if row['production_per_capita'] else '0.00' }}</td>
           <td class="actions-cell">
             <a href="{{ url_for('prod.edit_production_form', production_id=row['production_id']) }}" 
                class="btn-action btn-edit" title="Edit">✏️</a>

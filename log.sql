@@ -976,3 +976,12 @@ DELETE FROM Production WHERE production_ID = %s
             SET unit = %s, quantity = %s
             WHERE production_ID = %s
         
+
+            INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s)
+        
+
+            UPDATE Production 
+            SET unit = %s, quantity = %s
+            WHERE production_ID = %s
+        
