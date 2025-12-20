@@ -15,13 +15,12 @@ def production_values():
         region = request.args.get("region", "")
         search = request.args.get("search", "").strip()
 
-        # Enhanced query with multiple JOINs similar to production page
         query = """
             SELECT 
                 pv.production_value_ID AS production_value_id,
                 pv.production_ID AS production_id,
                 pv.element,
-                pv.year,
+                p.year,
                 pv.unit,
                 pv.value,
                 p.country_code,
@@ -45,7 +44,7 @@ def production_values():
             params.append(selected_element)
 
         if selected_year:
-            query += " AND pv.year = %s"
+            query += " AND p.year = %s"
             params.append(selected_year)
 
         if country_code:
@@ -67,7 +66,7 @@ def production_values():
                 OR c.country_name ILIKE %s
                 OR co.item_name ILIKE %s
                 OR pv.element ILIKE %s
-                OR CAST(pv.year AS TEXT) LIKE %s
+                OR CAST(p.year AS TEXT) LIKE %s
                 OR CAST(pv.value AS TEXT) LIKE %s
                 OR pv.unit ILIKE %s
                 OR c.region ILIKE %s
@@ -80,7 +79,7 @@ def production_values():
             CASE WHEN pv.value IS NOT NULL AND pv.unit IS NOT NULL AND pv.element IS NOT NULL
                       AND c.country_name IS NOT NULL AND co.item_name IS NOT NULL AND c.region IS NOT NULL
                  THEN 0 ELSE 1 END,
-            pv.year DESC, pv.value DESC NULLS LAST
+            p.year DESC, pv.value DESC NULLS LAST
             LIMIT 50"""
 
         production_values_list = fetch_query(query, params)
@@ -97,8 +96,8 @@ def production_values():
                 COUNT(DISTINCT pv.element) as total_elements,
                 COUNT(DISTINCT p.country_code) as total_countries,
                 COUNT(DISTINCT p.commodity_code) as total_commodities,
-                MIN(pv.year) as min_year,
-                MAX(pv.year) as max_year
+                MIN(p.year) as min_year,
+                MAX(p.year) as max_year
             FROM Production_Value pv
             INNER JOIN Production p ON pv.production_ID = p.production_ID
             """
@@ -110,7 +109,12 @@ def production_values():
             "SELECT DISTINCT element FROM Production_Value ORDER BY element"
         )
         years = fetch_query(
-            "SELECT DISTINCT year FROM Production_Value ORDER BY year DESC"
+            """
+            SELECT DISTINCT p.year 
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            ORDER BY p.year DESC
+            """
         )
         countries = fetch_query(
             """
@@ -180,26 +184,28 @@ def production_value_detail(production_value_id):
         production_value = result[0]
 
         ts_query = """
-            SELECT year, element, value, unit 
-            FROM Production_Value 
-            WHERE production_ID = %s 
-            ORDER BY year DESC
+            SELECT p.year, pv.element, pv.value, pv.unit 
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            WHERE pv.production_ID = %s 
+            ORDER BY p.year DESC
         """
         time_series = fetch_query(ts_query, [production_value["production_ID"]])
 
         # Shows general stats for this element type across all years
         yt_query = """
             SELECT 
-                year, 
-                AVG(value) as avg_value, 
-                MIN(value) as min_value, 
-                MAX(value) as max_value, 
+                p.year, 
+                AVG(pv.value) as avg_value, 
+                MIN(pv.value) as min_value, 
+                MAX(pv.value) as max_value, 
                 COUNT(*) as record_count 
-            FROM Production_Value 
-            WHERE element = %s 
-                AND value IS NOT NULL 
-            GROUP BY year 
-            ORDER BY year DESC 
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            WHERE pv.element = %s 
+                AND pv.value IS NOT NULL 
+            GROUP BY p.year 
+            ORDER BY p.year DESC 
             LIMIT 10
         """
         yearly_trends = fetch_query(yt_query, [production_value["element"]])
@@ -327,26 +333,26 @@ def add_production_value():
         
         production_id = production_row[0]["production_id"]
         
-        # Check for duplicate
+        # Check for duplicate (production_ID already contains the year information)
         existing = fetch_query(
             """
             SELECT production_value_ID
             FROM Production_Value
-            WHERE production_ID = %s AND element = %s AND year = %s
+            WHERE production_ID = %s AND element = %s
             """,
-            (production_id, element, year)
+            (production_id, element)
         )
         
         if existing:
-            flash("Record already exists for this production, element, and year.", "error")
+            flash("Record already exists for this production and element.", "error")
             return redirect(url_for("prod_val.add_production_value_form"))
         
-        # Insert new record
+        # Insert new record (year comes from Production table via production_ID)
         insert_query = """
-            INSERT INTO Production_Value (production_ID, element, year, unit, value)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO Production_Value (production_ID, element, unit, value)
+            VALUES (%s, %s, %s, %s)
         """
-        execute_query(insert_query, (production_id, element, year, unit, value))
+        execute_query(insert_query, (production_id, element, unit, value))
         
         flash("Production value record added successfully!", "success")
         return redirect(url_for("prod_val.add_production_value_form"))

@@ -948,3 +948,10 @@ DELETE FROM trade_data_final WHERE unique_id = %s
         DELETE FROM Investments
         WHERE country_id = %s AND year = %s;
         
+
+                INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+        VALUES (%s, %s, %s, %s, %s)
+    
+
+        INSERT INTO Production_Value (production_ID, element, unit, value)
+        VALUES (%s, %s, %s, %s)

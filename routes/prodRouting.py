@@ -164,7 +164,6 @@ def production_detail(production_id):
                    c.subregion,
                    c.population,
                    com.item_name,
-                   com.item_group_name,
                    com.cpc_code
             FROM production p
             JOIN Countries c ON p.country_code = c.country_id
@@ -281,16 +280,14 @@ def add_production():
             flash("Quantity must be a non-negative number.", "error")
             return redirect(url_for("prod.production"))
         
-        # Get item_name from commodity
+        # Verify commodity exists (no need to fetch item_name - it's in Commodities table)
         commodity_row = fetch_query(
-            "SELECT item_name FROM Commodities WHERE fao_code = %s",
+            "SELECT fao_code FROM Commodities WHERE fao_code = %s",
             (commodity_code,)
         )
         if not commodity_row:
             flash("Selected commodity not found.", "error")
             return redirect(url_for("prod.production"))
-        
-        item_name = commodity_row[0]["item_name"]
         
         # Check for duplicate
         existing = fetch_query(
@@ -308,10 +305,10 @@ def add_production():
         
         # Insert new record
         insert_query = """
-            INSERT INTO Production (country_code, commodity_code, item_name, year, unit, quantity)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s)
         """
-        execute_query(insert_query, (country_code, commodity_code, item_name, year, unit, quantity))
+        execute_query(insert_query, (country_code, commodity_code, year, unit, quantity))
         
         flash("Production record added successfully!", "success")
         return redirect(url_for("prod.production"))
