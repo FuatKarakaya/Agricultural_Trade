@@ -683,3 +683,323 @@ def country_timeline():
         order=order,
         chart_data=chart_data,
     )
+
+@landuse_bp.route('/landuse/land-efficiency-analysis')
+@login_required
+def land_efficiency_analysis():
+    """
+    Land Use Efficiency Analysis: Sadece Land Use, Production, Commodities, Countries
+    Investments verisi olmadan güvenilir land use analizi
+    """
+    year = request.args.get("year", 2023, type=int)
+    
+    # Sıralama parametreleri
+    sort_by = request.args.get("sort", "country_name")
+    order = request.args.get("order", "asc")
+    
+    valid_sort_columns = [
+        "country_name", "region", "agricultural_land_total", "forest_land",
+        "land_productivity_index", "production_density", "crop_diversity_score"
+    ]
+    
+    if sort_by not in valid_sort_columns:
+        sort_by = "country_name"
+    
+    if order not in ["asc", "desc"]:
+        order = "asc"
+    
+    # LAND USE FOCUSED QUERY: 4 tables (NO Investments)
+    land_efficiency_query = f"""
+        WITH LandTypeBreakdown AS (
+            -- Nested Query 1: Her ülkenin detaylı land type dağılımı
+            SELECT
+                lu.country_id,
+                lu.year,
+                MAX(CASE WHEN lu.land_type = 'Country area' THEN lu.land_usage_value END) AS country_area,
+                MAX(CASE WHEN lu.land_type = 'Land area' THEN lu.land_usage_value END) AS land_area,
+                MAX(CASE WHEN lu.land_type = 'Inland waters' THEN lu.land_usage_value END) AS inland_waters,
+                MAX(CASE WHEN lu.land_type = 'Arable land' THEN lu.land_usage_value END) AS arable_land,
+                MAX(CASE WHEN lu.land_type = 'Permanent crops' THEN lu.land_usage_value END) AS permanent_crops,
+                MAX(CASE WHEN lu.land_type = 'Permanent meadows and pastures' THEN lu.land_usage_value END) AS meadows_pastures,
+                MAX(CASE WHEN lu.land_type = 'Forest land' THEN lu.land_usage_value END) AS forest_land,
+                -- Agricultural land toplamı
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Arable land' THEN lu.land_usage_value END), 0) +
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Permanent crops' THEN lu.land_usage_value END), 0) +
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Permanent meadows and pastures' THEN lu.land_usage_value END), 0) 
+                    AS agricultural_land_total,
+                -- Other land hesaplama
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Land area' THEN lu.land_usage_value END), 0) -
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Arable land' THEN lu.land_usage_value END), 0) -
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Permanent crops' THEN lu.land_usage_value END), 0) -
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Permanent meadows and pastures' THEN lu.land_usage_value END), 0) -
+                COALESCE(MAX(CASE WHEN lu.land_type = 'Forest land' THEN lu.land_usage_value END), 0)
+                    AS other_land
+            FROM Land_Use lu
+            WHERE lu.year = %s
+            GROUP BY lu.country_id, lu.year
+        ),
+        AgriculturalProduction AS (
+            -- Nested Query 2: Tarımsal üretim detayları
+            SELECT
+                p.country_code AS country_id,
+                p.year,
+                SUM(p.quantity) AS total_agricultural_production,
+                COUNT(DISTINCT p.commodity_code) AS crop_diversity,
+                AVG(p.quantity) AS avg_crop_yield,
+                MAX(p.quantity) AS max_single_crop_production,
+                MIN(p.quantity) AS min_crop_production
+            FROM Production p
+            WHERE p.year = %s
+                AND p.quantity IS NOT NULL
+                AND p.quantity > 0
+            GROUP BY p.country_code, p.year
+        ),
+        TopCommodityPerCountry AS (
+            -- Nested Query 3: Her ülkenin en çok ürettiği ürün
+            SELECT DISTINCT ON (p.country_code)
+                p.country_code AS country_id,
+                p.year,
+                c.item_name AS top_commodity,
+                p.quantity AS top_commodity_quantity,
+                c.cpc_code
+            FROM Production p
+            INNER JOIN Commodities c ON p.commodity_code = c.fao_code
+            WHERE p.year = %s
+                AND p.quantity IS NOT NULL
+                AND p.quantity > 0
+            ORDER BY p.country_code, p.quantity DESC
+        ),
+        RegionalLandStats AS (
+            -- Nested Query 4: Bölgesel land use ortalamaları
+            SELECT
+                c.region,
+                AVG(lt.agricultural_land_total) AS region_avg_agri_land,
+                AVG(lt.forest_land) AS region_avg_forest,
+                AVG(lt.land_area) AS region_avg_land_area,
+                COUNT(DISTINCT lt.country_id) AS countries_in_region
+            FROM Countries c
+            LEFT JOIN LandTypeBreakdown lt ON c.country_id = lt.country_id
+            WHERE c.region IS NOT NULL
+                AND lt.agricultural_land_total >= 10  -- Bölgesel ortalama için de filtre
+            GROUP BY c.region
+        )
+        -- MAIN QUERY: 4 main tables joined
+        SELECT
+            c.country_id,
+            c.country_name,
+            c.region,
+            c.subregion,
+            c.population,
+            
+            -- LAND USE DATA (CORE)
+            COALESCE(lt.country_area, 0) AS country_area,
+            COALESCE(lt.land_area, 0) AS land_area,
+            COALESCE(lt.inland_waters, 0) AS inland_waters,
+            COALESCE(lt.arable_land, 0) AS arable_land,
+            COALESCE(lt.permanent_crops, 0) AS permanent_crops,
+            COALESCE(lt.meadows_pastures, 0) AS meadows_pastures,
+            COALESCE(lt.forest_land, 0) AS forest_land,
+            COALESCE(lt.other_land, 0) AS other_land,
+            COALESCE(lt.agricultural_land_total, 0) AS agricultural_land_total,
+            
+            -- PRODUCTION DATA
+            COALESCE(ap.total_agricultural_production, 0) AS total_agricultural_production,
+            COALESCE(ap.crop_diversity, 0) AS crop_diversity,
+            COALESCE(ap.avg_crop_yield, 0) AS avg_crop_yield,
+            COALESCE(ap.max_single_crop_production, 0) AS max_single_crop_production,
+            
+            -- TOP COMMODITY
+            COALESCE(tcp.top_commodity, 'N/A') AS top_commodity,
+            COALESCE(tcp.top_commodity_quantity, 0) AS top_commodity_quantity,
+            
+            -- REGIONAL COMPARISON
+            COALESCE(rls.region_avg_agri_land, 0) AS region_avg_agri_land,
+            COALESCE(rls.region_avg_forest, 0) AS region_avg_forest,
+            COALESCE(rls.countries_in_region, 0) AS countries_in_region,
+            
+            -- LAND USE PERCENTAGES
+            CASE 
+                WHEN lt.land_area > 0 
+                THEN (lt.agricultural_land_total / lt.land_area * 100)
+                ELSE 0
+            END AS agricultural_land_percentage,
+            
+            CASE 
+                WHEN lt.land_area > 0 
+                THEN (lt.forest_land / lt.land_area * 100)
+                ELSE 0
+            END AS forest_land_percentage,
+            
+            CASE 
+                WHEN lt.land_area > 0 
+                THEN (lt.arable_land / lt.land_area * 100)
+                ELSE 0
+            END AS arable_land_percentage,
+            
+            CASE 
+                WHEN lt.agricultural_land_total > 0 
+                THEN (lt.arable_land / lt.agricultural_land_total * 100)
+                ELSE 0
+            END AS arable_of_agricultural,
+            
+            CASE 
+                WHEN lt.agricultural_land_total > 0 
+                THEN (lt.permanent_crops / lt.agricultural_land_total * 100)
+                ELSE 0
+            END AS crops_of_agricultural,
+            
+            -- PRODUCTION EFFICIENCY METRICS
+            CASE 
+                WHEN lt.agricultural_land_total > 0 AND ap.total_agricultural_production > 0
+                THEN (ap.total_agricultural_production / lt.agricultural_land_total)
+                ELSE 0
+            END AS production_density,
+            
+            CASE 
+                WHEN lt.arable_land > 0 AND ap.total_agricultural_production > 0
+                THEN (ap.total_agricultural_production / lt.arable_land)
+                ELSE 0
+            END AS production_per_arable_land,
+            
+            -- CROP DIVERSITY SCORE (diversity * production density)
+            CASE 
+                WHEN lt.agricultural_land_total > 0 AND ap.crop_diversity > 0
+                THEN (ap.crop_diversity * (ap.total_agricultural_production / lt.agricultural_land_total))
+                ELSE 0
+            END AS crop_diversity_score,
+            
+            -- LAND PRODUCTIVITY INDEX (without investment data)
+            CASE 
+                WHEN lt.agricultural_land_total > 0 AND ap.total_agricultural_production > 0
+                THEN (
+                    (ap.total_agricultural_production / lt.agricultural_land_total) * 0.6 +
+                    (ap.crop_diversity * 100) * 0.4
+                )
+                ELSE 0
+            END AS land_productivity_index,
+            
+            -- PER CAPITA METRICS
+            CASE
+                WHEN c.population > 0
+                THEN (lt.agricultural_land_total * 1000 / c.population)
+                ELSE 0
+            END AS agricultural_land_per_capita,
+            
+            CASE
+                WHEN c.population > 0
+                THEN (lt.arable_land * 1000 / c.population)
+                ELSE 0
+            END AS arable_land_per_capita,
+            
+            CASE
+                WHEN c.population > 0
+                THEN (lt.forest_land * 1000 / c.population)
+                ELSE 0
+            END AS forest_land_per_capita,
+            
+            CASE
+                WHEN c.population > 0 AND ap.total_agricultural_production > 0
+                THEN (ap.total_agricultural_production / c.population)
+                ELSE 0
+            END AS production_per_capita,
+            
+            -- REGIONAL PERFORMANCE (vs regional average)
+            CASE
+                WHEN rls.region_avg_agri_land > 0
+                THEN (lt.agricultural_land_total / rls.region_avg_agri_land * 100)
+                ELSE 0
+            END AS agri_land_vs_region_avg,
+            
+            CASE
+                WHEN rls.region_avg_forest > 0
+                THEN (lt.forest_land / rls.region_avg_forest * 100)
+                ELSE 0
+            END AS forest_vs_region_avg
+            
+        FROM Countries c
+        
+        -- LEFT OUTER JOIN 1: Land Type Breakdown (PRIMARY DATA)
+        LEFT OUTER JOIN LandTypeBreakdown lt 
+            ON c.country_id = lt.country_id
+        
+        -- LEFT OUTER JOIN 2: Agricultural Production
+        LEFT OUTER JOIN AgriculturalProduction ap 
+            ON c.country_id = ap.country_id
+        
+        -- LEFT OUTER JOIN 3: Top Commodity Details
+        LEFT OUTER JOIN TopCommodityPerCountry tcp 
+            ON c.country_id = tcp.country_id
+        
+        -- LEFT OUTER JOIN 4: Regional Statistics
+        LEFT OUTER JOIN RegionalLandStats rls 
+            ON c.region = rls.region
+        
+        WHERE c.country_id IS NOT NULL
+            AND COALESCE(lt.agricultural_land_total, 0) >= 10  -- Ana filtre: 10 bin hektardan az tarım alanı olanlar hariç
+        ORDER BY {sort_by} {order.upper()} NULLS LAST;
+    """
+    
+    records = fetch_query(land_efficiency_query, (year, year, year)) or []
+    
+    # İstatistikler
+    total_countries = len(records)
+    
+    # Global land use totals
+    global_stats = {
+        'total_land_area': sum((row["land_area"] or 0) for row in records),
+        'total_agricultural_land': sum((row["agricultural_land_total"] or 0) for row in records),
+        'total_arable_land': sum((row["arable_land"] or 0) for row in records),
+        'total_forest_land': sum((row["forest_land"] or 0) for row in records),
+        'total_production': sum((row["total_agricultural_production"] or 0) for row in records),
+        'avg_crop_diversity': sum((row["crop_diversity"] or 0) for row in records) / total_countries if total_countries > 0 else 0,
+    }
+    
+    # Sıfır bölme hatasını önle
+    if global_stats['total_land_area'] > 0:
+        global_stats['global_agricultural_percentage'] = (global_stats['total_agricultural_land'] / global_stats['total_land_area'] * 100)
+        global_stats['global_forest_percentage'] = (global_stats['total_forest_land'] / global_stats['total_land_area'] * 100)
+    else:
+        global_stats['global_agricultural_percentage'] = 0
+        global_stats['global_forest_percentage'] = 0
+    
+    # Top performers
+    top_by_productivity = sorted(
+        [r for r in records if (r.get("land_productivity_index") or 0) > 0],
+        key=lambda x: (x.get("land_productivity_index") or 0),
+        reverse=True
+    )[:10]
+    
+    top_by_production_density = sorted(
+        [r for r in records if (r.get("production_density") or 0) > 0],
+        key=lambda x: (x.get("production_density") or 0),
+        reverse=True
+    )[:10]
+    
+    top_by_crop_diversity = sorted(
+        [r for r in records if (r.get("crop_diversity") or 0) > 0],
+        key=lambda x: (x.get("crop_diversity") or 0),
+        reverse=True
+    )[:10]
+    
+    top_by_agricultural_percentage = sorted(
+        [r for r in records if (r.get("agricultural_land_percentage") or 0) > 0],
+        key=lambda x: (x.get("agricultural_land_percentage") or 0),
+        reverse=True
+    )[:10]
+    
+    years = list(range(1961, 2026))
+    
+    return render_template(
+        "landuse_efficiency.html",
+        records=records,
+        year=year,
+        years=years,
+        total_countries=total_countries,
+        global_stats=global_stats,
+        top_by_productivity=top_by_productivity,
+        top_by_production_density=top_by_production_density,
+        top_by_crop_diversity=top_by_crop_diversity,
+        top_by_agricultural_percentage=top_by_agricultural_percentage,
+        sort_by=sort_by,
+        order=order,
+    )

@@ -1,0 +1,361 @@
+{% extends "layout.html" %}
+
+{% block title %}Land Use Efficiency Analysis {{ year }} - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/land_use.css') }}">
+
+<style>
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 20px !important;
+}
+
+.sortable-header:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sort-icon {
+  position: absolute;
+  right: 5px;
+  font-size: 0.8em;
+  opacity: 0.5;
+}
+
+.sort-icon.active {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.metric-card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-left: 4px solid #2c5f2d;
+}
+
+.metric-card h5 {
+  margin: 0 0 10px 0;
+  color: #2c5f2d;
+  font-size: 0.9em;
+}
+
+.metric-card .value {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+}
+
+.metric-card .subtext {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 5px;
+}
+
+.top-performers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.performer-card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.performer-card h4 {
+  color: #2c5f2d;
+  margin-bottom: 10px;
+  font-size: 1em;
+}
+
+.performer-card ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.9em;
+}
+
+.performer-card li {
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.performer-card li:last-child {
+  border-bottom: none;
+}
+</style>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <h2>Land Use Efficiency Analysis – {{ year }}</h2>
+  <p>
+    Comprehensive analysis of land utilization and agricultural productivity combining land use patterns 
+    and production outputs. Investment data excluded for reliability.
+  </p>
+</section>
+
+<!-- Global Statistics -->
+<section class="stats-container">
+  <h3>Global Land Use Statistics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <h5>Total Land Area</h5>
+      <div class="value">{{ "{:,.0f}".format(global_stats.total_land_area) }}</div>
+      <div class="subtext">thousand hectares</div>
+    </div>
+    
+    <div class="metric-card">
+      <h5>Agricultural Land</h5>
+      <div class="value">{{ "{:,.0f}".format(global_stats.total_agricultural_land) }}</div>
+      <div class="subtext">
+        {{ "{:.1f}".format(global_stats.global_agricultural_percentage) }}% 
+        of total land
+      </div>
+    </div>
+    
+    <div class="metric-card">
+      <h5>Arable Land</h5>
+      <div class="value">{{ "{:,.0f}".format(global_stats.total_arable_land) }}</div>
+      <div class="subtext">for crop cultivation</div>
+    </div>
+    
+    <div class="metric-card">
+      <h5>Forest Land</h5>
+      <div class="value">{{ "{:,.0f}".format(global_stats.total_forest_land) }}</div>
+      <div class="subtext">
+        {{ "{:.1f}".format(global_stats.global_forest_percentage) }}% 
+        of total land
+      </div>
+    </div>
+    
+    <div class="metric-card">
+      <h5>Total Production</h5>
+      <div class="value">{{ "{:,.0f}".format(global_stats.total_production) }}</div>
+      <div class="subtext">tonnes in {{ year }}</div>
+    </div>
+    
+    <div class="metric-card">
+      <h5>Avg Crop Diversity</h5>
+      <div class="value">{{ "{:.1f}".format(global_stats.avg_crop_diversity) }}</div>
+      <div class="subtext">commodities per country</div>
+    </div>
+  </div>
+</section>
+
+<!-- Top Performers -->
+<section class="producers-section">
+  <h3>Top Performers by Land Metrics</h3>
+  
+  <div class="top-performers">
+    <div class="performer-card">
+      <h4>🏆 Highest Land Productivity</h4>
+      <ol>
+        {% for country in top_by_productivity %}
+        <li>
+          <strong>{{ country['country_name'] }}</strong><br>
+          <small>
+            Index: {{ "{:,.0f}".format(country['land_productivity_index'] or 0) }} • 
+            {{ country['crop_diversity'] or 0 }} crops
+          </small>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <div class="performer-card">
+      <h4>🌾 Highest Production Density</h4>
+      <ol>
+        {% for country in top_by_production_density %}
+        <li>
+          <strong>{{ country['country_name'] }}</strong><br>
+          <small>
+            {{ "{:,.0f}".format(country['production_density'] or 0) }} t/1000ha • 
+            {{ "{:,.0f}".format(country['total_agricultural_production'] or 0) }} t total
+          </small>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <div class="performer-card">
+      <h4>🌱 Most Crop Diversity</h4>
+      <ol>
+        {% for country in top_by_crop_diversity %}
+        <li>
+          <strong>{{ country['country_name'] }}</strong><br>
+          <small>
+            {{ country['crop_diversity'] or 0 }} commodities • 
+            Top: {{ country['top_commodity'] }}
+          </small>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <div class="performer-card">
+      <h4>🚜 Highest Agricultural Land %</h4>
+      <ol>
+        {% for country in top_by_agricultural_percentage %}
+        <li>
+          <strong>{{ country['country_name'] }}</strong><br>
+          <small>
+            {{ "{:.1f}".format(country['agricultural_land_percentage'] or 0) }}% agricultural • 
+            {{ "{:,.0f}".format(country['agricultural_land_total'] or 0) }} 1000ha
+          </small>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- Detailed Data Table -->
+<section class="producers-section">
+  <h3>Detailed Country Analysis ({{ year }})</h3>
+
+  <div class="year-filter-bar">
+    <form method="get" action="{{ url_for('landuse.land_efficiency_analysis') }}" class="filter-form">
+      <label for="year-select">Year:</label>
+      <select id="year-select" name="year" onchange="this.form.submit()">
+        {% for y in years %}
+          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </form>
+
+    <a href="{{ url_for('landuse.landUsePage', year=year) }}" class="btn-add-country">
+      ← Back to Land Use
+    </a>
+  </div>
+
+  {% if records %}
+  <div style="overflow-x: auto;">
+  <table class="data-table" style="font-size: 0.85em;">
+    <thead>
+      <tr>
+        {% macro sortable_th(column, display_name) %}
+          {% if sort_by == column %}
+            {% if order == 'desc' %}
+              <th class="sortable-header" 
+                  onclick="window.location.href='{{ url_for('landuse.land_efficiency_analysis', 
+                    year=year, sort=column, order='asc') }}'">
+                {{ display_name }}
+                <span class="sort-icon active">▼</span>
+              </th>
+            {% else %}
+              <th class="sortable-header" 
+                  onclick="window.location.href='{{ url_for('landuse.land_efficiency_analysis', 
+                    year=year) }}'">
+                {{ display_name }}
+                <span class="sort-icon active">▲</span>
+              </th>
+            {% endif %}
+          {% else %}
+            <th class="sortable-header" 
+                onclick="window.location.href='{{ url_for('landuse.land_efficiency_analysis', 
+                  year=year, sort=column, order='desc') }}'">
+              {{ display_name }}
+              <span class="sort-icon">⬍</span>
+            </th>
+          {% endif %}
+        {% endmacro %}
+
+        {{ sortable_th('country_name', 'Country') }}
+        {{ sortable_th('region', 'Region') }}
+        {{ sortable_th('agricultural_land_total', 'Agri Land') }}
+        <th>Agri %</th>
+        {{ sortable_th('forest_land', 'Forest') }}
+        <th>Forest %</th>
+        {{ sortable_th('production_density', 'Prod/Land') }}
+        {{ sortable_th('crop_diversity', 'Diversity') }}
+        {{ sortable_th('crop_diversity_score', 'Div Score') }}
+        {{ sortable_th('land_productivity_index', 'Index') }}
+        <th>Top Crop</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for row in records %}
+      <tr>
+        <td>
+          <a href="/countries/{{ row['country_id'] }}" class="country-link">
+            <strong>{{ row['country_name'] }}</strong>
+          </a>
+        </td>
+        <td><small>{{ row['region'] or 'N/A' }}</small></td>
+        <td>
+          {% if (row['agricultural_land_total'] or 0) > 0 %}
+            {{ "{:,.0f}".format(row['agricultural_land_total']) }}
+          {% else %}N/A{% endif %}
+        </td>
+        <td>
+          {% if (row['agricultural_land_percentage'] or 0) > 0 %}
+            {{ "{:.1f}".format(row['agricultural_land_percentage']) }}%
+          {% else %}N/A{% endif %}
+        </td>
+        <td>
+          {% if (row['forest_land'] or 0) > 0 %}
+            {{ "{:,.0f}".format(row['forest_land']) }}
+          {% else %}N/A{% endif %}
+        </td>
+        <td>
+          {% if (row['forest_land_percentage'] or 0) > 0 %}
+            {{ "{:.1f}".format(row['forest_land_percentage']) }}%
+          {% else %}N/A{% endif %}
+        </td>
+        <td>
+          {% if (row['production_density'] or 0) > 0 %}
+            {{ "{:,.0f}".format(row['production_density']) }}
+          {% else %}N/A{% endif %}
+        </td>
+        <td>{{ row['crop_diversity'] or 0 }}</td>
+        <td>
+          {% if (row['crop_diversity_score'] or 0) > 0 %}
+            {{ "{:,.0f}".format(row['crop_diversity_score']) }}
+          {% else %}N/A{% endif %}
+        </td>
+        <td>
+          {% if (row['land_productivity_index'] or 0) > 0 %}
+            {{ "{:,.0f}".format(row['land_productivity_index']) }}
+          {% else %}N/A{% endif %}
+        </td>
+        <td><small>{{ (row['top_commodity'] or 'N/A')[:20] }}</small></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  {% else %}
+  <div class="no-data">
+    <p>No data available for {{ year }}.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}
