@@ -316,3 +316,90 @@ def add_production():
     except Exception as e:
         flash(f"Error adding production record: {str(e)}", "error")
         return redirect(url_for("prod.production"))
+
+
+@prod_bp.route("/production/<int:production_id>/edit", methods=["GET"])
+def edit_production_form(production_id):
+    """Display form to edit existing production record"""
+    try:
+        # Get current production data
+        production = fetch_query(
+            """
+            SELECT p.production_ID, p.country_code, p.commodity_code, p.year, p.unit, p.quantity,
+                   c.country_name, co.item_name
+            FROM Production p
+            JOIN Countries c ON p.country_code = c.country_id
+            JOIN Commodities co ON p.commodity_code = co.fao_code
+            WHERE p.production_ID = %s
+            """,
+            [production_id]
+        )
+        
+        if not production:
+            flash("Production record not found.", "error")
+            return redirect(url_for("prod.production"))
+        
+        production = production[0]
+        
+        return render_template(
+            "production_edit.html",
+            production=production
+        )
+        
+    except Exception as e:
+        flash(f"Error loading production record: {str(e)}", "error")
+        return redirect(url_for("prod.production"))
+
+
+@prod_bp.route("/production/<int:production_id>/edit", methods=["POST"])
+def edit_production(production_id):
+    """Handle production record update"""
+    try:
+        unit = request.form.get("unit", "t")
+        quantity = request.form.get("quantity", type=float)
+        
+        if quantity is None or quantity < 0:
+            flash("Quantity must be a non-negative number.", "error")
+            return redirect(url_for("prod.edit_production_form", production_id=production_id))
+        
+        # Update the record (only unit and quantity can be edited)
+        update_query = """
+            UPDATE Production 
+            SET unit = %s, quantity = %s
+            WHERE production_ID = %s
+        """
+        execute_query(update_query, (unit, quantity, production_id))
+        
+        flash("Production record updated successfully!", "success")
+        return redirect(url_for("prod.production"))
+        
+    except Exception as e:
+        flash(f"Error updating production record: {str(e)}", "error")
+        return redirect(url_for("prod.production"))
+
+
+@prod_bp.route("/production/<int:production_id>/delete", methods=["POST"])
+def delete_production(production_id):
+    """Handle production record deletion (CASCADE deletes related Production_Value records)"""
+    try:
+        # Check if record exists
+        existing = fetch_query(
+            "SELECT production_ID FROM Production WHERE production_ID = %s",
+            [production_id]
+        )
+        
+        if not existing:
+            flash("Production record not found.", "error")
+            return redirect(url_for("prod.production"))
+        
+        # Delete the record (Production_Value records are CASCADE deleted)
+        delete_query = "DELETE FROM Production WHERE production_ID = %s"
+        execute_query(delete_query, [production_id])
+        
+        flash("Production record deleted successfully! Related production values were also removed.", "success")
+        return redirect(url_for("prod.production"))
+        
+    except Exception as e:
+        flash(f"Error deleting production record: {str(e)}", "error")
+        return redirect(url_for("prod.production"))
+

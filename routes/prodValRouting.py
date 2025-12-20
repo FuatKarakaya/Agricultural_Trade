@@ -360,3 +360,114 @@ def add_production_value():
     except Exception as e:
         flash(f"Error adding production value record: {str(e)}", "error")
         return redirect(url_for("prod_val.add_production_value_form"))
+
+
+@prod_val_bp.route("/production-value/<int:production_value_id>/edit", methods=["GET"])
+def edit_production_value_form(production_value_id):
+    """Display form to edit existing production value record"""
+    try:
+        # Get current production value data with related info
+        production_value = fetch_query(
+            """
+            SELECT pv.production_value_ID, pv.production_ID, pv.element, pv.unit, pv.value,
+                   p.year, p.country_code, p.commodity_code,
+                   c.country_name, co.item_name
+            FROM Production_Value pv
+            JOIN Production p ON pv.production_ID = p.production_ID
+            JOIN Countries c ON p.country_code = c.country_id
+            JOIN Commodities co ON p.commodity_code = co.fao_code
+            WHERE pv.production_value_ID = %s
+            """,
+            [production_value_id]
+        )
+        
+        if not production_value:
+            flash("Production value record not found.", "error")
+            return redirect(url_for("prod_val.production_values"))
+        
+        production_value = production_value[0]
+        
+        # Get distinct elements with their units
+        elements = fetch_query(
+            """
+            SELECT DISTINCT element, unit 
+            FROM Production_Value 
+            WHERE element IS NOT NULL 
+            ORDER BY element
+            """
+        )
+        
+        return render_template(
+            "production_value_edit.html",
+            production_value=production_value,
+            elements=elements
+        )
+        
+    except Exception as e:
+        flash(f"Error loading production value record: {str(e)}", "error")
+        return redirect(url_for("prod_val.production_values"))
+
+
+@prod_val_bp.route("/production-value/<int:production_value_id>/edit", methods=["POST"])
+def edit_production_value(production_value_id):
+    """Handle production value record update"""
+    try:
+        element = request.form.get("element", "").strip()
+        value = request.form.get("value", type=float)
+        
+        if not element:
+            flash("Element is required.", "error")
+            return redirect(url_for("prod_val.edit_production_value_form", production_value_id=production_value_id))
+        
+        if value is None:
+            flash("Value is required.", "error")
+            return redirect(url_for("prod_val.edit_production_value_form", production_value_id=production_value_id))
+        
+        # Get unit from element
+        unit_row = fetch_query(
+            "SELECT unit FROM Production_Value WHERE element = %s LIMIT 1",
+            (element,)
+        )
+        unit = unit_row[0]["unit"] if unit_row else ""
+        
+        # Update the record
+        update_query = """
+            UPDATE Production_Value 
+            SET element = %s, unit = %s, value = %s
+            WHERE production_value_ID = %s
+        """
+        execute_query(update_query, (element, unit, value, production_value_id))
+        
+        flash("Production value record updated successfully!", "success")
+        return redirect(url_for("prod_val.production_values"))
+        
+    except Exception as e:
+        flash(f"Error updating production value record: {str(e)}", "error")
+        return redirect(url_for("prod_val.production_values"))
+
+
+@prod_val_bp.route("/production-value/<int:production_value_id>/delete", methods=["POST"])
+def delete_production_value(production_value_id):
+    """Handle production value record deletion"""
+    try:
+        # Check if record exists
+        existing = fetch_query(
+            "SELECT production_value_ID FROM Production_Value WHERE production_value_ID = %s",
+            [production_value_id]
+        )
+        
+        if not existing:
+            flash("Production value record not found.", "error")
+            return redirect(url_for("prod_val.production_values"))
+        
+        # Delete the record
+        delete_query = "DELETE FROM Production_Value WHERE production_value_ID = %s"
+        execute_query(delete_query, [production_value_id])
+        
+        flash("Production value record deleted successfully!", "success")
+        return redirect(url_for("prod_val.production_values"))
+        
+    except Exception as e:
+        flash(f"Error deleting production value record: {str(e)}", "error")
+        return redirect(url_for("prod_val.production_values"))
+

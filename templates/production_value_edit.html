@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Production Value Record - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<section class="hero-section">
+  <h2>Edit Production Value Record</h2>
+  <p>Modify production value data for the selected record.</p>
+</section>
+
+<section class="form-section">
+  <form method="post" action="{{ url_for('prod_val.edit_production_value', production_value_id=production_value.production_value_id) }}" class="data-form">
+    
+    <div class="form-group">
+      <label>Country</label>
+      <input type="text" value="{{ production_value.country_name }}" readonly disabled 
+             style="background-color: #e9ecef; cursor: not-allowed;">
+    </div>
+
+    <div class="form-group">
+      <label>Commodity</label>
+      <input type="text" value="{{ production_value.item_name }}" readonly disabled 
+             style="background-color: #e9ecef; cursor: not-allowed;">
+    </div>
+
+    <div class="form-group">
+      <label>Year</label>
+      <input type="text" value="{{ production_value.year }}" readonly disabled 
+             style="background-color: #e9ecef; cursor: not-allowed;">
+    </div>
+
+    <div class="form-group">
+      <label for="element">Element *</label>
+      <select id="element" name="element" required>
+        {% for e in elements or [] %}
+          <option value="{{ e['element'] }}" data-unit="{{ e['unit'] or '' }}"
+                  {% if production_value.element == e['element'] %}selected{% endif %}>
+            {{ e['element'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Unit</label>
+      <input type="text" id="unit_display" value="{{ production_value.unit or '' }}" readonly disabled 
+             style="background-color: #e9ecef; cursor: not-allowed;">
+    </div>
+
+    <div class="form-group">
+      <label for="value">Value *</label>
+      <input type="number" step="0.001" id="value" name="value" 
+             value="{{ production_value.value }}" required>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">Save Changes</button>
+      <a href="{{ url_for('prod_val.production_values') }}" class="btn-cancel">Cancel</a>
+    </div>
+
+  </form>
+</section>
+
+<style>
+  .form-section {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .data-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #333;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-submit {
+    flex: 1;
+    padding: 0.75rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-submit:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    padding: 0.75rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .btn-cancel:hover {
+    background-color: #5a6268;
+  }
+
+  .flash-container {
+    max-width: 700px;
+    margin: 1rem auto 0;
+  }
+
+  .flash-message {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+  }
+
+  .flash-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+</style>
+
+<script>
+  // Auto-populate unit when element is selected
+  document.getElementById('element').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const unit = selectedOption.getAttribute('data-unit') || '';
+    document.getElementById('unit_display').value = unit;
+  });
+</script>
+
+{% endblock %}
