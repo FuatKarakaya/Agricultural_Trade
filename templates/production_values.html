@@ -13,27 +13,32 @@
 <!-- Stats Section -->
 <section class="stats-container">
   <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card animated">
+      <div class="stat-card-icon">📊</div>
       <h4>Total Records</h4>
       <div class="stat-number">{{ stats.total_records or 0 }}</div>
       <p class="stat-detail">Production value rows</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.1s;">
+      <div class="stat-card-icon">📋</div>
       <h4>Elements</h4>
       <div class="stat-number">{{ stats.total_elements or 0 }}</div>
       <p class="stat-detail">Distinct value elements</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.2s;">
+      <div class="stat-card-icon">🌍</div>
       <h4>Countries</h4>
       <div class="stat-number">{{ stats.total_countries or 0 }}</div>
       <p class="stat-detail">With production values</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.3s;">
+      <div class="stat-card-icon">🌾</div>
       <h4>Commodities</h4>
       <div class="stat-number">{{ stats.total_commodities or 0 }}</div>
       <p class="stat-detail">Distinct items</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.4s;">
+      <div class="stat-card-icon">📅</div>
       <h4>Year Range</h4>
       <div class="stat-number">
         {% if stats.min_year and stats.max_year %}
@@ -44,7 +49,8 @@
       </div>
       <p class="stat-detail">Coverage in years</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card animated" style="animation-delay: 0.5s;">
+      <div class="stat-card-icon">💰</div>
       <h4>Total Value</h4>
       <div class="stat-number">
         {% if stats.total_value %}
@@ -58,9 +64,29 @@
   </div>
 </section>
 
+<!-- Chart Section -->
+{% if chart_data %}
+<section class="chart-container fade-in">
+  <h3 class="chart-title">Top 10 Production Values Worldwide</h3>
+  <div class="chart-bars">
+    {% set max_value = chart_data[0]['value'] if chart_data else 1 %}
+    {% for item in chart_data %}
+    <div class="chart-bar-item">
+      <div class="chart-label">{{ item['country_name'][:15] }} - {{ item['item_name'][:20] }}</div>
+      <div class="chart-bar-wrapper">
+        <div class="chart-bar-fill" style="width: {{ (item['value'] / max_value * 100)|int }}%">
+          <span class="chart-value">{{ "{:,.0f}".format(item['value']) }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="filter-section">
-  <form method="get" class="filter-form">
-    <div class="filter-group">
+  <form method="get" class="filter-form" id="filterForm" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="element">Element</label>
       <select id="element" name="element" class="filter-select">
         <option value="">All</option>
@@ -73,7 +99,7 @@
       </select>
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="year">Year</label>
       <select id="year" name="year" class="filter-select">
         <option value="">All</option>
@@ -86,7 +112,7 @@
       </select>
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
       <label for="country_code">Country</label>
       <select id="country_code" name="country_code" class="filter-select">
         <option value="">All</option>
@@ -99,26 +125,118 @@
       </select>
     </div>
 
-    <button type="submit" class="btn">Apply Filters</button>
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
+      <label for="commodity_code">Commodity</label>
+      <select id="commodity_code" name="commodity_code" class="filter-select">
+        <option value="">All</option>
+        {% for com in commodities or [] %}
+          <option value="{{ com['fao_code'] }}"
+                  {% if selected_commodity == com['fao_code']|string %}selected{% endif %}>
+            {{ com['item_name'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
+      <label for="region">Region</label>
+      <select id="region" name="region" class="filter-select">
+        <option value="">All</option>
+        {% for r in regions or [] %}
+          <option value="{{ r['region'] }}"
+                  {% if selected_region == r['region'] %}selected{% endif %}>
+            {{ r['region'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 1 1 0; min-width: 150px;">
+      <label for="search">Search</label>
+      <input type="text" id="search" name="search" class="filter-select" 
+             placeholder="Search all fields..." value="{{ search or '' }}">
+    </div>
+
+    <button type="submit" class="btn" style="margin-top: auto;">Apply Filters</button>
+    <button type="button" class="btn" style="margin-top: auto;" onclick="window.location.href='/production-values'">Clear Filters</button>
   </form>
 </section>
 
+<!-- Chart Section -->
+{% if chart_data %}
+<section class="stats-container">
+  <h3>Top Countries by Production Value</h3>
+  <p class="section-description">Top 10 countries by total production value</p>
+  <div class="chart-wrapper" style="position: relative; height: 400px; margin-top: 1rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+    <canvas id="productionValueChart"></canvas>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const chartData = {{ chart_data | tojson }};
+  if (chartData && chartData.length > 0) {
+    const ctx = document.getElementById('productionValueChart');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.map(item => item.country),
+        datasets: [{
+          label: 'Total Value',
+          data: chartData.map(item => item.value),
+          backgroundColor: 'rgba(52, 152, 219, 0.8)',
+          borderColor: 'rgba(52, 152, 219, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                if (value >= 1000000000) return '$' + (value / 1000000000).toFixed(1) + 'B';
+                if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                if (value >= 1000) return '$' + (value / 1000).toFixed(1) + 'K';
+                return '$' + value;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endif %}
+
 <section class="producers-section">
-  <h3>Top 100 Production Values</h3>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h3>Production Values</h3>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{{ url_for('prod_val.add_production_value_form') }}" class="btn">Add New Record</a>
+      <button type="button" class="btn" onclick="exportToCSV()">Export CSV</button>
+    </div>
+  </div>
   <p class="section-description">
-    Sorted by year (newest first) and value (largest first).
+    Showing {{ production_values|length if production_values else 0 }} records
   </p>
 
   {% if production_values %}
-  <table class="data-table">
+  <table class="data-table" id="productionValuesTable">
     <thead>
       <tr>
-        <th>Production Value ID</th>
-        <th>Country</th>
-        <th>Commodity</th>
-        <th>Element</th>
-        <th>Year</th>
-        <th>Value</th>
+        <th class="sortable" data-sort="id">Value ID</th>
+        <th class="sortable" data-sort="prod_id">Prod ID</th>
+        <th class="sortable" data-sort="country">Country</th>
+        <th class="sortable" data-sort="commodity">Commodity</th>
+        <th class="sortable" data-sort="element">Element</th>
+        <th class="sortable" data-sort="year">Year</th>
+        <th class="sortable" data-sort="value">Value</th>
         <th>Unit</th>
         <th>Region</th>
       </tr>
@@ -127,11 +245,12 @@
       {% for row in production_values %}
       <tr>
         <td>{{ row.get('production_value_ID') or row.get('production_value_id') or 'N/A' }}</td>
+        <td>{{ row.get('production_ID') or row.get('production_id') or 'N/A' }}</td>
         <td>{{ row.get('country_name') or row.get('country_code') or 'N/A' }}</td>
         <td>{{ row.get('item_name') or 'N/A' }}</td>
-        <td>{{ row.get('element') or 'N/A' }}</td>
+        <td><span class="badge badge-primary">{{ row.get('element') or 'N/A' }}</span></td>
         <td>{{ row.get('year') or 'N/A' }}</td>
-        <td>
+        <td class="text-success">
           {% if row.get('value') is not none %}
             {{ "{:,.2f}".format(row.get('value')) }}
           {% else %}
@@ -144,8 +263,11 @@
       {% endfor %}
     </tbody>
   </table>
+
+
   {% else %}
   <div class="no-data">
+    <div class="no-results-icon">🔍</div>
     <p>No production values found for the selected filters.</p>
   </div>
   {% endif %}
@@ -153,4 +275,56 @@
 
 {% endblock %}
 
+{% block extra_js %}
+<script>
+// Export to CSV
+function exportToCSV() {
+  const table = document.getElementById('productionValuesTable');
+  let csv = [];
+  
+  // Get headers
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  csv.push(headers.join(','));
+  
+  // Get rows
+  const rows = table.querySelectorAll('tbody tr');
+  rows.forEach(row => {
+    const cells = Array.from(row.querySelectorAll('td')).map(td => {
+      let text = td.textContent.trim();
+      // Escape commas and quotes
+      if (text.includes(',') || text.includes('"')) {
+        text = '"' + text.replace(/"/g, '""') + '"';
+      }
+      return text;
+    });
+    csv.push(cells.join(','));
+  });
+  
+  // Create and download
+  const csvContent = csv.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'production_values_data.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
+
+// Animate chart bars on load
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    document.querySelectorAll('.chart-bar-fill').forEach(bar => {
+      const width = bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(function() {
+        bar.style.width = width;
+      }, 100);
+    });
+  }, 300);
+});
+</script>
+{% endblock %}
 

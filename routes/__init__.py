@@ -8,8 +8,12 @@ from .prodValRouting import prod_val_bp
 from .consumerPriceRouting import consumer_price_bp
 from .producerPriceRouting import producer_price_bp
 from .investments import investments_bp
+from .auth_routes import auth_bp,login_required,admin_required  # admin panel
 
 __all__ = [
+    'auth_bp',
+    'login_required',
+    'admin_required',
     "main_bp",
     "country_bp",
     "consumer_price_bp",

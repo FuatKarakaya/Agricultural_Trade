@@ -63,8 +63,10 @@ def execute_query(query, params=()):
         return rowcount
 
     except Exception as e:
+        print(f"Database execute error: {e}")
         if conn:
             conn.rollback()  # Roll back the transaction on error
+        raise
 
     finally:
         if conn:
