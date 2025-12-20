@@ -123,17 +123,29 @@ CREATE TABLE Investments (
 );
 
 -- eski hali
+    -- CREATE TABLE Producer_Prices (
+    --     unique_id SERIAL PRIMARY KEY,
+    --     country_id INTEGER,
+    --     commodity_id INTEGER,
+    --     price_unit VARCHAR(20), --silindi hepsi LCU
+    --     year INTEGER,
+    --     month SMALLINT,
+    --     value FLOAT,
+    --     FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+    --     FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
+    --     UNIQUE(country_id, commodity_id, year, month)
+    -- );
+-- yanlışlıkla silindi
 -- CREATE TABLE Producer_Prices (
 --     unique_id SERIAL PRIMARY KEY,
 --     country_id INTEGER,
 --     commodity_id INTEGER,
---     price_unit VARCHAR(20), --silindi hepsi LCU
---     year INTEGER,
 --     month SMALLINT,
---     value FLOAT,
+--     Y2010 FLOAT,Y2011 FLOAT,Y2012 FLOAT,Y2013 FLOAT,
+--     Y2014 FLOAT,Y2015 FLOAT,Y2016 FLOAT,Y2017 FLOAT,Y2018 FLOAT,
+--     Y2019 FLOAT,Y2020 FLOAT,Y2021 FLOAT,Y2022 FLOAT,Y2023 FLOAT,
 --     FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
 --     FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
---     UNIQUE(country_id, commodity_id, year, month)
 -- );
 
 CREATE TABLE Producer_Prices (
@@ -141,28 +153,29 @@ CREATE TABLE Producer_Prices (
     country_id INTEGER,
     commodity_id INTEGER,
     month SMALLINT,
-    Y2010 FLOAT,Y2011 FLOAT,Y2012 FLOAT,Y2013 FLOAT,
-    Y2014 FLOAT,Y2015 FLOAT,Y2016 FLOAT,Y2017 FLOAT,Y2018 FLOAT,
-    Y2019 FLOAT,Y2020 FLOAT,Y2021 FLOAT,Y2022 FLOAT,Y2023 FLOAT,
-    FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+    year INTEGER,
+    unit VARCHAR(10),
+    value FLOAT,
+    FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON UPDATE CASCADE,
     FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
+    UNIQUE(country_id, commodity_id, month, year)
 );
 
 -- eski hali
--- CREATE TABLE Consumer_Prices (
---     unique_id SERIAL PRIMARY KEY,
---     country_id INTEGER,
---     commodity_id INTEGER, --Silinecek
---     -- type SMALLINT, --eklenecek
---     -- type = 1 -> Consumer Prices, General Indices (2015 = 100), 2 -> Consumer Prices, Food Indices (2015 = 100), 3 -> Food price inflation
---     year INTEGER,
---     month SMALLINT,
---     value FLOAT,
+    -- CREATE TABLE Consumer_Prices (
+    --     unique_id SERIAL PRIMARY KEY,
+    --     country_id INTEGER,
+    --     commodity_id INTEGER, --Silinecek
+    --     -- type SMALLINT, --eklenecek
+    --     -- type = 1 -> Consumer Prices, General Indices (2015 = 100), 2 -> Consumer Prices, Food Indices (2015 = 100), 3 -> Food price inflation
+    --     year INTEGER,
+    --     month SMALLINT,
+    --     value FLOAT,
 
---     FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
---     FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
---     UNIQUE(country_id, commodity_id, year, month)
--- );
+    --     FOREIGN KEY (country_id) REFERENCES countries(country_id) ON UPDATE CASCADE,
+    --     FOREIGN KEY (commodity_id) REFERENCES Commodities(fao_code) ON UPDATE CASCADE,
+    --     UNIQUE(country_id, commodity_id, year, month)
+    -- );
 
 CREATE TABLE Consumer_Prices (
     unique_id SERIAL PRIMARY KEY,
