@@ -104,7 +104,7 @@ CREATE TABLE Land_Use (
     year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
     country_id INTEGER NOT NULL,
     FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON DELETE CASCADE,
-    UNIQUE (country_id, year, land_type)
+    UNIQUE (country_id, year, land_type,unit)
 );
 
 CREATE TABLE Investments (
@@ -115,7 +115,7 @@ CREATE TABLE Investments (
     year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
     country_id INTEGER NOT NULL,
     FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON DELETE CASCADE,
-    UNIQUE (country_id, year, expenditure_type)
+    UNIQUE (country_id, year, expenditure_type,unit)
 );
 
 -- eski hali
