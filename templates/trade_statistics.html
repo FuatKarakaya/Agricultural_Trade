@@ -58,9 +58,6 @@
         <dt>Total Value</dt>
         <dd>${{ "{:,.0f}".format(stats['total_value'] or 0) }}</dd>
 
-        <dt>Average Value</dt>
-        <dd>${{ "{:,.0f}".format(stats['avg_value'] or 0) }}</dd>
-
         <dt>Share of Total</dt>
         <dd>{{ "%.1f"|format(stats['percentage'] or 0) }}%</dd>
       </div>
