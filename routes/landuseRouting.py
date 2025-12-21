@@ -878,7 +878,6 @@ def land_efficiency_analysis():
             c.country_id,
             c.country_name,
             c.region,
-            c.subregion,
             c.population,
             
             -- LAND USE DATA (CORE)

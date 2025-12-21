@@ -68,53 +68,70 @@
   border-color: #888;
 }
 
+/* Add Record ve benzer butonlar - Yeşil tema */
 .btn-add-country {
   display: inline-block;
   padding: 0.45rem 0.9rem;
-  border-radius: 999px;
+  border-radius: 8px;
   border: none;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
-  background-color: #007bff;
+  background: linear-gradient(135deg, #52796f 0%, #2d6a4f 100%);
   color: white;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+  transition: all 0.3s ease;
 }
 
 .btn-add-country:hover {
-  opacity: 0.9;
+  background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
 }
 
+/* Update butonu - Yeşil tema */
 .btn-update {
   display: inline-block;
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
   border: none;
-  background-color: #17a2b8;
+  background: linear-gradient(135deg, #52796f 0%, #2d6a4f 100%);
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   margin-right: 4px;
+  box-shadow: 0 2px 6px rgba(45, 106, 79, 0.3);
+  transition: all 0.3s ease;
 }
 
 .btn-update:hover {
-  opacity: 0.9;
+  background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(45, 106, 79, 0.4);
 }
 
+/* Delete butonu - Kırmızı kalacak */
 .btn-delete {
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
   border: none;
-  background-color: #dc3545;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+  transition: all 0.3s ease;
 }
 
 .btn-delete:hover {
-  opacity: 0.9;
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
 }
 
 /* Stats grid'i 3 kolonlu yap: sol stat card, orta stat, sağ chart */
@@ -142,5 +159,69 @@
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  /* Mobilde butonlar biraz daha küçük */
+  .btn-add-country {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  .btn-update,
+  .btn-delete {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Tablo wrapper - yatay scroll için */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 20px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Tablo minimum genişlik ayarı */
+.data-table {
+  min-width: 1200px;
+  width: 100%;
+  table-layout: auto;
+}
+
+/* Sütun genişliklerini optimize et */
+.data-table th,
+.data-table td {
+  white-space: nowrap;
+  padding: 12px 8px;
+  font-size: 0.9rem;
+}
+
+/* Country/Item sütunu daha geniş olabilir */
+.data-table th:first-child,
+.data-table td:first-child {
+  min-width: 150px;
+  white-space: normal;
+}
+
+/* Actions sütunu */
+.data-table th:last-child,
+.data-table td:last-child {
+  min-width: 180px;
+  white-space: normal;
+}
+
+/* Mobil responsive */
+@media (max-width: 768px) {
+  .data-table {
+    min-width: 1000px;
+    font-size: 0.85rem;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 10px 6px;
   }
 }
