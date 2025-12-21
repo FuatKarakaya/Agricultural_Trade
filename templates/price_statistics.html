@@ -6,13 +6,13 @@
 
 <section class="hero-section">
     <h2>Price Statistics</h2>
-    <p class="section-description">Demonstrating nested query and 4-table join</p>
+    <p class="section-description">Analyze average prices and compare with production data across countries</p>
 </section>
 
 <!-- Nested Query Result -->
 {% if commodity_stats %}
 <section class="producers-section">
-    <h3>Nested Query: Commodity Averages</h3>
+    <h3>Top Commodities by Average Price</h3>
     <table class="data-table">
         <thead>
             <tr>
@@ -38,7 +38,7 @@
 
 <!-- 4-Table Join with Filter -->
 <section class="producers-section">
-    <h3>4-Table Join: Price vs Production</h3>
+    <h3>Price and Production Comparison by Country</h3>
 
     <!-- Commodity Filter -->
     <form method="get" action="/prices/statistics" class="filter-form" style="margin-bottom: 1rem;">
