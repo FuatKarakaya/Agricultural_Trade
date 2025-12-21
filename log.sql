@@ -1313,3 +1313,4 @@ DELETE FROM Production WHERE production_ID = %s
                   AND year = %s
                   AND land_type = %s;
                 
+DELETE FROM trade_data_final WHERE unique_id = %s
