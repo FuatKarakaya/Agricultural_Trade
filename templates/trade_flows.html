@@ -40,73 +40,128 @@
 </section>
 
 
-<!-- add new trade flow button -->
-<section class="filters-section" style="margin-bottom: 2rem;">
-  <button onclick="openAddModal()" class="btn" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
-    + Add New Trade Flow
-  </button>
-</section>
-
 <!-- filter section -->
-<section class="filters-section" style="margin-bottom: 2rem;">
-  <h3>Filter Trade Flows</h3>
-  <form method="GET" action="/trades" class="filters-form" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
-    
+<section class="filters-section" style="margin-bottom: 2rem; background-color: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+  <h3 style="margin-bottom: 1.5rem; color: #2c3e50; font-size: 1.5rem;">Filter Trade Flows</h3>
+  <form method="GET" action="/trades" id="filterForm" class="filters-form" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+
+    <!-- Reporter Country Multi-Select -->
     <div class="filter-group" style="flex: 1; min-width: 180px;">
-      <label for="reporter_country" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Reporter Country</label>
-      <select name="reporter_country" id="reporter_country" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="">All Countries</option>
-        {% for country in reporter_countries %}
-        <option value="{{ country['country_code'] }}" {% if selected_reporter == country['country_code']|string %}selected{% endif %}>
-          {{ country['country_name'] }}
-        </option>
-        {% endfor %}
-      </select>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Reporter Country</label>
+      <div class="multi-select-dropdown">
+        <div class="multi-select-button" onclick="toggleDropdown('reporter')">
+          <span id="reporter-label">All Countries</span>
+          <span class="dropdown-arrow">▼</span>
+        </div>
+        <div class="multi-select-options" id="reporter-options" style="display: none;">
+          <div class="option-item">
+            <input type="checkbox" id="reporter-all" class="filter-checkbox" onchange="toggleAllReporter(this)" checked>
+            <label for="reporter-all">All Countries</label>
+          </div>
+          {% for country in reporter_countries %}
+          <div class="option-item">
+            <input type="checkbox" name="reporter_country" value="{{ country['country_code'] }}" id="reporter-{{ country['country_code'] }}" class="filter-checkbox reporter-checkbox" onchange="updateReporterLabel()" {% if country['country_code']|string in selected_reporters %}checked{% endif %}>
+            <label for="reporter-{{ country['country_code'] }}">{{ country['country_name'] }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
-    
+
+    <!-- Partner Country Multi-Select -->
     <div class="filter-group" style="flex: 1; min-width: 180px;">
-      <label for="partner_country" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Partner Country</label>
-      <select name="partner_country" id="partner_country" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="">All Partners</option>
-        {% for country in partner_countries %}
-        <option value="{{ country['country_code'] }}" {% if selected_partner == country['country_code']|string %}selected{% endif %}>
-          {{ country['country_name'] }}
-        </option>
-        {% endfor %}
-      </select>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Partner Country</label>
+      <div class="multi-select-dropdown">
+        <div class="multi-select-button" onclick="toggleDropdown('partner')">
+          <span id="partner-label">All Partners</span>
+          <span class="dropdown-arrow">▼</span>
+        </div>
+        <div class="multi-select-options" id="partner-options" style="display: none;">
+          <div class="option-item">
+            <input type="checkbox" id="partner-all" class="filter-checkbox" onchange="toggleAllPartner(this)" checked>
+            <label for="partner-all">All Partners</label>
+          </div>
+          {% for country in partner_countries %}
+          <div class="option-item">
+            <input type="checkbox" name="partner_country" value="{{ country['country_code'] }}" id="partner-{{ country['country_code'] }}" class="filter-checkbox partner-checkbox" onchange="updatePartnerLabel()" {% if country['country_code']|string in selected_partners %}checked{% endif %}>
+            <label for="partner-{{ country['country_code'] }}">{{ country['country_name'] }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
-    
+
+    <!-- Trade Type Multi-Select -->
     <div class="filter-group" style="flex: 1; min-width: 140px;">
-      <label for="trade_type" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Trade Type</label>
-      <select name="trade_type" id="trade_type" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="">All Types</option>
-        <option value="Export" {% if selected_trade_type == 'Export' %}selected{% endif %}>Export</option>
-        <option value="Import" {% if selected_trade_type == 'Import' %}selected{% endif %}>Import</option>
-      </select>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Trade Type</label>
+      <div class="multi-select-dropdown">
+        <div class="multi-select-button" onclick="toggleDropdown('tradetype')">
+          <span id="tradetype-label">All Types</span>
+          <span class="dropdown-arrow">▼</span>
+        </div>
+        <div class="multi-select-options" id="tradetype-options" style="display: none;">
+          <div class="option-item">
+            <input type="checkbox" id="tradetype-all" class="filter-checkbox" onchange="toggleAllTradeType(this)" checked>
+            <label for="tradetype-all">All Types</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" name="trade_type" value="Export" id="tradetype-export" class="filter-checkbox tradetype-checkbox" onchange="updateTradeTypeLabel()" {% if 'Export' in selected_trade_types %}checked{% endif %}>
+            <label for="tradetype-export">Export</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" name="trade_type" value="Import" id="tradetype-import" class="filter-checkbox tradetype-checkbox" onchange="updateTradeTypeLabel()" {% if 'Import' in selected_trade_types %}checked{% endif %}>
+            <label for="tradetype-import">Import</label>
+          </div>
+        </div>
+      </div>
     </div>
-    
+
+    <!-- Year Multi-Select -->
     <div class="filter-group" style="flex: 1; min-width: 120px;">
-      <label for="year" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Year</label>
-      <select name="year" id="year" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="">All Years</option>
-        {% for year in available_years %}
-        <option value="{{ year }}" {% if selected_year == year|string %}selected{% endif %}>{{ year }}</option>
-        {% endfor %}
-      </select>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Year</label>
+      <div class="multi-select-dropdown">
+        <div class="multi-select-button" onclick="toggleDropdown('year')">
+          <span id="year-label">All Years</span>
+          <span class="dropdown-arrow">▼</span>
+        </div>
+        <div class="multi-select-options" id="year-options" style="display: none;">
+          <div class="option-item">
+            <input type="checkbox" id="year-all" class="filter-checkbox" onchange="toggleAllYear(this)" checked>
+            <label for="year-all">All Years</label>
+          </div>
+          {% for year in available_years %}
+          <div class="option-item">
+            <input type="checkbox" name="year" value="{{ year }}" id="year-{{ year }}" class="filter-checkbox year-checkbox" onchange="updateYearLabel()" {% if year|string in selected_years %}checked{% endif %}>
+            <label for="year-{{ year }}">{{ year }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
-    
+
+    <!-- Commodity Multi-Select -->
     <div class="filter-group" style="flex: 1; min-width: 180px;">
-      <label for="commodity" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Commodity</label>
-      <select name="commodity" id="commodity" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="">All Commodities</option>
-        {% for commodity in available_commodities %}
-        <option value="{{ commodity['fao_code'] }}" {% if selected_commodity == commodity['fao_code']|string %}selected{% endif %}>
-          {{ commodity['commodity_name'] }}
-        </option>
-        {% endfor %}
-      </select>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">Commodity</label>
+      <div class="multi-select-dropdown">
+        <div class="multi-select-button" onclick="toggleDropdown('commodity')">
+          <span id="commodity-label">All Commodities</span>
+          <span class="dropdown-arrow">▼</span>
+        </div>
+        <div class="multi-select-options" id="commodity-options" style="display: none;">
+          <div class="option-item">
+            <input type="checkbox" id="commodity-all" class="filter-checkbox" onchange="toggleAllCommodity(this)" checked>
+            <label for="commodity-all">All Commodities</label>
+          </div>
+          {% for commodity in available_commodities %}
+          <div class="option-item">
+            <input type="checkbox" name="commodity" value="{{ commodity['fao_code'] }}" id="commodity-{{ commodity['fao_code'] }}" class="filter-checkbox commodity-checkbox" onchange="updateCommodityLabel()" {% if commodity['fao_code']|string in selected_commodities %}checked{% endif %}>
+            <label for="commodity-{{ commodity['fao_code'] }}">{{ commodity['commodity_name'] }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
-    
+
     <div class="filter-actions" style="display: flex; gap: 0.5rem;">
       <button type="submit" class="btn" style="padding: 0.5rem 1.5rem;">Apply Filters</button>
       <a href="/trades" class="btn btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none;">Reset</a>
@@ -121,70 +176,65 @@
       <h3 style="margin-bottom: 0.5rem;">Trade Flow Records</h3>
       <p class="section-description" style="margin: 0;">
         Detailed trade transactions between countries
-        {% if selected_reporter or selected_partner or selected_trade_type or selected_year or selected_commodity %}
+        {% if selected_reporters or selected_partners or selected_trade_types or selected_years or selected_commodities %}
         (Filtered results)
         {% endif %}
       </p>
     </div>
-    <div style="display: flex; gap: 0.5rem;">
-      <a href="?trade_type=Import&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&year={{ selected_year }}&commodity={{ selected_commodity }}&sort={{ sort_by }}"
-         class="btn"
-         style="padding: 0.75rem 1.5rem; text-decoration: none; {% if selected_trade_type == 'Import' %}background-color: #2980b9; border-color: #2980b9;{% else %}background-color: #95a5a6; border-color: #95a5a6;{% endif %}">
-        Import
-      </a>
-      <a href="?trade_type=Export&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&year={{ selected_year }}&commodity={{ selected_commodity }}&sort={{ sort_by }}"
-         class="btn"
-         style="padding: 0.75rem 1.5rem; text-decoration: none; {% if selected_trade_type == 'Export' %}background-color: #27ae60; border-color: #27ae60;{% else %}background-color: #95a5a6; border-color: #95a5a6;{% endif %}">
-        Export
-      </a>
-      <a href="?reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&year={{ selected_year }}&commodity={{ selected_commodity }}&sort={{ sort_by }}"
-         class="btn btn-secondary"
-         style="padding: 0.75rem 1.5rem; text-decoration: none; {% if not selected_trade_type %}background-color: #34495e; border-color: #34495e; color: white;{% endif %}">
-        All
-      </a>
+    <div>
+      <button onclick="openAddModal()" class="btn" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
+        + Add New Trade Flow
+      </button>
     </div>
   </div>
   
   {% if trade_flows %}
+  {% set filter_params = '' %}
+  {% for rc in selected_reporters %}{% set filter_params = filter_params ~ '&reporter_country=' ~ rc %}{% endfor %}
+  {% for pc in selected_partners %}{% set filter_params = filter_params ~ '&partner_country=' ~ pc %}{% endfor %}
+  {% for tt in selected_trade_types %}{% set filter_params = filter_params ~ '&trade_type=' ~ tt %}{% endfor %}
+  {% for y in selected_years %}{% set filter_params = filter_params ~ '&year=' ~ y %}{% endfor %}
+  {% for c in selected_commodities %}{% set filter_params = filter_params ~ '&commodity=' ~ c %}{% endfor %}
+
   <table class="data-table">
     <thead>
       <tr>
         <th>
-          <a href="?sort={% if sort_by == 'year_asc' %}year_desc{% else %}year_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+          <a href="?sort={% if sort_by == 'year_asc' %}year_desc{% else %}year_asc{% endif %}{{ filter_params }}" style="text-decoration: none; color: inherit; display: block;">
             Year {% if sort_by == 'year_desc' %}▼{% elif sort_by == 'year_asc' %}▲{% endif %}
           </a>
         </th>
         <th>
-          <a href="?sort={% if sort_by == 'reporter_asc' %}reporter_desc{% else %}reporter_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+          <a href="?sort={% if sort_by == 'reporter_asc' %}reporter_desc{% else %}reporter_asc{% endif %}{{ filter_params }}" style="text-decoration: none; color: inherit; display: block;">
             Reporter Country {% if sort_by == 'reporter_desc' %}▼{% elif sort_by == 'reporter_asc' %}▲{% endif %}
           </a>
         </th>
         <th>
-          <a href="?sort={% if sort_by == 'type_asc' %}type_desc{% else %}type_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+          <a href="?sort={% if sort_by == 'type_asc' %}type_desc{% else %}type_asc{% endif %}{{ filter_params }}" style="text-decoration: none; color: inherit; display: block;">
             Trade Type {% if sort_by == 'type_desc' %}▼{% elif sort_by == 'type_asc' %}▲{% endif %}
           </a>
         </th>
         <th>
-          <a href="?sort={% if sort_by == 'partner_asc' %}partner_desc{% else %}partner_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+          <a href="?sort={% if sort_by == 'partner_asc' %}partner_desc{% else %}partner_asc{% endif %}{{ filter_params }}" style="text-decoration: none; color: inherit; display: block;">
             Partner Country {% if sort_by == 'partner_desc' %}▼{% elif sort_by == 'partner_asc' %}▲{% endif %}
           </a>
         </th>
         <th>
-          <a href="?sort={% if sort_by == 'commodity_asc' %}commodity_desc{% else %}commodity_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+          <a href="?sort={% if sort_by == 'commodity_asc' %}commodity_desc{% else %}commodity_asc{% endif %}{{ filter_params }}" style="text-decoration: none; color: inherit; display: block;">
             Commodity {% if sort_by == 'commodity_desc' %}▼{% elif sort_by == 'commodity_asc' %}▲{% endif %}
           </a>
         </th>
         <th>
-          <a href="?sort={% if sort_by == 'qty_asc' %}qty_desc{% else %}qty_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+          <a href="?sort={% if sort_by == 'qty_asc' %}qty_desc{% else %}qty_asc{% endif %}{{ filter_params }}" style="text-decoration: none; color: inherit; display: block;">
             Quantity (tonnes) {% if sort_by == 'qty_desc' %}▼{% elif sort_by == 'qty_asc' %}▲{% endif %}
           </a>
         </th>
         <th>
-          <a href="?sort={% if sort_by == 'value_asc' %}value_desc{% else %}value_asc{% endif %}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" style="text-decoration: none; color: inherit; display: block;">
+          <a href="?sort={% if sort_by == 'value_asc' %}value_desc{% else %}value_asc{% endif %}{{ filter_params }}" style="text-decoration: none; color: inherit; display: block;">
             Value (USD) {% if sort_by == 'value_desc' %}▼{% elif sort_by == 'value_asc' %}▲{% endif %}
           </a>
         </th>
-        <th>Actions</th>
+        <th style="min-width: 150px; white-space: nowrap;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -212,15 +262,15 @@
           </a>
         </td>
         <td>
-          <strong>{{ "{:,.0f}".format(trade['qty_tonnes'] or 0) }}</strong>
+          <strong>{% if trade['qty_tonnes'] and trade['qty_tonnes'] > 0 %}{{ "{:,.0f}".format(trade['qty_tonnes']) }}{% else %}Unknown{% endif %}</strong>
         </td>
         <td>
-          <strong>${{ "{:,.0f}".format((trade['val_1k_usd'] or 0) * 1000) }}</strong>
+          <strong>{% if trade['val_1k_usd'] and trade['val_1k_usd'] > 0 %}<span style="color: #2c3e50;">${{ "{:,.0f}".format(trade['val_1k_usd'] * 1000) }}</span>{% else %}Unknown{% endif %}</strong>
         </td>
-        <td>
-          <button onclick="openEditModal({{ trade['unique_id'] }}, '{{ trade['reporter_country'] }}', '{{ trade['partner_country'] }}', '{{ trade['trade_item'] }}', '{{ trade['trade_type'] }}', {{ trade['year'] }}, {{ trade['qty_tonnes']|default(0) }}, {{ trade['val_1k_usd']|default(0) }})"
-                  class="btn-action btn-edit" title="Edit">
-            Edit
+        <td style="white-space: nowrap;">
+          <button onclick="openEditModal({{ trade['unique_id'] }}, '{{ trade['reporter_country'] }}', '{{ trade['partner_country'] }}', '{{ trade['trade_item'] }}', '{{ trade['trade_type'] }}', {{ trade['year'] }}, {{ trade['qty_tonnes']|default(0, true) }}, {{ trade['val_1k_usd']|default(0, true) }})"
+                  class="btn-action btn-update" title="Edit">
+            Update
           </button>
           <button onclick="openDeleteModal({{ trade['unique_id'] }})"
                   class="btn-action btn-delete" title="Delete">
@@ -237,7 +287,7 @@
   <div class="pagination-container" style="display: flex; justify-content: center; align-items: center; margin-top: 2rem; gap: 0.5rem;">
     <!-- Previous Button -->
     {% if page > 1 %}
-      <a href="?page={{ page - 1 }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-btn" style="padding: 0.5rem 1rem; background-color: #27ae60; color: white; text-decoration: none; border-radius: 4px;">
+      <a href="?page={{ page - 1 }}&sort={{ sort_by }}{{ filter_params }}" class="pagination-btn" style="padding: 0.5rem 1rem; background-color: #27ae60; color: white; text-decoration: none; border-radius: 4px;">
         ← Previous
       </a>
     {% else %}
@@ -252,7 +302,7 @@
       {% set end_page = [total_pages, page + 2]|min %}
 
       {% if start_page > 1 %}
-        <a href="?page=1&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">1</a>
+        <a href="?page=1&sort={{ sort_by }}{{ filter_params }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">1</a>
         {% if start_page > 2 %}
           <span style="padding: 0.5rem 0.75rem;">...</span>
         {% endif %}
@@ -262,7 +312,7 @@
         {% if p == page %}
           <span class="pagination-number active" style="padding: 0.5rem 0.75rem; background-color: #27ae60; color: white; border-radius: 4px; font-weight: bold;">{{ p }}</span>
         {% else %}
-          <a href="?page={{ p }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">{{ p }}</a>
+          <a href="?page={{ p }}&sort={{ sort_by }}{{ filter_params }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">{{ p }}</a>
         {% endif %}
       {% endfor %}
 
@@ -270,13 +320,13 @@
         {% if end_page < total_pages - 1 %}
           <span style="padding: 0.5rem 0.75rem;">...</span>
         {% endif %}
-        <a href="?page={{ total_pages }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">{{ total_pages }}</a>
+        <a href="?page={{ total_pages }}&sort={{ sort_by }}{{ filter_params }}" class="pagination-number" style="padding: 0.5rem 0.75rem; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 4px;">{{ total_pages }}</a>
       {% endif %}
     </div>
 
     <!-- Next Button -->
     {% if page < total_pages %}
-      <a href="?page={{ page + 1 }}&sort={{ sort_by }}&reporter_country={{ selected_reporter }}&partner_country={{ selected_partner }}&trade_type={{ selected_trade_type }}&year={{ selected_year }}&commodity={{ selected_commodity }}" class="pagination-btn" style="padding: 0.5rem 1rem; background-color: #27ae60; color: white; text-decoration: none; border-radius: 4px;">
+      <a href="?page={{ page + 1 }}&sort={{ sort_by }}{{ filter_params }}" class="pagination-btn" style="padding: 0.5rem 1rem; background-color: #27ae60; color: white; text-decoration: none; border-radius: 4px;">
         Next →
       </a>
     {% else %}
@@ -354,13 +404,13 @@
         </div>
 
         <div class="form-group">
-          <label for="add_qty_tonnes">Quantity (tonnes) *</label>
-          <input type="number" name="qty_tonnes" id="add_qty_tonnes" required step="0.01" min="0" placeholder="1000.00">
+          <label for="add_qty_tonnes">Quantity (tonnes) <span style="color: #7f8c8d; font-size: 0.9em;">(Either quantity or value required)</span></label>
+          <input type="number" name="qty_tonnes" id="add_qty_tonnes" step="0.01" min="0" placeholder="1000.00">
         </div>
 
         <div class="form-group">
-          <label for="add_val_1k_usd">Value (USD) *</label>
-          <input type="number" name="val_1k_usd" id="add_val_1k_usd" required step="0.01" min="0" placeholder="500.00">
+          <label for="add_val_1k_usd">Value (1k USD) <span style="color: #7f8c8d; font-size: 0.9em;">(Either quantity or value required)</span></label>
+          <input type="number" name="val_1k_usd" id="add_val_1k_usd" step="0.01" min="0" placeholder="500.00">
         </div>
       </div>
 
@@ -429,13 +479,13 @@
         </div>
 
         <div class="form-group">
-          <label for="edit_qty_tonnes">Quantity (tonnes) *</label>
-          <input type="number" name="qty_tonnes" id="edit_qty_tonnes" required step="0.01" min="0">
+          <label for="edit_qty_tonnes">Quantity (tonnes) <span style="color: #7f8c8d; font-size: 0.9em;">(Either quantity or value required)</span></label>
+          <input type="number" name="qty_tonnes" id="edit_qty_tonnes" step="0.01" min="0">
         </div>
 
         <div class="form-group">
-          <label for="edit_val_1k_usd">Value (1k USD) *</label>
-          <input type="number" name="val_1k_usd" id="edit_val_1k_usd" required step="0.01" min="0">
+          <label for="edit_val_1k_usd">Value (1k USD) <span style="color: #7f8c8d; font-size: 0.9em;">(Either quantity or value required)</span></label>
+          <input type="number" name="val_1k_usd" id="edit_val_1k_usd" step="0.01" min="0">
         </div>
       </div>
 
@@ -511,7 +561,7 @@
 
 .modal-header {
   padding: 1.5rem 2rem;
-  background-color: #2c3e50;
+  background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
   color: white;
   border-radius: 8px 8px 0 0;
   display: flex;
@@ -521,6 +571,7 @@
 
 .modal-header h3 {
   margin: 0;
+  color: white;
   font-size: 1.5rem;
 }
 
@@ -574,7 +625,90 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #27ae60;
+  border-color: #2d6a4f;
+  box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.1);
+}
+
+.form-group select option {
+  color: #2c3e50;
+  background-color: white;
+  padding: 0.5rem;
+}
+
+.form-group select option:hover,
+.form-group select option:checked {
+  background-color: #2d6a4f;
+  color: white;
+}
+
+/* Multi-Select Dropdown Styles */
+.multi-select-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.multi-select-button {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.3s;
+}
+
+.multi-select-button:hover {
+  border-color: #2d6a4f;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  color: #7f8c8d;
+}
+
+.multi-select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.option-item {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.option-item:hover {
+  background-color: #f5f7fa;
+}
+
+.option-item input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.option-item label {
+  cursor: pointer;
+  margin: 0;
+  flex: 1;
+  font-size: 0.9rem;
+  color: #2c3e50;
 }
 
 .modal-footer {
@@ -587,23 +721,28 @@
 
 /* Action Buttons */
 .btn-action {
-  padding: 0.4rem 0.8rem;
+  padding: 0.35rem 0.6rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   transition: all 0.3s;
-  margin: 0 0.25rem;
+  margin: 0 0.15rem;
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
 }
 
-.btn-edit {
-  background-color: #3498db;
+.btn-update {
+  background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
   color: white;
 }
 
-.btn-edit:hover {
-  background-color: #2980b9;
+.btn-update:hover {
+  background: linear-gradient(135deg, #52796f 0%, #2d6a4f 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(45, 106, 79, 0.3);
 }
 
 .btn-delete {
@@ -613,6 +752,8 @@
 
 .btn-delete:hover {
   background-color: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
 }
 
 .btn-secondary {
@@ -626,6 +767,143 @@
 </style>
 
 <script>
+// Multi-Select Dropdown Functions
+function toggleDropdown(type) {
+  const dropdown = document.getElementById(`${type}-options`);
+  const isVisible = dropdown.style.display === 'block';
+
+  // Close all dropdowns
+  document.querySelectorAll('.multi-select-options').forEach(d => d.style.display = 'none');
+
+  // Toggle current dropdown
+  dropdown.style.display = isVisible ? 'none' : 'block';
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.multi-select-dropdown')) {
+    document.querySelectorAll('.multi-select-options').forEach(d => d.style.display = 'none');
+  }
+});
+
+// Reporter Country Functions
+function toggleAllReporter(checkbox) {
+  const checkboxes = document.querySelectorAll('.reporter-checkbox');
+  checkboxes.forEach(cb => cb.checked = !checkbox.checked);
+  updateReporterLabel();
+}
+
+function updateReporterLabel() {
+  const checkboxes = document.querySelectorAll('.reporter-checkbox:checked');
+  const allCheckbox = document.getElementById('reporter-all');
+  const label = document.getElementById('reporter-label');
+
+  if (checkboxes.length === 0) {
+    allCheckbox.checked = true;
+    label.textContent = 'All Countries';
+  } else {
+    allCheckbox.checked = false;
+    label.textContent = checkboxes.length === 1 ? checkboxes[0].nextElementSibling.textContent : `${checkboxes.length} selected`;
+  }
+}
+
+// Partner Country Functions
+function toggleAllPartner(checkbox) {
+  const checkboxes = document.querySelectorAll('.partner-checkbox');
+  checkboxes.forEach(cb => cb.checked = !checkbox.checked);
+  updatePartnerLabel();
+}
+
+function updatePartnerLabel() {
+  const checkboxes = document.querySelectorAll('.partner-checkbox:checked');
+  const allCheckbox = document.getElementById('partner-all');
+  const label = document.getElementById('partner-label');
+
+  if (checkboxes.length === 0) {
+    allCheckbox.checked = true;
+    label.textContent = 'All Partners';
+  } else {
+    allCheckbox.checked = false;
+    label.textContent = checkboxes.length === 1 ? checkboxes[0].nextElementSibling.textContent : `${checkboxes.length} selected`;
+  }
+}
+
+// Trade Type Functions
+function toggleAllTradeType(checkbox) {
+  const checkboxes = document.querySelectorAll('.tradetype-checkbox');
+  checkboxes.forEach(cb => cb.checked = !checkbox.checked);
+  updateTradeTypeLabel();
+}
+
+function updateTradeTypeLabel() {
+  const checkboxes = document.querySelectorAll('.tradetype-checkbox:checked');
+  const allCheckbox = document.getElementById('tradetype-all');
+  const label = document.getElementById('tradetype-label');
+
+  if (checkboxes.length === 0) {
+    allCheckbox.checked = true;
+    label.textContent = 'All Types';
+  } else {
+    allCheckbox.checked = false;
+    label.textContent = checkboxes.length === 1 ? checkboxes[0].nextElementSibling.textContent : `${checkboxes.length} selected`;
+  }
+}
+
+// Year Functions
+function toggleAllYear(checkbox) {
+  const checkboxes = document.querySelectorAll('.year-checkbox');
+  checkboxes.forEach(cb => cb.checked = !checkbox.checked);
+  updateYearLabel();
+}
+
+function updateYearLabel() {
+  const checkboxes = document.querySelectorAll('.year-checkbox:checked');
+  const allCheckbox = document.getElementById('year-all');
+  const label = document.getElementById('year-label');
+
+  if (checkboxes.length === 0) {
+    allCheckbox.checked = true;
+    label.textContent = 'All Years';
+  } else {
+    allCheckbox.checked = false;
+    label.textContent = checkboxes.length === 1 ? checkboxes[0].nextElementSibling.textContent : `${checkboxes.length} selected`;
+  }
+}
+
+// Commodity Functions
+function toggleAllCommodity(checkbox) {
+  const checkboxes = document.querySelectorAll('.commodity-checkbox');
+  checkboxes.forEach(cb => cb.checked = !checkbox.checked);
+  updateCommodityLabel();
+}
+
+function updateCommodityLabel() {
+  const checkboxes = document.querySelectorAll('.commodity-checkbox:checked');
+  const allCheckbox = document.getElementById('commodity-all');
+  const label = document.getElementById('commodity-label');
+
+  if (checkboxes.length === 0) {
+    allCheckbox.checked = true;
+    label.textContent = 'All Commodities';
+  } else {
+    allCheckbox.checked = false;
+    label.textContent = checkboxes.length === 1 ? checkboxes[0].nextElementSibling.textContent : `${checkboxes.length} selected`;
+  }
+}
+
+// Validation function to ensure either quantity or value is filled
+function validateQuantityOrValue(qtyField, valField, formType) {
+  const qty = parseFloat(qtyField.value);
+  const val = parseFloat(valField.value);
+
+  // Check if at least one field has a value > 0
+  if ((!qty || qty <= 0) && (!val || val <= 0)) {
+    alert('Please enter either Quantity or Value (at least one is required)');
+    return false;
+  }
+  return true;
+}
+
 // Add Modal Functions
 function openAddModal() {
   document.getElementById('addModal').style.display = 'block';
@@ -634,6 +912,35 @@ function openAddModal() {
 function closeAddModal() {
   document.getElementById('addModal').style.display = 'none';
 }
+
+// Add form validation on submit
+document.addEventListener('DOMContentLoaded', function() {
+  const addForm = document.querySelector('#addModal form');
+  if (addForm) {
+    addForm.addEventListener('submit', function(e) {
+      const qtyField = document.getElementById('add_qty_tonnes');
+      const valField = document.getElementById('add_val_1k_usd');
+
+      if (!validateQuantityOrValue(qtyField, valField, 'add')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+  }
+
+  const editForm = document.querySelector('#editModal form');
+  if (editForm) {
+    editForm.addEventListener('submit', function(e) {
+      const qtyField = document.getElementById('edit_qty_tonnes');
+      const valField = document.getElementById('edit_val_1k_usd');
+
+      if (!validateQuantityOrValue(qtyField, valField, 'edit')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+  }
+});
 
 // Edit Modal Functions
 function openEditModal(id, reporter, partner, commodity, tradeType, year, qtyTonnes, val1kUsd) {
