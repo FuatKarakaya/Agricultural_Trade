@@ -64,9 +64,9 @@ def login():
             session['logged_in'] = True
             
             if user['is_admin']:
-                flash(f"Hoş geldiniz, Admin {user['username']}!", "success")
+                flash(f"Welcome, Admin {user['username']}!", "success")
             else:
-                flash(f"Hoş geldiniz, {user['username']}!", "success")
+                flash(f"Welcome, {user['username']}!", "success")
             
             return redirect('/')
         else:

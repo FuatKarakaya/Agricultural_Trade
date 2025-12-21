@@ -165,7 +165,7 @@ CREATE TABLE Producer_Prices (
     --     country_id INTEGER,
     --     commodity_id INTEGER, --Silinecek
     --     -- type SMALLINT, --eklenecek
-    --     -- type = 1 -> Consumer Prices, General Indices (2015 = 100), 2 -> Consumer Prices, Food Indices (2015 = 100), 3 -> Food price inflation
+    --     -- type = 1 -> Consumer Prices, General Indices (2015 = 100), 2 -> Consumer Prices, Food Indices (2015 = 100)
     --     year INTEGER,
     --     month SMALLINT,
     --     value FLOAT,

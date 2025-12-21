@@ -3,6 +3,20 @@
 {% block title %}Producer Prices - Zlatan Agriculture{% endblock %}
 
 {% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container" style="max-width: 900px; margin: 1rem auto;">
+  {% for category, message in messages %}
+  <div class="flash-message flash-{{ category }}"
+    style="padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.9rem; {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% else %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% endif %}">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
 <section class="hero-section">
   <h2>Producer Prices Database</h2>
 </section>
@@ -34,88 +48,167 @@
 
 <!-- Filter Section -->
 <section class="filter-section">
-    <form class="filter-form" method="get" action="/producer_prices">
-        <div class="filter-group">
-            <label for="country">Country</label>
-            <select name="country" id="country" class="filter-select">
-                <option value="">All Countries</option>
-                {% for c in countries %}
-                <option value="{{ c['country_id'] }}" {% if selected_country == c['country_id']|string %}selected{% endif %}>{{ c['country_name'] }}</option>
-                {% endfor %}
-            </select>
+  <form class="filter-form" method="get" action="/producer_prices">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="country">Country</label>
+        <select name="country" id="country" class="filter-select">
+          <option value="">All Countries</option>
+          {% for c in countries %}
+          <option value="{{ c['country_id'] }}" {% if selected_country==c['country_id']|string %}selected{% endif %}>{{
+            c['country_name'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="commodity">Commodity</label>
+        <select name="commodity" id="commodity" class="filter-select">
+          <option value="">All Commodities</option>
+          {% for cm in commodities %}
+          <option value="{{ cm['fao_code'] }}" {% if selected_commodity==cm['fao_code']|string %}selected{% endif %}>{{
+            cm['item_name'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="year_from">Year From</label>
+        <select name="year_from" id="year_from" class="filter-select">
+          <option value="">Any</option>
+          {% for y in available_years %}
+          <option value="{{ y }}" {% if year_from==y|string %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="year_to">Year To</label>
+        <select name="year_to" id="year_to" class="filter-select">
+          <option value="">Any</option>
+          {% for y in available_years %}
+          <option value="{{ y }}" {% if year_to==y|string %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-group filter-group-wide">
+        <label>Months</label>
+        <div class="month-checkboxes">
+          {% for num, name in month_names.items() %}
+          <label class="month-checkbox">
+            <input type="checkbox" name="months" value="{{ num }}" {% if num in selected_months %}checked{% endif %}>
+            <span>{{ name[:3] }}</span>
+          </label>
+          {% endfor %}
         </div>
-        <div class="filter-group">
-            <label for="commodity">Commodity</label>
-            <select name="commodity" id="commodity" class="filter-select">
-                <option value="">All Commodities</option>
-                {% for cm in commodities %}
-                <option value="{{ cm['fao_code'] }}" {% if selected_commodity == cm['fao_code']|string %}selected{% endif %}>{{ cm['item_name'] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="limit">Rows to Display</label>
-            <select name="limit" id="limit" class="filter-select">
-                <option value="50" {% if current_limit == 50 %}selected{% endif %}>50</option>
-                <option value="100" {% if current_limit == 100 %}selected{% endif %}>100</option>
-                <option value="200" {% if current_limit == 200 %}selected{% endif %}>200</option>
-                <option value="500" {% if current_limit == 500 %}selected{% endif %}>500</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>&nbsp;</label>
-            <button type="submit" class="filter-button">Apply Filters</button>
-        </div>
-    </form>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      {% if show_unit_filter %}
+      <div class="filter-group">
+        <label for="unit">Unit</label>
+        <select name="unit" id="unit" class="filter-select">
+          <option value="">All Units</option>
+          {% for u in available_units %}
+          <option value="{{ u }}" {% if selected_unit==u %}selected{% endif %}>{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="filter-group">
+        <label for="limit">Rows to Display</label>
+        <select name="limit" id="limit" class="filter-select">
+          <option value="50" {% if current_limit==50 %}selected{% endif %}>50</option>
+          <option value="100" {% if current_limit==100 %}selected{% endif %}>100</option>
+          <option value="200" {% if current_limit==200 %}selected{% endif %}>200</option>
+          <option value="500" {% if current_limit==500 %}selected{% endif %}>500</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="filter-button">Apply Filters</button>
+      </div>
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <a href="/producer_prices" class="filter-button secondary">Clear Filters</a>
+      </div>
+    </div>
+  </form>
+
+  <!-- ADD RECORD BUTTON - Admin Only -->
+  {% if is_admin %}
+  <div style="margin-top: 1rem;">
+    <a href="{{ url_for('producer_price.add_producer_price_form') }}" class="btn-add-country">
+      Add Record
+    </a>
+  </div>
+  {% endif %}
 </section>
 
 <section class="producers-section">
   <h3>Recent Price Data</h3>
   <p class="section-description">
-    Displaying producer prices for agricultural commodities (Values in standard currency units)
+    Displaying producer prices per tonne for agricultural commodities (Values in standard currency units)
   </p>
-  
+
   {% if prices %}
   <div style="overflow-x: auto;">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Country</th>
-            <th>Commodity</th>
-            <th>Month</th>
-            <th>2021</th>
-            <th>2022</th>
-            <th>2023</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in prices %}
-          <tr>
-            <td><strong>{{ row['country_name'] }}</strong></td>
-            <td>{{ row['item_name'] }}</td>
-            <td>
-                {% if row['month'] == 1 %}January
-                {% elif row['month'] == 2 %}February
-                {% elif row['month'] == 3 %}March
-                {% elif row['month'] == 4 %}April
-                {% elif row['month'] == 5 %}May
-                {% elif row['month'] == 6 %}June
-                {% elif row['month'] == 7 %}July
-                {% elif row['month'] == 8 %}August
-                {% elif row['month'] == 9 %}September
-                {% elif row['month'] == 10 %}October
-                {% elif row['month'] == 11 %}November
-                {% elif row['month'] == 12 %}December
-                {% else %}N/A{% endif %}
-            </td>
-            <!-- Using string keys matching the DB column names -->
-            <td>{{ "{:,.2f}".format(row['Y2021']) if row['Y2021'] is not none else '-' }}</td>
-            <td>{{ "{:,.2f}".format(row['Y2022']) if row['Y2022'] is not none else '-' }}</td>
-            <td>{{ "{:,.2f}".format(row['Y2023']) if row['Y2023'] is not none else '-' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Country</th>
+          <th>Commodity</th>
+          <th>Month</th>
+          <th>Year</th>
+          <th>Unit</th>
+          <th>Value</th>
+          {% if is_admin %}
+          <th>Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in prices %}
+        <tr>
+          <td><strong>{{ row['country_name'] }}</strong></td>
+          <td>{{ row['item_name'] }}</td>
+          <td>
+            {% if row['month'] == 1 %}January
+            {% elif row['month'] == 2 %}February
+            {% elif row['month'] == 3 %}March
+            {% elif row['month'] == 4 %}April
+            {% elif row['month'] == 5 %}May
+            {% elif row['month'] == 6 %}June
+            {% elif row['month'] == 7 %}July
+            {% elif row['month'] == 8 %}August
+            {% elif row['month'] == 9 %}September
+            {% elif row['month'] == 10 %}October
+            {% elif row['month'] == 11 %}November
+            {% elif row['month'] == 12 %}December
+            {% else %}N/A{% endif %}
+          </td>
+          <td>{{ row['year'] }}</td>
+          <td>{{ row['unit'] or '-' }}</td>
+          <td>{{ "{:,.2f}".format(row['value']) if row['value'] is not none else '-' }}</td>
+          {% if is_admin %}
+          <td>
+            <a href="{{ url_for('producer_price.edit_producer_price_form', id=row['unique_id']) }}" class="btn-update"
+              style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;">
+              Update
+            </a>
+            <form method="post" action="{{ url_for('producer_price.delete_producer_price') }}" style="display: inline;"
+              onsubmit="return confirm('Are you sure you want to delete this record?');">
+              <input type="hidden" name="unique_id" value="{{ row['unique_id'] }}">
+              <button type="submit" class="btn-delete"
+                style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
   {% else %}
   <div class="no-data">
