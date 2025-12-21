@@ -58,9 +58,6 @@
         <dt>Total Value</dt>
         <dd>${{ "{:,.0f}".format(stats['total_value'] or 0) }}</dd>
 
-        <dt>Average Value</dt>
-        <dd>${{ "{:,.0f}".format(stats['avg_value'] or 0) }}</dd>
-
         <dt>Share of Total</dt>
         <dd>{{ "%.1f"|format(stats['percentage'] or 0) }}%</dd>
       </div>
@@ -94,7 +91,7 @@
         <td><strong>#{{ loop.index }}</strong></td>
         <td>{{ partner['reporter_name'] }} ↔ {{ partner['partner_name'] }}</td>
         <td>{{ "{:,}".format(partner['transaction_count'] or 0) }}</td>
-        <td><strong>${{ "{:,}".format(partner['total_value'] or 0) }}</strong></td>
+        <td><strong>${{ "{:,.0f}".format(partner['total_value'] or 0) }}</strong></td>
         <td>{{ partner['top_commodity'] or 'Various' }}</td>
         <td>
         </td>

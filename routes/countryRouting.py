@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request, jsonify
 from database import execute_query, fetch_query
+from routes.auth_routes import login_required
 
 country_bp = Blueprint("country", __name__)
 
 
 @country_bp.route("/countries")
+@login_required
 def countries_dashboard():
     
     # Get filter parameters
@@ -59,6 +61,7 @@ def countries_dashboard():
 
 
 @country_bp.route("/countries/<int:country_id>")
+@login_required
 def countries_detailed(country_id):
     # Fetch specific country by ID
     query = "SELECT * FROM Countries WHERE country_id = %s"
@@ -74,30 +77,3 @@ def countries_detailed(country_id):
         'country_detail.html',
         country=country
     )
-
-
-
-@country_bp.route("/countries/test")
-def test_countries():
-    """Simple endpoint to test database connection"""
-    try:
-        # Try to fetch all countries
-        countries = fetch_query("SELECT * FROM Countries LIMIT 5")
-        
-        if countries:
-            return jsonify({
-                "status": "success",
-                "message": "Database connection works!",
-                "sample_data": countries,
-                "count": len(countries)
-            })
-        else:
-            return jsonify({
-                "status": "error",
-                "message": "No data returned from database"
-            })
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        })

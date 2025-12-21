@@ -1313,3 +1313,36 @@ DELETE FROM Production WHERE production_ID = %s
                   AND year = %s
                   AND land_type = %s;
                 
+DELETE FROM trade_data_final WHERE unique_id = %s
+
+            UPDATE Production 
+            SET unit = %s, quantity = %s
+            WHERE production_ID = %s
+        
+
+            INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s)
+        
+
+            UPDATE Production 
+            SET unit = %s, quantity = %s
+            WHERE production_ID = %s
+        
+
+            UPDATE Production_Value 
+            SET element = %s, unit = %s, value = %s
+            WHERE production_value_ID = %s
+        
+
+            INSERT INTO Production_Value (production_ID, element, unit, value)
+            VALUES (%s, %s, %s, %s)
+        
+DELETE FROM Production WHERE production_ID = %s
+
+            INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s)
+        
+
+            INSERT INTO Production_Value (production_ID, element, unit, value)
+            VALUES (%s, %s, %s, %s)
+        

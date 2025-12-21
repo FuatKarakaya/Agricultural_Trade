@@ -29,7 +29,6 @@ def production_values():
                 p.unit AS production_unit,
                 c.country_name,
                 c.region,
-                c.subregion,
                 co.item_name,
                 co.cpc_code
             FROM Production_Value pv
@@ -374,7 +373,7 @@ def add_production_value():
         execute_query(insert_query, (production_id, element, unit, value))
         
         flash("Production value record added successfully!", "success")
-        return redirect(url_for("prod_val.add_production_value_form"))
+        return redirect(url_for("prod_val.production_values"))
         
     except Exception as e:
         flash(f"Error adding production value record: {str(e)}", "error")

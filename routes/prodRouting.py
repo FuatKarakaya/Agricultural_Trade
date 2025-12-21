@@ -24,7 +24,6 @@ def production():
                 p.quantity,
                 c.country_name,
                 c.region,
-                c.subregion,
                 co.item_name,
                 co.cpc_code,
                 -- Element count from Production_Value (shows data completeness)
@@ -181,7 +180,6 @@ def production_detail(production_id):
             """
             SELECT p.*, 
                    c.region,
-                   c.subregion,
                    c.population,
                    com.item_name,
                    com.cpc_code

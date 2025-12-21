@@ -740,16 +740,19 @@ body {
     padding: 0.25rem 0.6rem;
     border-radius: 4px;
     border: none;
-    background-color: #2d6a4f;
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
     color: #fff;
     font-size: 0.8rem;
     cursor: pointer;
     text-decoration: none;
     margin-right: 4px;
+    transition: all 0.3s;
 }
 
 .btn-update:hover {
-    opacity: 0.9;
+    background: linear-gradient(135deg, #52796f 0%, #2d6a4f 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(45, 106, 79, 0.3);
 }
 
 .btn-delete {
@@ -761,11 +764,15 @@ body {
     font-size: 0.8rem;
     font-family: inherit;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
 .btn-delete:hover {
-    opacity: 0.9;
+    background-color: #c0392b;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
 }
+
 
 /* Forms */
 .filter-section {

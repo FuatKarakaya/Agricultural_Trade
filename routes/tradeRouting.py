@@ -1,18 +1,20 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database import execute_query, fetch_query
+from routes.auth_routes import admin_required, login_required
 
 trade_bp = Blueprint("trade", __name__)
 
 
 @trade_bp.route("/trades")
+@login_required
 def trade_data_final_dashboard():
 
-    # Get filter parameters
-    selected_reporter = request.args.get('reporter_country', '')
-    selected_partner = request.args.get('partner_country', '')
-    selected_trade_type = request.args.get('trade_type', '')
-    selected_year = request.args.get('year', '')
-    selected_commodity = request.args.get('commodity', '')
+    # Get filter parameters (multi-select)
+    selected_reporters = request.args.getlist('reporter_country')
+    selected_partners = request.args.getlist('partner_country')
+    selected_trade_types = request.args.getlist('trade_type')
+    selected_years = request.args.getlist('year')
+    selected_commodities = request.args.getlist('commodity')
     sort_by = request.args.get('sort', 'value_desc')
 
     # Pagination parameters
@@ -40,29 +42,34 @@ def trade_data_final_dashboard():
         LEFT JOIN Commodities AS c ON tf.item_code::integer = c.fao_code
         WHERE 1=1
     """
-    
+
     params = []
-    
-    # Apply filters
-    if selected_reporter:
-        query += " AND tf.reporter_code = %s"
-        params.append(selected_reporter)
 
-    if selected_partner:
-        query += " AND tf.partner_code = %s"
-        params.append(selected_partner)
+    # Apply filters (multi-select)
+    if selected_reporters:
+        placeholders = ', '.join(['%s'] * len(selected_reporters))
+        query += f" AND tf.reporter_code IN ({placeholders})"
+        params.extend(selected_reporters)
 
-    if selected_trade_type:
-        query += " AND tf.trade_type = %s"
-        params.append(selected_trade_type)
-    
-    if selected_year:
-        query += " AND tf.year = %s"
-        params.append(selected_year)
-    
-    if selected_commodity:
-        query += " AND tf.item_code = %s"
-        params.append(selected_commodity)
+    if selected_partners:
+        placeholders = ', '.join(['%s'] * len(selected_partners))
+        query += f" AND tf.partner_code IN ({placeholders})"
+        params.extend(selected_partners)
+
+    if selected_trade_types:
+        placeholders = ', '.join(['%s'] * len(selected_trade_types))
+        query += f" AND tf.trade_type IN ({placeholders})"
+        params.extend(selected_trade_types)
+
+    if selected_years:
+        placeholders = ', '.join(['%s'] * len(selected_years))
+        query += f" AND tf.year IN ({placeholders})"
+        params.extend([int(y) for y in selected_years])
+
+    if selected_commodities:
+        placeholders = ', '.join(['%s'] * len(selected_commodities))
+        query += f" AND tf.item_code IN ({placeholders})"
+        params.extend(selected_commodities)
     
     # Add sorting - expanded to support all columns
     sort_options = {
@@ -129,21 +136,26 @@ def trade_data_final_dashboard():
     """
     stats_params = []
 
-    if selected_reporter:
-        stats_base += " AND tf.reporter_code = %s"
-        stats_params.append(selected_reporter)
-    if selected_partner:
-        stats_base += " AND tf.partner_code = %s"
-        stats_params.append(selected_partner)
-    if selected_trade_type:
-        stats_base += " AND tf.trade_type = %s"
-        stats_params.append(selected_trade_type)
-    if selected_year:
-        stats_base += " AND tf.year = %s"
-        stats_params.append(selected_year)
-    if selected_commodity:
-        stats_base += " AND tf.item_code = %s"
-        stats_params.append(selected_commodity)
+    if selected_reporters:
+        placeholders = ', '.join(['%s'] * len(selected_reporters))
+        stats_base += f" AND tf.reporter_code IN ({placeholders})"
+        stats_params.extend(selected_reporters)
+    if selected_partners:
+        placeholders = ', '.join(['%s'] * len(selected_partners))
+        stats_base += f" AND tf.partner_code IN ({placeholders})"
+        stats_params.extend(selected_partners)
+    if selected_trade_types:
+        placeholders = ', '.join(['%s'] * len(selected_trade_types))
+        stats_base += f" AND tf.trade_type IN ({placeholders})"
+        stats_params.extend(selected_trade_types)
+    if selected_years:
+        placeholders = ', '.join(['%s'] * len(selected_years))
+        stats_base += f" AND tf.year IN ({placeholders})"
+        stats_params.extend([int(y) for y in selected_years])
+    if selected_commodities:
+        placeholders = ', '.join(['%s'] * len(selected_commodities))
+        stats_base += f" AND tf.item_code IN ({placeholders})"
+        stats_params.extend(selected_commodities)
     
     stats_query = f"""
         SELECT
@@ -264,11 +276,11 @@ def trade_data_final_dashboard():
         available_years=available_years,
         available_trade_types=available_trade_types,
         # Selected filter values
-        selected_reporter=selected_reporter,
-        selected_partner=selected_partner,
-        selected_trade_type=selected_trade_type,
-        selected_year=selected_year,
-        selected_commodity=selected_commodity,
+        selected_reporters=selected_reporters,
+        selected_partners=selected_partners,
+        selected_trade_types=selected_trade_types,
+        selected_years=selected_years,
+        selected_commodities=selected_commodities,
         sort_by=sort_by,
         # Statistics
         total_trades=stats.get('total_trades', 0),
@@ -288,6 +300,7 @@ def trade_data_final_dashboard():
 
 
 @trade_bp.route("/trades/add", methods=["POST"])
+@admin_required
 def add_trade_flow():
 
     try:
@@ -300,10 +313,21 @@ def add_trade_flow():
         qty_tonnes = request.form.get('qty_tonnes')
         val_1k_usd = request.form.get('val_1k_usd')
 
+        # Validate that at least one of quantity or value is provided
+        qty_valid = qty_tonnes and qty_tonnes.strip() != '' and float(qty_tonnes) > 0
+        val_valid = val_1k_usd and val_1k_usd.strip() != '' and float(val_1k_usd) > 0
+
+        if not qty_valid and not val_valid:
+            flash("Please provide either Quantity or Value (at least one is required)!", "error")
+            return redirect(url_for('trade.trade_data_final_dashboard'))
 
         if reporter_country == partner_country:
             flash("Reporter country and partner country must be different!", "error")
             return redirect(url_for('trade.trade_data_final_dashboard'))
+
+        # Convert empty strings or invalid values to None for database
+        qty_tonnes = float(qty_tonnes) if qty_valid else None
+        val_1k_usd = float(val_1k_usd) if val_valid else None
 
         # Insert query
         insert_query = """
@@ -326,6 +350,7 @@ def add_trade_flow():
 
 
 @trade_bp.route("/trades/edit/<int:trade_id>", methods=["POST"])
+@admin_required
 def edit_trade_flow(trade_id):
     try:
         # Get form data
@@ -337,9 +362,21 @@ def edit_trade_flow(trade_id):
         qty_tonnes = request.form.get('qty_tonnes')
         val_1k_usd = request.form.get('val_1k_usd')
 
+        # Validate that at least one of quantity or value is provided
+        qty_valid = qty_tonnes and qty_tonnes.strip() != '' and float(qty_tonnes) > 0
+        val_valid = val_1k_usd and val_1k_usd.strip() != '' and float(val_1k_usd) > 0
+
+        if not qty_valid and not val_valid:
+            flash("Please provide either Quantity or Value (at least one is required)!", "error")
+            return redirect(url_for('trade.trade_data_final_dashboard'))
+
         if reporter_country == partner_country:
             flash("Reporter country and partner country must be different!", "error")
             return redirect(url_for('trade.trade_data_final_dashboard'))
+
+        # Convert empty strings or invalid values to None for database
+        qty_tonnes = float(qty_tonnes) if qty_valid else None
+        val_1k_usd = float(val_1k_usd) if val_valid else None
 
         # Update query
         update_query = """
@@ -368,6 +405,7 @@ def edit_trade_flow(trade_id):
 
 
 @trade_bp.route("/trades/delete/<int:trade_id>", methods=["POST"])
+@admin_required
 def delete_trade_flow(trade_id):
     try:
         # Delete query
@@ -675,8 +713,3 @@ def trade_statistics():
     except Exception as e:
         flash(f"Error loading statistics: {str(e)}", "error")
         return redirect(url_for('trade.trade_data_final_dashboard'))
-
-
-@trade_bp.route("/trades/<int:trade_id>")
-def trade_detailed(trade_id):
-    return

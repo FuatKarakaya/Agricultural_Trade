@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block title %}Error - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Oops! Something went wrong</h1>
+  <p>We encountered an error while processing your request.</p>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 2rem auto; padding: 2rem;">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+  </div>
+  
+  <div class="error-details" style="background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+    <h3 style="color: #721c24; margin-bottom: 0.5rem;">Error Details</h3>
+    <p style="color: #721c24; margin: 0;">{{ error if error else 'An unexpected error occurred.' }}</p>
+  </div>
+  
+  <div style="text-align: center;">
+    <a href="/" class="btn btn-primary" style="margin-right: 1rem;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.5rem;">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+      </svg>
+      Go to Dashboard
+    </a>
+    <a href="javascript:history.back()" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.5rem;">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12,19 5,12 12,5"></polyline>
+      </svg>
+      Go Back
+    </a>
+  </div>
+</div>
+{% endblock %}
