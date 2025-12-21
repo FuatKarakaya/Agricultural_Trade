@@ -1,161 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{% block title %}Zlatan Agriculture{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/agriculture.css"/>
-    {% block extra_css %}{% endblock %}
-  </head>
-  <body>
-    <!-- Loading Spinner -->
-    <div id="loading-overlay">
-      <div class="loading-spinner">
-        <img src="/static/zlatan.jpg" alt="Loading..." class="loading-image">
-        <p>Loading...</p>
-      </div>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Zlatan Agriculture{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/agriculture.css" />
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+  <!-- Loading Spinner -->
+  <div id="loading-overlay">
+    <div class="loading-spinner">
+      <img src="/static/zlatan.jpg" alt="Loading..." class="loading-image">
+      <p>Loading...</p>
     </div>
+  </div>
 
-    <!-- Navigation -->
-    <!-- Updated Navigation Bar -->
-    <nav class="navbar">
-      <div class="nav-container">
-        <div class="nav-title">
-          <img src="/static/logo.png" alt="Zlatan Agriculture Logo" class="nav-logo">
-        </div>
-        <ul class="nav-menu">
-          <li><a href="/" class="nav-link">Dashboard</a></li>
-          <li><a href="/countries" class="nav-link">Countries</a></li>
-          <li><a href="/commodities" class="nav-link">Commodities</a></li>
-          
-          <!-- Dropdown for Prices -->
-          <li class="nav-dropdown">
-            <span class="nav-link">Prices ▾</span>
-            <div class="dropdown-content">
-                <a href="/producer_prices">Producer Prices</a>
-                <a href="/consumer_prices">Consumer Prices</a>
-            </div>
-          </li>
-
-          <li><a href="/production" class="nav-link">Production</a></li>
-          <li><a href="/production-values" class="nav-link">Production Value</a></li>
-
-          <!-- Dropdown for Trade Flows -->
-          <li class="nav-dropdown">
-            <span class="nav-link">Trade Flows ▾</span>
-            <div class="dropdown-content">
-              <a href="/trades">Trade Data</a>
-              <a href="/trades/statistics">Statistics</a>
-            </div>
-          </li>
-
-
-          <li class="nav-dropdown">
-            <span class="nav-link">Land Use ▾</span>
-            <div class="dropdown-content">
-              <a href="/landuse">Land Use Data</a>
-              <a href="/landuse/land-efficiency-analysis">Land Use Efficiency Analysis</a>
-            </div>
-          </li>
-          <li><a href="/investments" class="nav-link">Investments</a></li>
-        </ul>
-
-        <!-- User Section - YENİ EKLENEN KISIM -->
-        <div class="nav-user-section">
-          {% if user_logged_in %}
-            <div class="user-info-wrapper">
-              <span class="user-name-badge">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1c-2.67 0-8 1.34-8 4v1h16v-1c0-2.66-5.33-4-8-4z"/>
-                </svg>
-                {{ username }}
-              </span>
-              {% if is_admin %}
-                <span class="admin-badge">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M8 0l2 5h5l-4 3.5 2 5.5-5-3.5-5 3.5 2-5.5-4-3.5h5z"/>
-                  </svg>
-                  ADMIN
-                </span>
-              {% endif %}
-              <a href="{{ url_for('auth.logout') }}" class="btn-logout">Logout</a>
-            </div>
-          {% else %}
-            <a href="{{ url_for('auth.login') }}" class="btn-login-nav">Login</a>
-          {% endif %}
-        </div>
-        <!-- User Section Sonu -->
-
+  <!-- Navigation -->
+  <!-- Updated Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-title">
+        <img src="/static/logo.png" alt="Zlatan Agriculture Logo" class="nav-logo">
       </div>
-    </nav>
+      <ul class="nav-menu">
+        <li><a href="/" class="nav-link">Dashboard</a></li>
+        <li><a href="/countries" class="nav-link">Countries</a></li>
+        <li><a href="/commodities" class="nav-link">Commodities</a></li>
 
-    <!-- Main Content -->
-    <main class="container">
-      <!-- Flash Messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <div class="flash-messages" style="margin: 1rem 0;">
-            {% for category, message in messages %}
-              <div class="flash-message flash-{{ category }}" style="padding: 1rem; margin-bottom: 0.5rem; border-radius: 4px; {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% elif category == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% else %}background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
-                {{ message }}
-              </div>
-            {% endfor %}
+        <!-- Dropdown for Prices -->
+        <li class="nav-dropdown">
+          <span class="nav-link">Prices ▾</span>
+          <div class="dropdown-content">
+            <a href="/producer_prices">Producer Prices</a>
+            <a href="/consumer_prices">Consumer Prices</a>
+            <a href="/prices/statistics">Statistics</a>
           </div>
+        </li>
+
+        <li><a href="/production" class="nav-link">Production</a></li>
+        <li><a href="/production-values" class="nav-link">Production Value</a></li>
+
+        <!-- Dropdown for Trade Flows -->
+        <li class="nav-dropdown">
+          <span class="nav-link">Trade Flows ▾</span>
+          <div class="dropdown-content">
+            <a href="/trades">Trade Data</a>
+            <a href="/trades/statistics">Statistics</a>
+          </div>
+        </li>
+
+
+        <li class="nav-dropdown">
+          <span class="nav-link">Land Use ▾</span>
+          <div class="dropdown-content">
+            <a href="/landuse">Land Use Data</a>
+            <a href="/landuse/land-efficiency-analysis">Land Use Efficiency Analysis</a>
+          </div>
+        </li>
+        <li><a href="/investments" class="nav-link">Investments</a></li>
+      </ul>
+
+      <!-- User Section - YENİ EKLENEN KISIM -->
+      <div class="nav-user-section">
+        {% if user_logged_in %}
+        <div class="user-info-wrapper">
+          <span class="user-name-badge">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1c-2.67 0-8 1.34-8 4v1h16v-1c0-2.66-5.33-4-8-4z" />
+            </svg>
+            {{ username }}
+          </span>
+          {% if is_admin %}
+          <span class="admin-badge">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0l2 5h5l-4 3.5 2 5.5-5-3.5-5 3.5 2-5.5-4-3.5h5z" />
+            </svg>
+            ADMIN
+          </span>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}" class="btn-logout">Logout</a>
+        </div>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn-login-nav">Login</a>
         {% endif %}
-      {% endwith %}
+      </div>
+      <!-- User Section Sonu -->
 
-      {% block content %}{% endblock %}
-    </main>
+    </div>
+  </nav>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <p>&copy; 2025-2026 Zlatan Group. All rights reserved.</p>
-    </footer>
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages" style="margin: 1rem 0;">
+      {% for category, message in messages %}
+      <div class="flash-message flash-{{ category }}"
+        style="padding: 1rem; margin-bottom: 0.5rem; border-radius: 4px; {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% elif category == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% else %}background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
-    {% block extra_js %}{% endblock %}
+    {% block content %}{% endblock %}
+  </main>
 
-    <!-- Loading Spinner Script -->
-    <script>
-      // Hide loading spinner when page is fully loaded
-      window.addEventListener('load', function() {
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025-2026 Zlatan Group. All rights reserved.</p>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+
+  <!-- Loading Spinner Script -->
+  <script>
+    // Hide loading spinner when page is fully loaded
+    window.addEventListener('load', function () {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      loadingOverlay.style.opacity = '0';
+      setTimeout(function () {
+        loadingOverlay.style.display = 'none';
+      }, 300);
+    });
+
+    // Handle browser back button - hide loading spinner when page is restored from cache
+    window.addEventListener('pageshow', function (event) {
+      // event.persisted is true when page is loaded from bfcache (back/forward button)
+      if (event.persisted) {
         const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.display = 'none';
         loadingOverlay.style.opacity = '0';
-        setTimeout(function() {
-          loadingOverlay.style.display = 'none';
-        }, 300);
-      });
+      }
+    });
 
-      // Handle browser back button - hide loading spinner when page is restored from cache
-      window.addEventListener('pageshow', function(event) {
-        // event.persisted is true when page is loaded from bfcache (back/forward button)
-        if (event.persisted) {
-          const loadingOverlay = document.getElementById('loading-overlay');
-          loadingOverlay.style.display = 'none';
-          loadingOverlay.style.opacity = '0';
-        }
-      });
-
-      // Show loading spinner when navigating away (links)
-      document.querySelectorAll('a').forEach(function(link) {
-        link.addEventListener('click', function(e) {
-          // Only show for internal links
-          if (this.hostname === window.location.hostname && !this.hasAttribute('target')) {
-            document.getElementById('loading-overlay').style.display = 'flex';
-            document.getElementById('loading-overlay').style.opacity = '1';
-          }
-        });
-      });
-
-      // Show loading spinner when submitting forms
-      document.querySelectorAll('form').forEach(function(form) {
-        form.addEventListener('submit', function(e) {
+    // Show loading spinner when navigating away (links)
+    document.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        // Only show for internal links
+        if (this.hostname === window.location.hostname && !this.hasAttribute('target')) {
           document.getElementById('loading-overlay').style.display = 'flex';
           document.getElementById('loading-overlay').style.opacity = '1';
-        });
+        }
       });
-    </script>
-  </body>
+    });
+
+    // Show loading spinner when submitting forms
+    document.querySelectorAll('form').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        document.getElementById('loading-overlay').style.display = 'flex';
+        document.getElementById('loading-overlay').style.opacity = '1';
+      });
+    });
+  </script>
+</body>
+
 </html>

@@ -66,6 +66,7 @@ def producer_prices_dashboard():
     query = """
         SELECT 
             p.unique_id,
+            c.country_id,
             c.country_name,
             cm.item_name,
             p.month,

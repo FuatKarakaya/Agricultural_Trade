@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+
+{% block title %}Price Statistics - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+
+<section class="hero-section">
+    <h2>Price Statistics</h2>
+    <p class="section-description">Demonstrating nested query and 4-table join</p>
+</section>
+
+<!-- Nested Query Result -->
+{% if commodity_stats %}
+<section class="producers-section">
+    <h3>Nested Query: Commodity Averages</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Commodity</th>
+                <th>Avg Price</th>
+                <th>Countries</th>
+                <th>Records</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in commodity_stats %}
+            <tr>
+                <td><strong>{{ row['commodity_name'] }}</strong></td>
+                <td>{{ "{:,.2f}".format(row['avg_price'] or 0) }}</td>
+                <td>{{ row['country_count'] or 0 }}</td>
+                <td>{{ "{:,}".format(row['total_records'] or 0) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
+<!-- 4-Table Join with Filter -->
+<section class="producers-section">
+    <h3>4-Table Join: Price vs Production</h3>
+
+    <!-- Commodity Filter -->
+    <form method="get" action="/prices/statistics" class="filter-form" style="margin-bottom: 1rem;">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="commodity">Commodity</label>
+                <select name="commodity" id="commodity" class="filter-select">
+                    <option value="">All Commodities</option>
+                    {% for cm in commodities %}
+                    <option value="{{ cm['fao_code'] }}" {% if selected_commodity==cm['fao_code']|string %}selected{%
+                        endif %}>
+                        {{ cm['item_name'] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button type="submit" class="filter-button">Apply Filter</button>
+            </div>
+        </div>
+    </form>
+
+    {% if four_table_data %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Country</th>
+                <th>Commodity</th>
+                <th>Year</th>
+                <th>Avg Price</th>
+                <th>Production Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in four_table_data %}
+            <tr>
+                <td><strong>{{ row['country_name'] }}</strong></td>
+                <td>{{ row['commodity_name'] }}</td>
+                <td>{{ row['year'] }}</td>
+                <td>{{ "{:,.2f}".format(row['avg_price'] or 0) }}</td>
+                <td>{{ "{:,.0f}".format(row['production_qty'] or 0) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">
+        <p>No matching data found.</p>
+    </div>
+    {% endif %}
+</section>
+
+<section class="stats-container" style="text-align: center; margin-top: 2rem;">
+    <a href="/producer_prices" class="btn">← Back to Producer Prices</a>
+</section>
+
+{% endblock %}

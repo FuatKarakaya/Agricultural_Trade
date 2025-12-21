@@ -41,7 +41,7 @@ def commodities_dashboard():
     stats_query = """
         SELECT 
             COUNT(*) as total_commodities,
-            COUNT(cpc_code) as with_cpc
+            COUNT(CASE WHEN cpc_code IS NOT NULL AND cpc_code != '' THEN 1 END) as with_cpc
         FROM commodities
     """
     stats_result = fetch_query(stats_query)

@@ -119,18 +119,15 @@
         <label>&nbsp;</label>
         <button type="submit" class="filter-button">Apply Filters</button>
       </div>
-      <div class="filter-group">
-        <label>&nbsp;</label>
-        <a href="/consumer_prices" class="filter-button secondary">Clear Filters</a>
-      </div>
     </div>
   </form>
 
   <!-- ADD RECORD BUTTON - Admin Only -->
   {% if is_admin %}
-  <div style="margin-top: 1rem;">
-    <a href="{{ url_for('consumer_price.add_consumer_price_form') }}" class="btn-add-country">
-      Add Record
+  <div style="margin-top: 1.5rem;">
+    <a href="{{ url_for('consumer_price.add_consumer_price_form') }}" class="btn"
+      style="padding: 0.75rem 1.5rem; font-size: 1rem; text-decoration: none;">
+      + Add New Consumer Price
     </a>
   </div>
   {% endif %}
@@ -160,7 +157,15 @@
       <tbody>
         {% for row in prices %}
         <tr>
-          <td><strong>{{ row['country_name'] }}</strong></td>
+          <td>
+            {% if row['country_id'] %}
+            <a href="/countries/{{ row['country_id'] }}" style="color: inherit; text-decoration: none;">
+              <strong>{{ row['country_name'] }}</strong>
+            </a>
+            {% else %}
+            <strong>{{ row['country_name'] }}</strong>
+            {% endif %}
+          </td>
           <td>{{ row['type_name'] }}</td>
           <td>{{ row['year'] }}</td>
           <td>
@@ -181,15 +186,12 @@
           <td>{{ "{:,.2f}".format(row['value']) if row['value'] is not none else '-' }}</td>
           {% if is_admin %}
           <td>
-            <a href="{{ url_for('consumer_price.edit_consumer_price_form', id=row['unique_id']) }}" class="btn-update"
-              style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;">
-              Update
-            </a>
+            <a href="{{ url_for('consumer_price.edit_consumer_price_form', id=row['unique_id']) }}"
+              class="btn-update">Update</a>
             <form method="post" action="{{ url_for('consumer_price.delete_consumer_price') }}" style="display: inline;"
               onsubmit="return confirm('Are you sure you want to delete this record?');">
               <input type="hidden" name="unique_id" value="{{ row['unique_id'] }}">
-              <button type="submit" class="btn-delete"
-                style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</button>
+              <button type="submit" class="btn-delete">Delete</button>
             </form>
           </td>
           {% endif %}
