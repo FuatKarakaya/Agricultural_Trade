@@ -139,133 +139,137 @@
   <!-- Data Table -->
   <h3 style="margin-top: 40px;">Historical Data Table</h3>
   
-  <table class="data-table">
-    <thead>
-      <tr>
-        <!-- Makro: Sıralanabilir başlık oluştur -->
-        {% macro sortable_th(column, display_name) %}
-          {% if sort_by == column %}
-            {# Bu sütuna göre sıralama aktif #}
-            {% if order == 'desc' %}
-              {# Şu an descending → Bir sonraki tıklamada ascending #}
+  <!-- Tablo wrapper eklendi -->
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <!-- Makro: Sıralanabilir başlık oluştur -->
+          {% macro sortable_th(column, display_name) %}
+            {% if sort_by == column %}
+              {# Bu sütuna göre sıralama aktif #}
+              {% if order == 'desc' %}
+                {# Şu an descending → Bir sonraki tıklamada ascending #}
+                <th class="sortable-header" 
+                    onclick="window.location.href='{{ url_for('investments.country_timeline', 
+                      country_id=selected_country_id, 
+                      sort=column, 
+                      order='asc') }}'">
+                  {{ display_name }}
+                  <span class="sort-icon active">▼</span>
+                </th>
+              {% else %}
+                {# Şu an ascending → Bir sonraki tıklamada varsayılana dön #}
+                <th class="sortable-header" 
+                    onclick="window.location.href='{{ url_for('investments.country_timeline', 
+                      country_id=selected_country_id) }}'">
+                  {{ display_name }}
+                  <span class="sort-icon active">▲</span>
+                </th>
+              {% endif %}
+            {% else %}
+              {# Bu sütuna göre sıralama aktif değil → İlk tıklamada descending #}
               <th class="sortable-header" 
                   onclick="window.location.href='{{ url_for('investments.country_timeline', 
                     country_id=selected_country_id, 
                     sort=column, 
-                    order='asc') }}'">
+                    order='desc') }}'">
                 {{ display_name }}
-                <span class="sort-icon active">▼</span>
-              </th>
-            {% else %}
-              {# Şu an ascending → Bir sonraki tıklamada varsayılana dön #}
-              <th class="sortable-header" 
-                  onclick="window.location.href='{{ url_for('investments.country_timeline', 
-                    country_id=selected_country_id) }}'">
-                {{ display_name }}
-                <span class="sort-icon active">▲</span>
+                <span class="sort-icon">⬍</span>
               </th>
             {% endif %}
-          {% else %}
-            {# Bu sütuna göre sıralama aktif değil → İlk tıklamada descending #}
-            <th class="sortable-header" 
-                onclick="window.location.href='{{ url_for('investments.country_timeline', 
-                  country_id=selected_country_id, 
-                  sort=column, 
-                  order='desc') }}'">
-              {{ display_name }}
-              <span class="sort-icon">⬍</span>
-            </th>
+          {% endmacro %}
+
+          {{ sortable_th('year', 'Year') }}
+          <th>Unit</th>
+          {{ sortable_th('total_expenditure', 'Total Expenditure') }}
+          {{ sortable_th('agriculture_forestry_fishing', 'Agriculture, Forestry, Fishing') }}
+          {{ sortable_th('environmental_protection', 'Environmental Protection') }}
+          {{ sortable_th('biodiversity_landscape', 'Biodiversity & Landscape') }}
+          {{ sortable_th('rd_environmental_protection', 'R&D Environmental Protection') }}
+          
+          <!-- ACTIONS SÜTUNU - Sadece Admin Görebilir -->
+          {% if is_admin %}
+          <th>Actions</th>
           {% endif %}
-        {% endmacro %}
+        </tr>
+      </thead>
 
-        {{ sortable_th('year', 'Year') }}
-        <th>Unit</th>
-        {{ sortable_th('total_expenditure', 'Total Expenditure') }}
-        {{ sortable_th('agriculture_forestry_fishing', 'Agriculture, Forestry, Fishing') }}
-        {{ sortable_th('environmental_protection', 'Environmental Protection') }}
-        {{ sortable_th('biodiversity_landscape', 'Biodiversity & Landscape') }}
-        {{ sortable_th('rd_environmental_protection', 'R&D Environmental Protection') }}
-        
-        <!-- ACTIONS SÜTUNU - Sadece Admin Görebilir -->
-        {% if is_admin %}
-        <th>Actions</th>
-        {% endif %}
-      </tr>
-    </thead>
+      <tbody>
+        {% for row in records %}
+        <tr>
+          <td><strong>{{ row['year'] }}</strong></td>
+          <td>{{ row['unit'] }}</td>
 
-    <tbody>
-      {% for row in records %}
-      <tr>
-        <td><strong>{{ row['year'] }}</strong></td>
-        <td>{{ row['unit'] }}</td>
+          <td>
+            {% if row['total_expenditure'] is not none %}
+              {{ "{:,.2f}".format(row['total_expenditure']) }}
+            {% else %}N/A{% endif %}
+          </td>
 
-        <td>
-          {% if row['total_expenditure'] is not none %}
-            {{ "{:,.2f}".format(row['total_expenditure']) }}
-          {% else %}N/A{% endif %}
-        </td>
+          <td>
+            {% if row['agriculture_forestry_fishing'] is not none %}
+              {{ "{:,.2f}".format(row['agriculture_forestry_fishing']) }}
+              {% if row['agriculture_pct'] is not none %}
+                <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['agriculture_pct']) }}%)</span>
+              {% endif %}
+            {% else %}N/A{% endif %}
+          </td>
 
-        <td>
-          {% if row['agriculture_forestry_fishing'] is not none %}
-            {{ "{:,.2f}".format(row['agriculture_forestry_fishing']) }}
-            {% if row['agriculture_pct'] is not none %}
-              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['agriculture_pct']) }}%)</span>
-            {% endif %}
-          {% else %}N/A{% endif %}
-        </td>
+          <td>
+            {% if row['environmental_protection'] is not none %}
+              {{ "{:,.2f}".format(row['environmental_protection']) }}
+              {% if row['environmental_pct'] is not none %}
+                <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['environmental_pct']) }}%)</span>
+              {% endif %}
+            {% else %}N/A{% endif %}
+          </td>
 
-        <td>
-          {% if row['environmental_protection'] is not none %}
-            {{ "{:,.2f}".format(row['environmental_protection']) }}
-            {% if row['environmental_pct'] is not none %}
-              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['environmental_pct']) }}%)</span>
-            {% endif %}
-          {% else %}N/A{% endif %}
-        </td>
+          <td>
+            {% if row['biodiversity_landscape'] is not none %}
+              {{ "{:,.2f}".format(row['biodiversity_landscape']) }}
+              {% if row['biodiversity_pct'] is not none %}
+                <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['biodiversity_pct']) }}%)</span>
+              {% endif %}
+            {% else %}N/A{% endif %}
+          </td>
 
-        <td>
-          {% if row['biodiversity_landscape'] is not none %}
-            {{ "{:,.2f}".format(row['biodiversity_landscape']) }}
-            {% if row['biodiversity_pct'] is not none %}
-              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['biodiversity_pct']) }}%)</span>
-            {% endif %}
-          {% else %}N/A{% endif %}
-        </td>
+          <td>
+            {% if row['rd_environmental_protection'] is not none %}
+              {{ "{:,.2f}".format(row['rd_environmental_protection']) }}
+              {% if row['rd_pct'] is not none %}
+                <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['rd_pct']) }}%)</span>
+              {% endif %}
+            {% else %}N/A{% endif %}
+          </td>
 
-        <td>
-          {% if row['rd_environmental_protection'] is not none %}
-            {{ "{:,.2f}".format(row['rd_environmental_protection']) }}
-            {% if row['rd_pct'] is not none %}
-              <span style="color: #666; font-size: 0.85em;">({{ "{:.2f}".format(row['rd_pct']) }}%)</span>
-            {% endif %}
-          {% else %}N/A{% endif %}
-        </td>
+          <!-- UPDATE VE DELETE BUTONLARI - Sadece Admin Görebilir -->
+          {% if is_admin %}
+          <td>
+            <a href="{{ url_for('investments.edit_investment_form',
+                        country_id=selected_country_id,
+                        year=row['year']) }}"
+                      class="btn-update">
+                      Update
+            </a>
 
-        <!-- UPDATE VE DELETE BUTONLARI - Sadece Admin Görebilir -->
-        {% if is_admin %}
-        <td>
-          <a href="{{ url_for('investments.edit_investment_form',
-                      country_id=selected_country_id,
-                      year=row['year']) }}"
-                    class="btn-update">
-                    Update
-          </a>
-
-          <form method="post"
-                action="{{ url_for('investments.delete_investment') }}"
-                style="display: inline;"
-                onsubmit="return confirm('Delete all records for this year?');">
-            <input type="hidden" name="country_id" value="{{ selected_country_id }}">
-            <input type="hidden" name="year" value="{{ row['year'] }}">
-            <input type="hidden" name="redirect_country_id" value="{{ selected_country_id }}">
-            <button type="submit" class="btn-delete">Delete</button>
-          </form>
-        </td>
-        {% endif %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+            <form method="post"
+                  action="{{ url_for('investments.delete_investment') }}"
+                  style="display: inline;"
+                  onsubmit="return confirm('Delete all records for this year?');">
+              <input type="hidden" name="country_id" value="{{ selected_country_id }}">
+              <input type="hidden" name="year" value="{{ row['year'] }}">
+              <input type="hidden" name="redirect_country_id" value="{{ selected_country_id }}">
+              <button type="submit" class="btn-delete">Delete</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- Wrapper div sonu -->
 
   {% elif country_name and not records %}
   <div class="no-data">

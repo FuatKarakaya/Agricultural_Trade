@@ -1161,3 +1161,89 @@ DELETE FROM Production WHERE production_ID = %s
         DELETE FROM Investments
         WHERE country_id = %s AND year = %s;
         
+
+        INSERT INTO Investments (
+            expenditure_type,
+            unit,
+            expenditure_value,
+            year,
+            country_id
+        )
+        VALUES (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s);
+        
+
+        INSERT INTO Investments (
+            expenditure_type,
+            unit,
+            expenditure_value,
+            year,
+            country_id
+        )
+        VALUES (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s);
+        
+
+        INSERT INTO Land_Use (
+            land_type,
+            unit,
+            land_usage_value,
+            year,
+            country_id
+        )
+        VALUES (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s);
+        
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
