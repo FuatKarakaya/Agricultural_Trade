@@ -193,10 +193,10 @@
           <td>{{ "{:,.4f}".format(row['production_per_capita']) if row['production_per_capita'] else '0.00' }}</td>
           <td class="actions-cell">
             <a href="{{ url_for('prod.edit_production_form', production_id=row['production_id']) }}" 
-               class="btn-action btn-update">Update</a>
+               class="table-action-btn update">Update</a>
             <form method="post" action="{{ url_for('prod.delete_production', production_id=row['production_id']) }}" 
                   style="display: inline; margin: 0;" onsubmit="return confirm('Are you sure you want to delete this record? This will also delete all related production values.');">
-              <button type="submit" class="btn-action btn-delete">Delete</button>
+              <button type="submit" class="table-action-btn delete">Delete</button>
             </form>
           </td>
         </tr>

@@ -232,10 +232,10 @@
         <td>{{ row.get('region') or 'N/A' }}</td>
         <td class="actions-cell">
           <a href="{{ url_for('prod_val.edit_production_value_form', production_value_id=row.get('production_value_id') or row.get('production_value_ID')) }}" 
-             class="btn-action btn-update">Update</a>
+             class="table-action-btn update">Update</a>
           <form method="post" action="{{ url_for('prod_val.delete_production_value', production_value_id=row.get('production_value_id') or row.get('production_value_ID')) }}" 
                 style="display: inline; margin: 0;" onsubmit="return confirm('Are you sure you want to delete this production value record?');">
-            <button type="submit" class="btn-action btn-delete">Delete</button>
+            <button type="submit" class="table-action-btn delete">Delete</button>
           </form>
         </td>
       </tr>
