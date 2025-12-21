@@ -1248,41 +1248,68 @@ DELETE FROM Production WHERE production_ID = %s
                   AND land_type = %s;
                 
 
-            UPDATE trade_data_final
-            SET reporter_code = %s,
-                partner_code = %s,
-                item_code = %s,
-                trade_type = %s,
-                year = %s,
-                qty_tonnes = %s,
-                val_1k_usd = %s
-            WHERE unique_id = %s
+        INSERT INTO Land_Use (
+            land_type,
+            unit,
+            land_usage_value,
+            year,
+            country_id
+        )
+        VALUES (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s);
         
 
-            INSERT INTO trade_data_final
-            (reporter_code, partner_code, item_code, trade_type, year, qty_tonnes, val_1k_usd)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        
-DELETE FROM trade_data_final WHERE unique_id = %s
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
 
-            INSERT INTO trade_data_final
-            (reporter_code, partner_code, item_code, trade_type, year, qty_tonnes, val_1k_usd)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        
-DELETE FROM trade_data_final WHERE unique_id = %s
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
 
-            UPDATE trade_data_final
-            SET reporter_code = %s,
-                partner_code = %s,
-                item_code = %s,
-                trade_type = %s,
-                year = %s,
-                qty_tonnes = %s,
-                val_1k_usd = %s
-            WHERE unique_id = %s
-        
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
 
-            INSERT INTO trade_data_final
-            (reporter_code, partner_code, item_code, trade_type, year, qty_tonnes, val_1k_usd)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
+
+                UPDATE Land_Use
+                SET land_usage_value = %s,
+                    unit = %s
+                WHERE country_id = %s
+                  AND year = %s
+                  AND land_type = %s;
+                
