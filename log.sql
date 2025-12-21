@@ -1346,3 +1346,27 @@ DELETE FROM Production WHERE production_ID = %s
             INSERT INTO Production_Value (production_ID, element, unit, value)
             VALUES (%s, %s, %s, %s)
         
+
+            UPDATE Production 
+            SET unit = %s, quantity = %s
+            WHERE production_ID = %s
+        
+
+            INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s)
+        
+
+            INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s)
+        
+
+            UPDATE Production_Value 
+            SET element = %s, unit = %s, value = %s
+            WHERE production_value_ID = %s
+        
+DELETE FROM Production_Value WHERE production_value_ID = %s
+DELETE FROM Production_Value WHERE production_value_ID = %s
+
+            INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
+            VALUES (%s, %s, %s, %s, %s)
+        
