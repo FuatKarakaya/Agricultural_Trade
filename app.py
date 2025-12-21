@@ -8,6 +8,7 @@ from routes import (
     country_bp,
     consumer_price_bp,
     producer_price_bp,
+    price_statistics_bp,
     commodity_bp,
     trade_bp,
     landuse_bp,
@@ -45,6 +46,7 @@ def create_app():
     app.register_blueprint(commodity_bp)
     app.register_blueprint(consumer_price_bp)
     app.register_blueprint(producer_price_bp)
+    app.register_blueprint(price_statistics_bp)
     app.register_blueprint(investments_bp)
     return app
 

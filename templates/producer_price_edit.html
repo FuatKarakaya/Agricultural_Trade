@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Producer Price Record - Zlatan Agriculture{% endblock %}
+
+{% block content %}
+<style>
+    .form-page-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-section {
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        background-color: #fafafa;
+        margin-top: 1rem;
+    }
+
+    .price-form {
+        margin-top: 0.75rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 24px;
+    }
+
+    .price-form .form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .price-form .form-row-full {
+        grid-column: 1 / -1;
+    }
+
+    .price-form label {
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .price-form input {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.9rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    .price-form button {
+        margin-top: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background-color: #17a2b8;
+        color: white;
+        font-weight: 600;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .flash-container {
+        margin: 0.5rem 0 1rem 0;
+    }
+
+    .flash-message {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .flash-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .flash-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .readonly-field {
+        padding: 0.3rem 0.5rem;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="form-page-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <h2>Edit Producer Price Record</h2>
+
+    <section class="form-section">
+        <form method="post" action="{{ url_for('producer_price.update_producer_price') }}" class="price-form">
+            <input type="hidden" name="unique_id" value="{{ record['unique_id'] }}">
+
+            <!-- Country (read-only) -->
+            <div class="form-row">
+                <label>Country:</label>
+                <div class="readonly-field">{{ record['country_name'] }}</div>
+            </div>
+
+            <!-- Commodity (read-only) -->
+            <div class="form-row">
+                <label>Commodity:</label>
+                <div class="readonly-field">{{ record['item_name'] }}</div>
+            </div>
+
+            <!-- Year (read-only) -->
+            <div class="form-row">
+                <label>Year:</label>
+                <div class="readonly-field">{{ record['year'] }}</div>
+            </div>
+
+            <!-- Month (read-only) -->
+            <div class="form-row">
+                <label>Month:</label>
+                <div class="readonly-field">{{ month_names[record['month']] }}</div>
+            </div>
+
+            <!-- Unit -->
+            <div class="form-row">
+                <label for="form-unit">Unit:</label>
+                <input id="form-unit" type="text" name="unit" value="{{ record['unit'] or 'LCU' }}" required>
+            </div>
+
+            <!-- Value -->
+            <div class="form-row">
+                <label for="form-value">Value:</label>
+                <input id="form-value" type="number" name="value" step="0.01"
+                    value="{{ record['value'] if record['value'] is not none else '' }}" required>
+            </div>
+
+            <div class="form-row form-row-full">
+                <button type="submit">Save Changes</button>
+            </div>
+        </form>
+    </section>
+
+    <a href="{{ url_for('producer_price.producer_prices_dashboard') }}" class="back-link">
+        ← Back to Producer Prices
+    </a>
+</div>
+
+{% endblock %}

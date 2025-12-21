@@ -3,7 +3,7 @@
 .country-link:hover,
 .country-link:active {
   text-decoration: none;
-  color: blue;
+  color: inherit;
 }
 
 .flash-container {
@@ -160,13 +160,13 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   /* Mobilde butonlar biraz daha küçük */
   .btn-add-country {
     padding: 0.35rem 0.75rem;
     font-size: 0.85rem;
   }
-  
+
   .btn-update,
   .btn-delete {
     padding: 0.3rem 0.6rem;
@@ -219,7 +219,7 @@
     min-width: 1000px;
     font-size: 0.85rem;
   }
-  
+
   .data-table th,
   .data-table td {
     padding: 10px 6px;
