@@ -39,7 +39,8 @@
     font-size: 0.85rem;
   }
 
-  .landuse-form input {
+  .landuse-form input,
+  .landuse-form select {
     padding: 0.3rem 0.5rem;
     font-size: 0.9rem;
     border-radius: 4px;
@@ -63,7 +64,7 @@
     font-size: 0.9rem;
   }
 
-  /* Flash mesajları (istersen buraya da ekle) */
+  /* Flash mesajları */
   .flash-container {
     margin: 0.5rem 0 1rem 0;
   }
@@ -86,6 +87,21 @@
     color: #721c24;
     border: 1px solid #f5c6cb;
   }
+
+  .unit-note {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 2px;
+  }
+
+  .info-box {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
 </style>
 
 <div class="form-page-container">
@@ -103,31 +119,44 @@
 
   <h2>Edit Land Use Record</h2>
 
+  <div class="info-box">
+    <strong>Editing:</strong> {{ country_name }} - {{ year }}
+  </div>
+
   <section class="form-section">
     <form method="post" action="{{ url_for('landuse.update_land_use') }}" class="landuse-form">
       <!-- Country (göster, ama değişmesin) -->
       <div class="form-row">
         <label>Country:</label>
-        <div>{{ country_name }}</div>
+        <div style="padding: 0.3rem 0;">{{ country_name }}</div>
         <input type="hidden" name="country_id" value="{{ country_id }}">
       </div>
 
       <!-- Year (göster, ama değişmesin) -->
       <div class="form-row">
         <label>Year:</label>
-        <div>{{ year }}</div>
+        <div style="padding: 0.3rem 0;">{{ year }}</div>
         <input type="hidden" name="year" value="{{ year }}">
       </div>
 
-      <!-- Unit info -->
+      <!-- Unit (seçilebilir) -->
       <div class="form-row form-row-full">
-        <label>Unit:</label>
-        <div>{{ unit }} (fixed)</div>
+        <label for="form-unit">Unit:</label>
+        <select id="form-unit" name="unit" required>
+          {% for unit_option in unit_options %}
+            <option value="{{ unit_option }}" {% if unit_option == unit %}selected{% endif %}>
+              {{ unit_option }}
+            </option>
+          {% endfor %}
+        </select>
+        <div class="unit-note">
+          You can change the unit if needed. All values will be interpreted in the selected unit.
+        </div>
       </div>
 
       <!-- Country area -->
       <div class="form-row">
-        <label for="country-area">Country area ({{ unit }}):</label>
+        <label for="country-area">Country area:</label>
         <input
           id="country-area"
           type="number"
@@ -141,7 +170,7 @@
 
       <!-- Land area -->
       <div class="form-row">
-        <label for="land-area">Land area ({{ unit }}):</label>
+        <label for="land-area">Land area:</label>
         <input
           id="land-area"
           type="number"
@@ -155,7 +184,7 @@
 
       <!-- Inland waters -->
       <div class="form-row">
-        <label for="inland-waters">Inland waters ({{ unit }}):</label>
+        <label for="inland-waters">Inland waters:</label>
         <input
           id="inland-waters"
           type="number"
@@ -169,7 +198,7 @@
 
       <!-- Arable land -->
       <div class="form-row">
-        <label for="arable-land">Arable land ({{ unit }}):</label>
+        <label for="arable-land">Arable land:</label>
         <input
           id="arable-land"
           type="number"
@@ -183,7 +212,7 @@
 
       <!-- Permanent crops -->
       <div class="form-row">
-        <label for="permanent-crops">Permanent crops ({{ unit }}):</label>
+        <label for="permanent-crops">Permanent crops:</label>
         <input
           id="permanent-crops"
           type="number"
@@ -197,7 +226,7 @@
 
       <!-- Permanent meadows and pastures -->
       <div class="form-row">
-        <label for="permanent-meadows">Permanent meadows and pastures ({{ unit }}):</label>
+        <label for="permanent-meadows">Permanent meadows and pastures:</label>
         <input
           id="permanent-meadows"
           type="number"
@@ -212,7 +241,7 @@
 
       <!-- Forest land -->
       <div class="form-row">
-        <label for="forest-land">Forest land ({{ unit }}):</label>
+        <label for="forest-land">Forest land:</label>
         <input
           id="forest-land"
           type="number"

@@ -215,6 +215,9 @@ def add_land_use_form():
         ORDER BY country_name ASC;
     """
     countries = fetch_query(countries_query, ())
+    
+    # Unit seçenekleri
+    unit_options = ["1000 ha", "km^2"]
 
     return render_template(
         "land_use_add.html",
@@ -222,6 +225,7 @@ def add_land_use_form():
         year=year,
         countries=countries,
         selected_country_id=selected_country_id,
+        unit_options=unit_options,
     )
 
 @landuse_bp.route("/land-use/add", methods=["POST"])
@@ -229,13 +233,15 @@ def add_land_use_form():
 def add_land_use():
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
-    unit = "1000 ha"
+    unit = request.form.get("unit", "1000 ha")  # Form'dan al, varsayılan "1000 ha"
 
     errors = []
     if not country_id:
         errors.append("Country is required.")
     if not year:
         errors.append("Year is required.")
+    if unit not in ["1000 ha", "km^2"]:
+        errors.append("Invalid unit selected.")
 
     def get_val(name):
         return request.form.get(name, type=float)
@@ -335,7 +341,7 @@ def add_land_use():
             url_for("landuse.add_land_use_form", year=year, country_id=country_id)
         )
 
-    # INSERT - artık country_name yok
+    # INSERT
     params = []
     for lt, v in values.items():
         params.extend([lt, unit, v, year, country_id])
@@ -440,7 +446,7 @@ def edit_land_use_form():
 
     # Varsayılan değerler: None
     land_values = {lt: None for lt in land_type_list}
-    unit = "1000 ha"
+    unit = "1000 ha"  # Varsayılan unit
 
     for r in rows:
         lt = r["land_type"]
@@ -453,6 +459,9 @@ def edit_land_use_form():
     if not rows:
         flash("Bu ülke ve yıl için düzenlenecek kayıt bulunamadı.", "error")
         return redirect(url_for("landuse.landUsePage", year=year))
+    
+    # Unit seçenekleri
+    unit_options = ["1000 ha", "km^2"]
 
     return render_template(
         "land_use_edit.html",
@@ -461,6 +470,7 @@ def edit_land_use_form():
         year=year,
         unit=unit,
         land_values=land_values,
+        unit_options=unit_options,
     )
 
 @landuse_bp.route("/land-use/update", methods=["POST"])
@@ -472,13 +482,15 @@ def update_land_use():
     """
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
-    unit = "1000 ha"
+    unit = request.form.get("unit", "1000 ha")  # Form'dan al
 
     errors = []
     if not country_id:
         errors.append("Country is required.")
     if not year:
         errors.append("Year is required.")
+    if unit not in ["1000 ha", "km^2"]:
+        errors.append("Invalid unit selected.")
 
     def get_val(name):
         return request.form.get(name, type=float)
@@ -579,7 +591,7 @@ def update_land_use():
     for lt in land_type_list:
         v = values[lt]
         if lt in existing_types:
-            # UPDATE - artık country_name yok
+            # UPDATE
             execute_query(
                 """
                 UPDATE Land_Use
@@ -592,7 +604,7 @@ def update_land_use():
                 (v, unit, country_id, year, lt),
             )
         else:
-            # INSERT - artık country_name yok
+            # INSERT
             execute_query(
                 """
                 INSERT INTO Land_Use (

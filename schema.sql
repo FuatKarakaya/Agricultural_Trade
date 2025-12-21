@@ -20,7 +20,6 @@ CREATE TABLE Production (
     production_ID SERIAL PRIMARY KEY,
     country_code INTEGER NOT NULL,
     commodity_code INTEGER NOT NULL,
-    item_name VARCHAR(128) NOT NULL,
     year INTEGER NOT NULL,
     unit varchar(7),
     quantity DECIMAL(12, 3),
@@ -40,7 +39,6 @@ CREATE TABLE Production_Value (
     production_value_ID SERIAL PRIMARY KEY,
     production_ID INTEGER NOT NULL,
     element VARCHAR(56),
-    year INTEGER NOT NULL,
     unit VARCHAR(9),
     value DECIMAL(15, 3),
     
@@ -106,7 +104,7 @@ CREATE TABLE Land_Use (
     year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
     country_id INTEGER NOT NULL,
     FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON DELETE CASCADE,
-    UNIQUE (country_id, year, land_type)
+    UNIQUE (country_id, year, land_type,unit)
 );
 
 CREATE TABLE Investments (
@@ -117,7 +115,7 @@ CREATE TABLE Investments (
     year INTEGER NOT NULL CHECK (year BETWEEN 1900 AND 2100),
     country_id INTEGER NOT NULL,
     FOREIGN KEY (country_id) REFERENCES Countries(country_id) ON DELETE CASCADE,
-    UNIQUE (country_id, year, expenditure_type)
+    UNIQUE (country_id, year, expenditure_type,unit)
 );
 
 -- eski hali

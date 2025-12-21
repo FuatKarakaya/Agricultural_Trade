@@ -39,13 +39,20 @@
     </div>
 
     <div class="form-group">
-      <label for="unit">Unit</label>
-      <input type="text" id="unit" name="unit" value="{{ unit }}" readonly>
+      <label for="unit">Unit *</label>
+      <select id="unit" name="unit" required>
+        {% for unit_option in unit_options %}
+          <option value="{{ unit_option }}" {% if unit_option == unit %}selected{% endif %}>
+            {{ unit_option }}
+          </option>
+        {% endfor %}
+      </select>
+      <small style="color: #666; margin-top: 0.25rem;">You can change the unit if needed. All values will be interpreted in the selected unit.</small>
     </div>
 
     <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #ddd;">
 
-    <h3 style="margin-bottom: 1rem; color: #333;">Expenditure Values (Million USD)</h3>
+    <h3 style="margin-bottom: 1rem; color: #333;">Expenditure Values</h3>
 
     <div class="form-group">
       <label for="total_expenditure">Total Expenditure (general government) *</label>

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database import fetch_query, execute_query
+from routes.auth_routes import admin_required
 
 prod_val_bp = Blueprint("prod_val", __name__)
 
@@ -15,13 +16,12 @@ def production_values():
         region = request.args.get("region", "")
         search = request.args.get("search", "").strip()
 
-        # Enhanced query with multiple JOINs similar to production page
         query = """
             SELECT 
                 pv.production_value_ID AS production_value_id,
                 pv.production_ID AS production_id,
                 pv.element,
-                pv.year,
+                p.year,
                 pv.unit,
                 pv.value,
                 p.country_code,
@@ -45,7 +45,7 @@ def production_values():
             params.append(selected_element)
 
         if selected_year:
-            query += " AND pv.year = %s"
+            query += " AND p.year = %s"
             params.append(selected_year)
 
         if country_code:
@@ -67,7 +67,7 @@ def production_values():
                 OR c.country_name ILIKE %s
                 OR co.item_name ILIKE %s
                 OR pv.element ILIKE %s
-                OR CAST(pv.year AS TEXT) LIKE %s
+                OR CAST(p.year AS TEXT) LIKE %s
                 OR CAST(pv.value AS TEXT) LIKE %s
                 OR pv.unit ILIKE %s
                 OR c.region ILIKE %s
@@ -80,7 +80,7 @@ def production_values():
             CASE WHEN pv.value IS NOT NULL AND pv.unit IS NOT NULL AND pv.element IS NOT NULL
                       AND c.country_name IS NOT NULL AND co.item_name IS NOT NULL AND c.region IS NOT NULL
                  THEN 0 ELSE 1 END,
-            pv.year DESC, pv.value DESC NULLS LAST
+            p.year DESC, pv.value DESC NULLS LAST
             LIMIT 50"""
 
         production_values_list = fetch_query(query, params)
@@ -97,8 +97,8 @@ def production_values():
                 COUNT(DISTINCT pv.element) as total_elements,
                 COUNT(DISTINCT p.country_code) as total_countries,
                 COUNT(DISTINCT p.commodity_code) as total_commodities,
-                MIN(pv.year) as min_year,
-                MAX(pv.year) as max_year
+                MIN(p.year) as min_year,
+                MAX(p.year) as max_year
             FROM Production_Value pv
             INNER JOIN Production p ON pv.production_ID = p.production_ID
             """
@@ -110,7 +110,12 @@ def production_values():
             "SELECT DISTINCT element FROM Production_Value ORDER BY element"
         )
         years = fetch_query(
-            "SELECT DISTINCT year FROM Production_Value ORDER BY year DESC"
+            """
+            SELECT DISTINCT p.year 
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            ORDER BY p.year DESC
+            """
         )
         countries = fetch_query(
             """
@@ -130,6 +135,22 @@ def production_values():
         regions = fetch_query(
             "SELECT DISTINCT region FROM Countries WHERE region IS NOT NULL ORDER BY region"
         )
+
+        # Chart: Top 10 countries by total production value
+        chart_query = """
+            SELECT c.country_name, SUM(pv.value) as total_value
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            INNER JOIN Countries c ON p.country_code = c.country_id
+            WHERE pv.value IS NOT NULL
+            GROUP BY c.country_name
+            ORDER BY total_value DESC
+            LIMIT 10
+        """
+        chart_result = fetch_query(chart_query)
+        chart_data = []
+        if chart_result:
+            chart_data = [{"country": row["country_name"], "value": float(row["total_value"] or 0)} for row in chart_result]
 
         return render_template(
             "production_values.html",
@@ -155,7 +176,7 @@ def production_values():
             sort_by="year",
             sort_order="desc",
             # Add chart data
-            chart_data=[]
+            chart_data=chart_data
         )
 
     except Exception as e:
@@ -180,26 +201,28 @@ def production_value_detail(production_value_id):
         production_value = result[0]
 
         ts_query = """
-            SELECT year, element, value, unit 
-            FROM Production_Value 
-            WHERE production_ID = %s 
-            ORDER BY year DESC
+            SELECT p.year, pv.element, pv.value, pv.unit 
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            WHERE pv.production_ID = %s 
+            ORDER BY p.year DESC
         """
         time_series = fetch_query(ts_query, [production_value["production_ID"]])
 
         # Shows general stats for this element type across all years
         yt_query = """
             SELECT 
-                year, 
-                AVG(value) as avg_value, 
-                MIN(value) as min_value, 
-                MAX(value) as max_value, 
+                p.year, 
+                AVG(pv.value) as avg_value, 
+                MIN(pv.value) as min_value, 
+                MAX(pv.value) as max_value, 
                 COUNT(*) as record_count 
-            FROM Production_Value 
-            WHERE element = %s 
-                AND value IS NOT NULL 
-            GROUP BY year 
-            ORDER BY year DESC 
+            FROM Production_Value pv
+            INNER JOIN Production p ON pv.production_ID = p.production_ID
+            WHERE pv.element = %s 
+                AND pv.value IS NOT NULL 
+            GROUP BY p.year 
+            ORDER BY p.year DESC 
             LIMIT 10
         """
         yearly_trends = fetch_query(yt_query, [production_value["element"]])
@@ -220,6 +243,7 @@ def production_value_detail(production_value_id):
 
 
 @prod_val_bp.route("/production-values/new", methods=["GET"])
+@admin_required
 def add_production_value_form():
     """Display form to add new production value record"""
     year = request.args.get("year", 2023, type=int)
@@ -273,6 +297,7 @@ def add_production_value_form():
 
 
 @prod_val_bp.route("/production-values/add", methods=["POST"])
+@admin_required
 def add_production_value():
     """Handle production value record addition"""
     try:
@@ -327,26 +352,26 @@ def add_production_value():
         
         production_id = production_row[0]["production_id"]
         
-        # Check for duplicate
+        # Check for duplicate (production_ID already contains the year information)
         existing = fetch_query(
             """
             SELECT production_value_ID
             FROM Production_Value
-            WHERE production_ID = %s AND element = %s AND year = %s
+            WHERE production_ID = %s AND element = %s
             """,
-            (production_id, element, year)
+            (production_id, element)
         )
         
         if existing:
-            flash("Record already exists for this production, element, and year.", "error")
+            flash("Record already exists for this production and element.", "error")
             return redirect(url_for("prod_val.add_production_value_form"))
         
-        # Insert new record
+        # Insert new record (year comes from Production table via production_ID)
         insert_query = """
-            INSERT INTO Production_Value (production_ID, element, year, unit, value)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO Production_Value (production_ID, element, unit, value)
+            VALUES (%s, %s, %s, %s)
         """
-        execute_query(insert_query, (production_id, element, year, unit, value))
+        execute_query(insert_query, (production_id, element, unit, value))
         
         flash("Production value record added successfully!", "success")
         return redirect(url_for("prod_val.add_production_value_form"))
@@ -354,3 +379,117 @@ def add_production_value():
     except Exception as e:
         flash(f"Error adding production value record: {str(e)}", "error")
         return redirect(url_for("prod_val.add_production_value_form"))
+
+
+@prod_val_bp.route("/production-value/<int:production_value_id>/edit", methods=["GET"])
+@admin_required
+def edit_production_value_form(production_value_id):
+    """Display form to edit existing production value record"""
+    try:
+        # Get current production value data with related info
+        production_value = fetch_query(
+            """
+            SELECT pv.production_value_ID, pv.production_ID, pv.element, pv.unit, pv.value,
+                   p.year, p.country_code, p.commodity_code,
+                   c.country_name, co.item_name
+            FROM Production_Value pv
+            JOIN Production p ON pv.production_ID = p.production_ID
+            JOIN Countries c ON p.country_code = c.country_id
+            JOIN Commodities co ON p.commodity_code = co.fao_code
+            WHERE pv.production_value_ID = %s
+            """,
+            [production_value_id]
+        )
+        
+        if not production_value:
+            flash("Production value record not found.", "error")
+            return redirect(url_for("prod_val.production_values"))
+        
+        production_value = production_value[0]
+        
+        # Get distinct elements with their units
+        elements = fetch_query(
+            """
+            SELECT DISTINCT element, unit 
+            FROM Production_Value 
+            WHERE element IS NOT NULL 
+            ORDER BY element
+            """
+        )
+        
+        return render_template(
+            "production_value_edit.html",
+            production_value=production_value,
+            elements=elements
+        )
+        
+    except Exception as e:
+        flash(f"Error loading production value record: {str(e)}", "error")
+        return redirect(url_for("prod_val.production_values"))
+
+
+@prod_val_bp.route("/production-value/<int:production_value_id>/edit", methods=["POST"])
+@admin_required
+def edit_production_value(production_value_id):
+    """Handle production value record update"""
+    try:
+        element = request.form.get("element", "").strip()
+        value = request.form.get("value", type=float)
+        
+        if not element:
+            flash("Element is required.", "error")
+            return redirect(url_for("prod_val.edit_production_value_form", production_value_id=production_value_id))
+        
+        if value is None:
+            flash("Value is required.", "error")
+            return redirect(url_for("prod_val.edit_production_value_form", production_value_id=production_value_id))
+        
+        # Get unit from element
+        unit_row = fetch_query(
+            "SELECT unit FROM Production_Value WHERE element = %s LIMIT 1",
+            (element,)
+        )
+        unit = unit_row[0]["unit"] if unit_row else ""
+        
+        # Update the record
+        update_query = """
+            UPDATE Production_Value 
+            SET element = %s, unit = %s, value = %s
+            WHERE production_value_ID = %s
+        """
+        execute_query(update_query, (element, unit, value, production_value_id))
+        
+        flash("Production value record updated successfully!", "success")
+        return redirect(url_for("prod_val.production_values"))
+        
+    except Exception as e:
+        flash(f"Error updating production value record: {str(e)}", "error")
+        return redirect(url_for("prod_val.production_values"))
+
+
+@prod_val_bp.route("/production-value/<int:production_value_id>/delete", methods=["POST"])
+@admin_required
+def delete_production_value(production_value_id):
+    """Handle production value record deletion"""
+    try:
+        # Check if record exists
+        existing = fetch_query(
+            "SELECT production_value_ID FROM Production_Value WHERE production_value_ID = %s",
+            [production_value_id]
+        )
+        
+        if not existing:
+            flash("Production value record not found.", "error")
+            return redirect(url_for("prod_val.production_values"))
+        
+        # Delete the record
+        delete_query = "DELETE FROM Production_Value WHERE production_value_ID = %s"
+        execute_query(delete_query, [production_value_id])
+        
+        flash("Production value record deleted successfully!", "success")
+        return redirect(url_for("prod_val.production_values"))
+        
+    except Exception as e:
+        flash(f"Error deleting production value record: {str(e)}", "error")
+        return redirect(url_for("prod_val.production_values"))
+

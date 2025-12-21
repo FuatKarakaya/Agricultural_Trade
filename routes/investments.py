@@ -185,6 +185,9 @@ def add_investment_form():
         ORDER BY country_name ASC;
     """
     countries = fetch_query(countries_query, ())
+    
+    # Unit seçenekleri
+    unit_options = ["Million USD", "Billion USD"]
 
     return render_template(
         "investments_add.html",
@@ -192,19 +195,23 @@ def add_investment_form():
         year=year,
         countries=countries,
         selected_country_id=selected_country_id,
+        unit_options=unit_options,
     )
+
 @investments_bp.route("/investments/add", methods=["POST"])
 @admin_required
 def add_investment():
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
-    unit = request.form.get("unit", "Million USD")
+    unit = request.form.get("unit", "Million USD")  # Form'dan al
 
     errors = []
     if not country_id:
         errors.append("Country is required.")
     if not year:
         errors.append("Year is required.")
+    if unit not in ["Million USD", "Billion USD"]:
+        errors.append("Invalid unit selected.")
 
     def get_val(name):
         return request.form.get(name, type=float)
@@ -230,14 +237,36 @@ def add_investment():
             url_for("investments.add_investment_form", year=year or 2023, country_id=country_id)
         )
 
-    # --- VALIDATION RULE ---
+    # --- VALIDATION RULES ---
     total_expenditure = values["Total Expenditure (general government)"]
     agriculture = values["Agriculture, forestry, fishing (general government expenditure)"]
     environmental = values["Environmental protection (general government expenditure)"]
     biodiversity = values["Protection of Biodiversity and Landscape (general government expenditure)"]
     rd_environmental = values["R&D Environmental Protection (general government expenditure)"]
 
-    # Rule: Sectoral expenditures cannot exceed total expenditure
+    # Rule 1: Unit consistency - Aynı ülke-yıl için başka unit'te kayıt var mı?
+    existing_unit_check = fetch_query(
+        """
+        SELECT DISTINCT unit
+        FROM Investments
+        WHERE country_id = %s AND year = %s
+        LIMIT 1;
+        """,
+        (country_id, year)
+    )
+    
+    if existing_unit_check and existing_unit_check[0]['unit'] != unit:
+        flash(
+            f"Records for {year} already exist in {existing_unit_check[0]['unit']}. "
+            f"Cannot mix different units for the same country-year. "
+            f"Please use {existing_unit_check[0]['unit']} or delete existing records first.",
+            "error"
+        )
+        return redirect(
+            url_for("investments.add_investment_form", year=year or 2023, country_id=country_id)
+        )
+
+    # Rule 2: Sectoral expenditures cannot exceed total expenditure
     sectoral_total = agriculture + environmental + biodiversity + rd_environmental
     tolerance = 0.01  # Float precision için
     
@@ -288,7 +317,7 @@ def add_investment():
             url_for("investments.add_investment_form", year=year, country_id=country_id)
         )
 
-    # INSERT - artık country_name yok
+    # INSERT
     params = []
     for et, v in values.items():
         params.extend([et, unit, v, year, country_id])
@@ -391,7 +420,7 @@ def edit_investment_form():
 
     # Varsayılan değerler: None
     expenditure_values = {et: None for et in expenditure_type_list}
-    unit = "Million USD"
+    unit = "Million USD"  # Varsayılan
 
     for r in rows:
         et = r["expenditure_type"]
@@ -404,6 +433,9 @@ def edit_investment_form():
     if not rows:
         flash("No records found for this country and year.", "error")
         return redirect(url_for("investments.investmentsPage", year=year))
+    
+    # Unit seçenekleri
+    unit_options = ["Million USD", "Billion USD"]
 
     return render_template(
         "investments_edit.html",
@@ -412,6 +444,7 @@ def edit_investment_form():
         year=year,
         unit=unit,
         expenditure_values=expenditure_values,
+        unit_options=unit_options,
     )
 
 @investments_bp.route("/investments/update", methods=["POST"])
@@ -423,13 +456,15 @@ def update_investment():
     """
     country_id = request.form.get("country_id", type=int)
     year = request.form.get("year", type=int)
-    unit = request.form.get("unit", "Million USD")
+    unit = request.form.get("unit", "Million USD")  # Form'dan al
 
     errors = []
     if not country_id:
         errors.append("Country is required.")
     if not year:
         errors.append("Year is required.")
+    if unit not in ["Million USD", "Billion USD"]:
+        errors.append("Invalid unit selected.")
 
     def get_val(name):
         return request.form.get(name, type=float)
@@ -455,7 +490,7 @@ def update_investment():
             url_for("investments.edit_investment_form", country_id=country_id, year=year or 2023)
         )
 
-    # --- VALIDATION RULE ---
+    # --- VALIDATION RULES ---
     total_expenditure = values["Total Expenditure (general government)"]
     agriculture = values["Agriculture, forestry, fishing (general government expenditure)"]
     environmental = values["Environmental protection (general government expenditure)"]
@@ -514,7 +549,7 @@ def update_investment():
     for et in expenditure_type_list:
         v = values[et]
         if et in existing_types:
-            # UPDATE - artık country_name yok
+            # UPDATE
             execute_query(
                 """
                 UPDATE Investments
@@ -527,7 +562,7 @@ def update_investment():
                 (v, unit, country_id, year, et),
             )
         else:
-            # INSERT - artık country_name yok
+            # INSERT
             execute_query(
                 """
                 INSERT INTO Investments (
