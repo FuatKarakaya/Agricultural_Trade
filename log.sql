@@ -1366,6 +1366,33 @@ DELETE FROM Production WHERE production_ID = %s
         
 DELETE FROM Production_Value WHERE production_value_ID = %s
 DELETE FROM Production_Value WHERE production_value_ID = %s
+            UPDATE trade_data_final
+            SET reporter_code = %s,
+                partner_code = %s,
+                item_code = %s,
+                trade_type = %s,
+                year = %s,
+                qty_tonnes = %s,
+                val_1k_usd = %s
+            WHERE unique_id = %s
+        
+
+            UPDATE trade_data_final
+            SET reporter_code = %s,
+                partner_code = %s,
+                item_code = %s,
+                trade_type = %s,
+                year = %s,
+                qty_tonnes = %s,
+                val_1k_usd = %s
+            WHERE unique_id = %s
+        
+
+            INSERT INTO trade_data_final
+            (reporter_code, partner_code, item_code, trade_type, year, qty_tonnes, val_1k_usd)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        
+DELETE FROM trade_data_final WHERE unique_id = %s
 
             INSERT INTO Production (country_code, commodity_code, year, unit, quantity)
             VALUES (%s, %s, %s, %s, %s)

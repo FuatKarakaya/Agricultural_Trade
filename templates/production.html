@@ -159,7 +159,6 @@
     <h3>Production Records</h3>
     <div style="display: flex; gap: 0.5rem;">
       <a href="{{ url_for('prod.add_production_form') }}" class="btn">Add New Record</a>
-      <button type="button" class="btn" onclick="exportToCSV()">Export CSV</button>
     </div>
   </div>
   <p class="section-description">
@@ -194,10 +193,10 @@
           <td>{{ "{:,.4f}".format(row['production_per_capita']) if row['production_per_capita'] else '0.00' }}</td>
           <td class="actions-cell">
             <a href="{{ url_for('prod.edit_production_form', production_id=row['production_id']) }}" 
-               class="btn-action btn-update">Edit</a>
+               class="table-action-btn update">Update</a>
             <form method="post" action="{{ url_for('prod.delete_production', production_id=row['production_id']) }}" 
-                  style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this record? This will also delete all related production values.');">
-              <button type="submit" class="btn-action btn-delete">Delete</button>
+                  style="display: inline; margin: 0;" onsubmit="return confirm('Are you sure you want to delete this record? This will also delete all related production values.');">
+              <button type="submit" class="table-action-btn delete">Delete</button>
             </form>
           </td>
         </tr>
@@ -217,42 +216,6 @@
 
 {% block extra_js %}
 <script>
-// Export to CSV
-function exportToCSV() {
-  const table = document.getElementById('productionTable');
-  let csv = [];
-  
-  // Get headers
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  csv.push(headers.join(','));
-  
-  // Get rows
-  const rows = table.querySelectorAll('tbody tr');
-  rows.forEach(row => {
-    const cells = Array.from(row.querySelectorAll('td')).map(td => {
-      let text = td.textContent.trim();
-      // Escape commas and quotes
-      if (text.includes(',') || text.includes('"')) {
-        text = '"' + text.replace(/"/g, '""') + '"';
-      }
-      return text;
-    });
-    csv.push(cells.join(','));
-  });
-  
-  // Create and download
-  const csvContent = csv.join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'production_data.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
-}
-
 // Production Chart
 {% if chart_data and chart_data.labels %}
 const ctx = document.getElementById('productionChart');
